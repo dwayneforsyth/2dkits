@@ -177,7 +177,7 @@ void updateLedTask(void *param) {
 	    if (strobe >= 8) {
 		 strobe = 0;
                  gpio_set_level(strobeGPIO[7], 0);
-	         vTaskDelay(1); // all leds are off, release control
+	         vTaskDelay(2); // all leds are off, release control
 	    }
         }
 

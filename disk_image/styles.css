@@ -1,0 +1,18 @@
+th { 
+  background: #3498db; 
+  color: white; 
+  font-weight: bold; 
+}
+
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+tr:nth-of-type(odd) {
+  background: #eee;
+}
+
+th, td {
+  padding: 5px;
+}

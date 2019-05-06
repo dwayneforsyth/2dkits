@@ -14,7 +14,9 @@
 #include <nvs_flash.h>
 #include <sys/param.h>
 
-#include <http_server.h>
+#include <esp_http_server.h>
+
+#include "disk_system.h"
 
 /* A simple example that demonstrates how to create GET and POST
  * handlers for the web server.
@@ -29,92 +31,83 @@
 
 static const char *TAG="APP";
 
-esp_err_t get_handler(httpd_req_t *req)
+esp_err_t file_get_handler(httpd_req_t *req, char *filename)
+{
+    /* Assuming that the sdcard has been initialized (formatted to FAT) and loaded with some files.
+     * Refer to sd_card_example to to know how to initialize the sd card */
+//    size_t filename_len = strlen(filename);
+
+//    if (filename_len == 0) {
+//        const char * resp_str = "Please specify a filename. eg. file?somefile.txt";
+//        httpd_resp_send(req, resp_str, strlen(resp_str));
+//        return ESP_OK;
+//    }
+//    filename = malloc(strlen(filepath_prefix) + filename_len + 1); // extra 1 byte for null termination
+//    strncpy(filename, filepath_prefix, strlen(filepath_prefix));
+
+    // Get null terminated filename
+//    httpd_req_get_url_query_str(req, filename + strlen(filepath_prefix), filename_len + 1);
+    ESP_LOGI(TAG, "Reading file : %s", filename);
+
+    FILE *f = fopen(filename, "r");
+//    free(filename);
+    if (f == NULL) {
+        const char * resp_str = "File doesn't exist";
+        httpd_resp_send(req, resp_str, strlen(resp_str));
+        return ESP_OK;
+    }
+
+    /* Read file in chunks (relaxes any constraint due to large file sizes)
+     * and send HTTP response in chunked encoding */
+    char   chunk[1024];
+    size_t chunksize;
+    do {
+        chunksize = fread(chunk, 1, sizeof(chunk), f);
+        if (httpd_resp_send_chunk(req, chunk, chunksize) != ESP_OK) {
+            fclose(f);
+            return ESP_FAIL;
+        }
+    } while (chunksize != 0);
+
+    httpd_resp_send_chunk(req, NULL, 0);
+    fclose(f);
+    return ESP_OK;
+}
+
+esp_err_t get_root_handler(httpd_req_t *req)
 {
     /* Send a simple response */
     httpd_resp_set_hdr(req, "Content-type", "text/html");
-    const char *resp = "<html><body><h1>Hello 2DKits</h1></body></html>";
-    httpd_resp_send(req, resp, strlen(resp));
+    file_get_handler(req, "/spiffs/index.html");
     return ESP_OK;
 }
 
-httpd_uri_t hello = {
-    .uri       = "/hello",
+httpd_uri_t root = {
+    .uri       = "/",
     .method    = HTTP_GET,
-    .handler   = get_handler,
-    /* Let's pass response string in user
-     * context to demonstrate it's usage */
+    .handler   = get_root_handler,
     .user_ctx  = NULL
 };
 
-/* An HTTP POST handler */
-esp_err_t echo_post_handler(httpd_req_t *req)
+esp_err_t get_css_handler(httpd_req_t *req)
 {
-    char buf[100];
-    int ret, remaining = req->content_len;
-
-    while (remaining > 0) {
-        /* Read the data for the request */
-        if ((ret = httpd_req_recv(req, buf,
-                        MIN(remaining, sizeof(buf)))) < 0) {
-            return ESP_FAIL;
-        }
-
-        /* Send back the same data */
-        httpd_resp_send_chunk(req, buf, ret);
-        remaining -= ret;
-
-        /* Log data received */
-        ESP_LOGI(TAG, "=========== RECEIVED DATA ==========");
-        ESP_LOGI(TAG, "%.*s", ret, buf);
-        ESP_LOGI(TAG, "====================================");
-    }
-
-    // End response
-    httpd_resp_send_chunk(req, NULL, 0);
+    /* Send a simple response */
+    httpd_resp_set_hdr(req, "Content-type", "text/html");
+    file_get_handler(req, "/spiffs/styles.css");
     return ESP_OK;
 }
 
-httpd_uri_t echo = {
-    .uri       = "/echo",
-    .method    = HTTP_POST,
-    .handler   = echo_post_handler,
+httpd_uri_t ccs = {
+    .uri       = "/styles.css",
+    .method    = HTTP_GET,
+    .handler   = get_css_handler,
     .user_ctx  = NULL
 };
 
-/* An HTTP PUT handler. This demonstrates realtime
- * registration and deregistration of URI handlers
- */
-esp_err_t ctrl_put_handler(httpd_req_t *req)
-{
-    char buf;
-    int ret;
-
-    if ((ret = httpd_req_recv(req, &buf, 1)) < 0) {
-        return ESP_FAIL;
-    }
-
-    if (buf == '0') {
-        /* Handler can be unregistered using the uri string */
-        ESP_LOGI(TAG, "Unregistering /hello and /echo URIs");
-        httpd_unregister_uri(req->handle, "/hello");
-        httpd_unregister_uri(req->handle, "/echo");
-    }
-    else {
-        ESP_LOGI(TAG, "Registering /hello and /echo URIs");
-        httpd_register_uri_handler(req->handle, &hello);
-        httpd_register_uri_handler(req->handle, &echo);
-    }
-
-    /* Respond with empty body */
-    httpd_resp_send(req, NULL, 0);
-    return ESP_OK;
-}
-
-httpd_uri_t ctrl = {
-    .uri       = "/ctrl",
-    .method    = HTTP_PUT,
-    .handler   = ctrl_put_handler,
+httpd_uri_t web_dir = {
+    .uri       = "/dir",
+    .method    = HTTP_GET,
+    .handler   = web_disk_dir_list,
     .user_ctx  = NULL
 };
 
@@ -128,9 +121,9 @@ httpd_handle_t start_webserver(void)
     if (httpd_start(&server, &config) == ESP_OK) {
         // Set URI handlers
         ESP_LOGI(TAG, "Registering URI handlers");
-        httpd_register_uri_handler(server, &hello);
-        httpd_register_uri_handler(server, &echo);
-        httpd_register_uri_handler(server, &ctrl);
+        httpd_register_uri_handler(server, &root);
+        httpd_register_uri_handler(server, &ccs);
+        httpd_register_uri_handler(server, &web_dir);
         return server;
     }
 

@@ -6,13 +6,15 @@
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_system.h"
 #include "nvs_flash.h"
-#include "http_server.h"
+
+#include "esp_system.h"
+#include "esp_http_server.h"
 #include "esp_wifi.h"
 
-#include "LED_Driver.h"
+#include "led_driver.h"
 #include "web_server.h"
+#include "disk_system.h"
 
 /*
    This code drive the 2DKits.com 4x4x8 tower
@@ -88,7 +90,7 @@ void walking_testing( uint32_t cycles) {
         b = ((step&0x200)!=0)? 15 : 0;
 	setLed(l,x,y,r,g,b);
 
-	if (x==0) printf("%X [%d,%d,%d] = (%d,%d,%d)\n",step, l,x,y,r,g,b);
+//	if (x==0) printf("%X [%d,%d,%d] = (%d,%d,%d)\n",step, l,x,y,r,g,b);
         vTaskDelay(200 / portTICK_PERIOD_MS);
     }
 }
@@ -120,10 +122,13 @@ void rgb_fade( uint32_t cycles) {
 
 
 void updatePatternsTask(void *param) {
+    allLedsOff();
+    vTaskDelay(100 / portTICK_PERIOD_MS);
 
     while (1) {
+        fad_testing( 300);   //30 seconds
         allLedsOn();
-        vTaskDelay(1000 * 10 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 * 5 / portTICK_PERIOD_MS);
 	allLedsOff();
         vTaskDelay(1000 * 1 / portTICK_PERIOD_MS);
         rgb_fade( 5 );
@@ -136,7 +141,6 @@ void updatePatternsTask(void *param) {
         vTaskDelay(1000 * 3 / portTICK_PERIOD_MS);
         allLedsColor( 0,0,15);
         vTaskDelay(1000 * 3 / portTICK_PERIOD_MS);
-        fad_testing( 300);   //30 seconds
     }
 }
 
@@ -150,10 +154,13 @@ void app_main()
     init_LED_driver();
     xTaskCreate(updatePatternsTask, "updatePatternsTask", 4*1024, NULL, 23, NULL);
 
+
     static httpd_handle_t server = NULL;
     ESP_ERROR_CHECK(nvs_flash_init());
     initialise_wifi(&server);
 
+    initialise_disk();
+    disk_dir_list("/spiffs",NULL);
 
 //  The ESP32 framework has already started the Scheduler, starting it again just
 //  causes a crash
