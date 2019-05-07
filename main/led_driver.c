@@ -96,49 +96,71 @@ void IRAM_ATTR spi_post_transfer_callback() {
 
 uint16_t ledDataOut[9][16][4];
 
+void getStrobeOffset(uint8_t z, uint8_t x, uint8_t y, uint8_t *oStrobe, uint16_t *oOffset ) {
+
+    switch(z) {
+	case 0:
+            *oStrobe = x;
+            *oOffset = 1<<y;
+	    break;
+	case 1:
+            *oStrobe = x+4;
+            *oOffset = 1<<(y);
+	    break;
+	case 4:
+            *oStrobe = x;
+            *oOffset = 1<<(y+4);
+	    break;
+	case 5:
+            *oStrobe = x+4;
+            *oOffset = 1<<(y+4);
+	    break;
+	case 6:
+            *oStrobe = x;
+            *oOffset = 1<<(y+8);
+	    break;
+	case 7:
+            *oStrobe = x+4;
+            *oOffset = 1<<(y+8);
+	    break;
+	case 2:
+            *oStrobe = x;
+            *oOffset = 1<<(y+12);
+	    break;
+	case 3:
+            *oStrobe = x+4;
+            *oOffset = 1<<(y+12);
+	    break;
+        default:
+            printf("out of range layer = %d\n",z);
+	    break;
+    }
+
+}
+
+void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *iB) {
+    uint8_t oStrobe = 0;
+    uint16_t oOffset = 0;
+    uint8_t ti = 0;
+
+    *iR=*iG=*iB=0;
+
+    getStrobeOffset( z, x, y, &oStrobe, &oOffset );
+
+    for (ti=0;ti<15;ti++) {
+	if (ledDataOut[oStrobe][ti][0] & oOffset) *iR+=1;
+	if (ledDataOut[oStrobe][ti][1] & oOffset) *iG+=1;
+	if (ledDataOut[oStrobe][ti][2] & oOffset) *iB+=1;
+    }
+}
+
 void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB) {
     uint8_t oStrobe = 0;
     uint16_t oOffset = 0;
     uint8_t ti = 0;
 
 
-    switch(z) {
-	case 0:
-            oStrobe = x;
-            oOffset = 1<<y;
-	    break;
-	case 1:
-            oStrobe = x+4;
-            oOffset = 1<<(y);
-	    break;
-	case 4:
-            oStrobe = x;
-            oOffset = 1<<(y+4);
-	    break;
-	case 5:
-            oStrobe = x+4;
-            oOffset = 1<<(y+4);
-	    break;
-	case 6:
-            oStrobe = x;
-            oOffset = 1<<(y+8);
-	    break;
-	case 7:
-            oStrobe = x+4;
-            oOffset = 1<<(y+8);
-	    break;
-	case 2:
-            oStrobe = x;
-            oOffset = 1<<(y+12);
-	    break;
-	case 3:
-            oStrobe = x+4;
-            oOffset = 1<<(y+12);
-	    break;
-        default:
-            printf("out of range layer = %d\n",z);
-	    break;
-    }
+    getStrobeOffset( z, x, y, &oStrobe, &oOffset );
 
     for (ti=0;ti<15;ti++) {
 	if (ti < iR) {
@@ -157,7 +179,7 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
 	    ledDataOut[oStrobe][ti][2] &= ~oOffset;
 	}
     }
-};
+}
 
 //
 // this is the highest pri task, and it is currently running full speed
