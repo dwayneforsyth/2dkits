@@ -7,6 +7,7 @@
 #include <sys/unistd.h>
 #include <sys/stat.h>
 #include <sys/fcntl.h>
+#include "time.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_spiffs.h"
@@ -284,7 +285,9 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
     char tbuffer[80];
     char tbuffer2[80];
     struct stat sb;
+    time_t now;
     struct tm *tm_info;
+    struct tm timeinfo;
     char *lpath = NULL;
     int statok;
     char *error_open = "Error opening directory\n";
@@ -295,6 +298,13 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
 
     sprintf(tbuffer,"<html><head><link rel=\"stylesheet\" href=\"styles.css\"></head><body>List of Directory [%s]\n", path);
     httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
+
+    time(&now);
+    localtime_r(&now, &timeinfo);
+    strftime(tbuffer, 80, "%d/%m/%Y %R", &timeinfo);
+    sprintf(tbuffer2,"Time is %s<br>",tbuffer);
+    httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
+
     // Open directory
     dir = opendir(path);
     if (!dir) {
@@ -339,7 +349,7 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
                 strcpy(size, "       -");
             }
 
-            sprintf(tbuffer2, "<tr><td>%c<td>%s<td>%s<td>%s\n",
+            sprintf(tbuffer2, "<tr><td>%c<td align=\"right\">%s<td>%s<td>%s\n",
                 type,
                 size,
                 tbuffer,

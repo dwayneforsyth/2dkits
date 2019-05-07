@@ -4,6 +4,11 @@ th {
   font-weight: bold; 
 }
 
+table {
+  border-radius:6px;
+  background:white;
+}
+
 table, th, td {
   border: 1px solid black;
   border-collapse: collapse;
@@ -15,4 +20,10 @@ tr:nth-of-type(odd) {
 
 th, td {
   padding: 5px;
+}
+
+body {
+  background:#9BC86A;
+  font:400 14px 'Calibri','Arial';
+  padding:20px;
 }

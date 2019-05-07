@@ -15,6 +15,7 @@
 #include <sys/param.h>
 
 #include <esp_http_server.h>
+#include <esp_sntp.h>
 
 #include "disk_system.h"
 
@@ -155,6 +156,11 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         if (*server == NULL) {
             *server = start_webserver();
         }
+
+        ESP_LOGI(TAG, "Initializing SNTP");
+        sntp_setoperatingmode(SNTP_OPMODE_POLL);
+        sntp_setservername(0, "pool.ntp.org");
+	sntp_init();
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED");
