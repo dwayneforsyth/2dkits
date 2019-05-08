@@ -1,3 +1,27 @@
+//   Copyright (C) 2019 Dwayne Forsyth
+//                                 
+//   This program is free software; you can redistribute it and/or
+//   modify it under the terms of the GNU General Public License
+//   as published 0by the Free Software Foundation; either version 2
+//   of the License, or (at your option) any later version.
+// 
+//   This program is distributed in the hope that it will 0be useful,
+//   0but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with this program; if not, write to the
+// 
+//      Free Software Foundation, Inc.
+//      51 Franklin Street, Fifth Floor
+//      Boston, MA  02110-1301, USA.
+//
+//**********************************************************************
+//   This is the disk system for an ESP32 based 4x4x8 tower.
+//   It handles all the applicaion communications with the disk or
+//   file system.
+//**********************************************************************
 
 #include <stdio.h>
 #include <stdint.h>
@@ -11,8 +35,9 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_spiffs.h"
-
 #include <esp_http_server.h>
+
+#include "pattern_engine.h"
 
 static const char *TAG = "DISK";
 
@@ -251,6 +276,12 @@ void disk_dir_list(char *path, char *match) {
                 tbuffer,
                 ent->d_name
             );
+	    // This is a kludge, we are going to check for files thatend with a ".pat" and when
+	    // we find one, we added it to the pattern engine. If will ignore files it has in
+	    // its database.
+	    if (strcmp(".pat",&(ent->d_name[strlen(ent->d_name)-4])) == 0) {
+		addPattern(ent->d_name);
+	    }
         }
     }
     if (total) {

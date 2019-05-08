@@ -1,5 +1,27 @@
-
-
+//   Copyright (C) 2019 Dwayne Forsyth
+//                                 
+//   This program is free software; you can redistribute it and/or
+//   modify it under the terms of the GNU General Public License
+//   as published 0by the Free Software Foundation; either version 2
+//   of the License, or (at your option) any later version.
+// 
+//   This program is distributed in the hope that it will 0be useful,
+//   0but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with this program; if not, write to the
+// 
+//      Free Software Foundation, Inc.
+//      51 Franklin Street, Fifth Floor
+//      Boston, MA  02110-1301, USA.
+//
+//**********************************************************************
+//   This is the pattern engine for an ESP32 based 4x4x8 tower.
+//   It updates the LEDs based on the patterns, internal and disk
+//   based, and takes action when buttons are pressed
+//**********************************************************************
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,10 +33,13 @@
 #include "esp_system.h"
 #include "esp_http_server.h"
 #include "esp_wifi.h"
+#include "driver/gpio.h"
 
 #include "led_driver.h"
 #include "web_server.h"
 #include "disk_system.h"
+
+#define MAX_PATTERN_ENTRY 50
 
 typedef enum patternType_t {
     PATTERN_NONE,
@@ -28,10 +53,29 @@ typedef struct pattern_entry_t {
     uint16_t delay;
     uint16_t cycles;
     char fileName[20];
-    char patternName[20];
+    char patternName[40];
     bool enabled;
 } pattern_entry_t;
- 
+
+
+bool delay_and_buttons(uint16_t delay) {
+    bool exit = false;
+
+    vTaskDelay(delay / portTICK_PERIOD_MS);
+    if (gpio_get_level(39) == 0) {
+        printf("Button 39\n");
+	while (gpio_get_level(39) == 0)  vTaskDelay(1);
+        return(true);
+    }
+
+    if (gpio_get_level(34) == 0) {
+        printf("Button 34\n");
+	while (gpio_get_level(34) == 0)  vTaskDelay(1);
+        return(true);
+    }
+
+    return(exit);
+}
 
 /*
    This code drive the 2DKits.com 4x4x8 tower
@@ -81,7 +125,7 @@ void fad_testing( uint16_t cycles, uint16_t delay) {
         setLed(0,3,2, r,g,g);
         setLed(0,3,3, r,g,g);
 
-        vTaskDelay(delay / portTICK_PERIOD_MS);
+        if (delay_and_buttons(delay)) return;
     }
 }
 
@@ -108,7 +152,7 @@ void walking_testing( uint16_t cycles, uint16_t delay) {
 	setLed(l,x,y,r,g,b);
 
 //	if (x==0) printf("%X [%d,%d,%d] = (%d,%d,%d)\n",step, l,x,y,r,g,b);
-        vTaskDelay(delay / portTICK_PERIOD_MS);
+        if (delay_and_buttons(delay)) return;
     }
 }
 
@@ -123,14 +167,14 @@ void rgb_fade( uint16_t cycles, uint16_t delay) {
              g = (color & 0x02)? 0 : fad;
              b = (color & 0x04)? 0 : fad;
              allLedsColor(r,g,b);
-             vTaskDelay(delay / portTICK_PERIOD_MS);
+             if (delay_and_buttons(delay)) return;
 	  }
 	  for (fad= 14; fad != 0; fad--) {
              r = (color & 0x01)? 0 : fad;
              g = (color & 0x02)? 0 : fad;
              b = (color & 0x04)? 0 : fad;
              allLedsColor(r,g,b);
-             vTaskDelay(delay / portTICK_PERIOD_MS);
+             if (delay_and_buttons(delay)) return;
 	  }
       }
    }
@@ -141,11 +185,11 @@ void rgb_test( uint16_t cycles, uint16_t delay) {
    while(cycles != 0) {
       cycles--;
       allLedsColor( 15,0,0);
-      vTaskDelay(delay / portTICK_PERIOD_MS);
+      if (delay_and_buttons(delay)) return;
       allLedsColor( 0,15,0);
-      vTaskDelay(delay / portTICK_PERIOD_MS);
+      if (delay_and_buttons(delay)) return;
       allLedsColor( 0,0,15);
-      vTaskDelay(delay / portTICK_PERIOD_MS);
+      if (delay_and_buttons(delay)) return;
    }
 }
 
@@ -157,18 +201,19 @@ void setLed4RGBOnOff(uint8_t l, uint8_t x, uint16_t r, uint16_t g, uint16_t b, u
     }
 }
 
-void setLed4RGBUpDown(uint8_t l, uint8_t x, uint16_t r, uint16_t g, uint16_t b, uint16_t mask) {
+uint8_t upDown(bool test, uint8_t value) {
+   if ((test == true ) && (value < 15)) return( value+1);
+   if ((test == false) && (value != 0)) return( value-1);
+   return(value);
+}
+
+void setLed4RGBUpDown(uint8_t l, uint8_t x, uint16_t red, uint16_t green, uint16_t blue, uint16_t mask) {
     uint8_t y;
-//    int8_t cr,cg,cb;
+    uint8_t cRed,cGreen,cBlue;
 
     for (y=0;y<4;y++) {
-#if (0)
-       getLed(l,x,y,&cr,&cg,&cb);
-       setLed(l,x,y, (r & mask)? MIN(15,cr++) : MAX(0,cr--),
-                     (g & mask)? MIN(15,cg++) : MAX(0,cg--),
-		     (b & mask)? MIN(15,cg++) : MIN(0,cg--));
-#endif
-       setLed(l,x,y, (r & mask)? 15:0, (g & mask)? 15:0, (b & mask)? 15:0);
+       getLed(l,x,y,&cRed,&cGreen,&cBlue);
+       setLed(l,x,y, upDown((red & mask)!=0,cRed), upDown((green & mask),cGreen), upDown((blue & mask),cBlue));
        mask = mask >>1;
     }
 }
@@ -179,9 +224,10 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
    FILE *fh;
    uint8_t type;
    uint8_t speed;
-   uint8_t l,x,y;
+   uint8_t loop;
    uint8_t fad_cycle;
    uint16_t frame = 0;
+   bool once = true;
 
    while(cycles != 0) {
       cycles--;
@@ -194,7 +240,11 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
       fread(tBuffer,1, 24, fh);
       type = tBuffer[0];
       speed = tBuffer[1];
-      printf("type=%d speed=%d\n",type,speed);
+ 
+      if (once==true) {
+	  printf("type=%d speed=%d\n",type,speed);
+	  once = false;
+      }
 
       while (!feof(fh)) {
           // read entry
@@ -206,109 +256,42 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
               fad_cycle = 0;
 	  }
 	  if (fad_cycle == 0) {
-              printf("read frame=%d cycles=%d fad_cycle =%d\n",frame,cycles,fad_cycle);
-              setLed4RGBOnOff(0, 0, tBuffer[ 0], tBuffer[ 1], tBuffer[ 2], 0x8000);
-              setLed4RGBOnOff(0, 1, tBuffer[ 3], tBuffer[ 4], tBuffer[ 5], 0x8000);
-              setLed4RGBOnOff(0, 2, tBuffer[ 6], tBuffer[ 7], tBuffer[ 8], 0x8000);
-              setLed4RGBOnOff(0, 3, tBuffer[ 9], tBuffer[10], tBuffer[11], 0x8000);
+//              printf("read frame=%d cycles=%d fad_cycle =%d\n",frame,cycles,fad_cycle);
+	      for (loop=0;loop<8;loop++) {
+                  setLed4RGBOnOff(loop/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
+                  setLed4RGBOnOff(loop/4+2, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
+                  setLed4RGBOnOff(loop/4+4, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0800);
+                  setLed4RGBOnOff(loop/4+6, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
+              }
 
-              setLed4RGBOnOff(1, 0, tBuffer[12], tBuffer[13], tBuffer[14], 0x8000);
-              setLed4RGBOnOff(1, 1, tBuffer[15], tBuffer[16], tBuffer[17], 0x8000);
-              setLed4RGBOnOff(1, 2, tBuffer[18], tBuffer[19], tBuffer[20], 0x8000);
-              setLed4RGBOnOff(1, 3, tBuffer[21], tBuffer[22], tBuffer[23], 0x8000);
+              if (delay_and_buttons(delay*speed)) {
+                  fclose(fh); 
+		  return;
+	      }
 
-              setLed4RGBOnOff(2, 0, tBuffer[ 0], tBuffer[ 1], tBuffer[ 2], 0x0008);
-              setLed4RGBOnOff(2, 1, tBuffer[ 3], tBuffer[ 4], tBuffer[ 5], 0x0008);
-              setLed4RGBOnOff(2, 2, tBuffer[ 6], tBuffer[ 7], tBuffer[ 8], 0x0008);
-              setLed4RGBOnOff(2, 3, tBuffer[ 9], tBuffer[10], tBuffer[11], 0x0008);
-
-              setLed4RGBOnOff(3, 0, tBuffer[12], tBuffer[13], tBuffer[14], 0x0008);
-              setLed4RGBOnOff(3, 1, tBuffer[15], tBuffer[16], tBuffer[17], 0x0008);
-              setLed4RGBOnOff(3, 2, tBuffer[18], tBuffer[19], tBuffer[20], 0x0008);
-              setLed4RGBOnOff(3, 3, tBuffer[21], tBuffer[22], tBuffer[23], 0x0008);
-
-              setLed4RGBOnOff(4, 0, tBuffer[ 0], tBuffer[ 1], tBuffer[ 2], 0x0800);
-              setLed4RGBOnOff(4, 1, tBuffer[ 3], tBuffer[ 4], tBuffer[ 5], 0x0800);
-              setLed4RGBOnOff(4, 2, tBuffer[ 6], tBuffer[ 7], tBuffer[ 8], 0x0800);
-              setLed4RGBOnOff(4, 3, tBuffer[ 9], tBuffer[10], tBuffer[11], 0x0800);
-
-              setLed4RGBOnOff(5, 0, tBuffer[12], tBuffer[13], tBuffer[14], 0x0800);
-              setLed4RGBOnOff(5, 1, tBuffer[15], tBuffer[16], tBuffer[17], 0x0800);
-              setLed4RGBOnOff(5, 2, tBuffer[18], tBuffer[19], tBuffer[20], 0x0800);
-              setLed4RGBOnOff(5, 3, tBuffer[21], tBuffer[22], tBuffer[23], 0x0800);
-
-              setLed4RGBOnOff(6, 0, tBuffer[ 0], tBuffer[ 1], tBuffer[ 2], 0x0080);
-              setLed4RGBOnOff(6, 1, tBuffer[ 3], tBuffer[ 4], tBuffer[ 5], 0x0080);
-              setLed4RGBOnOff(6, 2, tBuffer[ 6], tBuffer[ 7], tBuffer[ 8], 0x0080);
-              setLed4RGBOnOff(6, 3, tBuffer[ 9], tBuffer[10], tBuffer[11], 0x0080);
-
-              setLed4RGBOnOff(7, 0, tBuffer[12], tBuffer[13], tBuffer[14], 0x0080);
-              setLed4RGBOnOff(7, 1, tBuffer[15], tBuffer[16], tBuffer[17], 0x0080);
-              setLed4RGBOnOff(7, 2, tBuffer[18], tBuffer[19], tBuffer[20], 0x0080);
-              setLed4RGBOnOff(7, 3, tBuffer[21], tBuffer[22], tBuffer[23], 0x0080);
-
-              vTaskDelay(delay * speed / portTICK_PERIOD_MS);
 	  } else {
 	      while (fad_cycle > 0) {
 		  fad_cycle--;
-                  printf("read frame=%d cycles=%d fad_cycle =%d\n",frame,cycles,fad_cycle);
-                  setLed4RGBUpDown(0, 0, tBuffer[ 0], tBuffer[ 1], tBuffer[ 2], 0x8000);
-                  setLed4RGBUpDown(0, 1, tBuffer[ 3], tBuffer[ 4], tBuffer[ 5], 0x8000);
-                  setLed4RGBUpDown(0, 2, tBuffer[ 6], tBuffer[ 7], tBuffer[ 8], 0x8000);
-                  setLed4RGBUpDown(0, 3, tBuffer[ 9], tBuffer[10], tBuffer[11], 0x8000);
-    
-                  setLed4RGBUpDown(1, 0, tBuffer[12], tBuffer[13], tBuffer[14], 0x8000);
-                  setLed4RGBUpDown(1, 1, tBuffer[15], tBuffer[16], tBuffer[17], 0x8000);
-                  setLed4RGBUpDown(1, 2, tBuffer[18], tBuffer[19], tBuffer[20], 0x8000);
-                  setLed4RGBUpDown(1, 3, tBuffer[21], tBuffer[22], tBuffer[23], 0x8000);
-    
-                  setLed4RGBUpDown(2, 0, tBuffer[ 0], tBuffer[ 1], tBuffer[ 2], 0x0008);
-                  setLed4RGBUpDown(2, 1, tBuffer[ 3], tBuffer[ 4], tBuffer[ 5], 0x0008);
-                  setLed4RGBUpDown(2, 2, tBuffer[ 6], tBuffer[ 7], tBuffer[ 8], 0x0008);
-                  setLed4RGBUpDown(2, 3, tBuffer[ 9], tBuffer[10], tBuffer[11], 0x0008);
-    
-                  setLed4RGBUpDown(3, 0, tBuffer[12], tBuffer[13], tBuffer[14], 0x0008);
-                  setLed4RGBUpDown(3, 1, tBuffer[15], tBuffer[16], tBuffer[17], 0x0008);
-                  setLed4RGBUpDown(3, 2, tBuffer[18], tBuffer[19], tBuffer[20], 0x0008);
-                  setLed4RGBUpDown(3, 3, tBuffer[21], tBuffer[22], tBuffer[23], 0x0008);
-    
-                  setLed4RGBUpDown(4, 0, tBuffer[ 0], tBuffer[ 1], tBuffer[ 2], 0x0800);
-                  setLed4RGBUpDown(4, 1, tBuffer[ 3], tBuffer[ 4], tBuffer[ 5], 0x0800);
-                  setLed4RGBUpDown(4, 2, tBuffer[ 6], tBuffer[ 7], tBuffer[ 8], 0x0800);
-                  setLed4RGBUpDown(4, 3, tBuffer[ 9], tBuffer[10], tBuffer[11], 0x0800);
-    
-                  setLed4RGBUpDown(5, 0, tBuffer[12], tBuffer[13], tBuffer[14], 0x0800);
-                  setLed4RGBUpDown(5, 1, tBuffer[15], tBuffer[16], tBuffer[17], 0x0800);
-                  setLed4RGBUpDown(5, 2, tBuffer[18], tBuffer[19], tBuffer[20], 0x0800);
-                  setLed4RGBUpDown(5, 3, tBuffer[21], tBuffer[22], tBuffer[23], 0x0800);
-    
-                  setLed4RGBUpDown(6, 0, tBuffer[ 0], tBuffer[ 1], tBuffer[ 2], 0x0080);
-                  setLed4RGBUpDown(6, 1, tBuffer[ 3], tBuffer[ 4], tBuffer[ 5], 0x0080);
-                  setLed4RGBUpDown(6, 2, tBuffer[ 6], tBuffer[ 7], tBuffer[ 8], 0x0080);
-                  setLed4RGBUpDown(6, 3, tBuffer[ 9], tBuffer[10], tBuffer[11], 0x0080);
-    
-                  setLed4RGBUpDown(7, 0, tBuffer[12], tBuffer[13], tBuffer[14], 0x0080);
-                  setLed4RGBUpDown(7, 1, tBuffer[15], tBuffer[16], tBuffer[17], 0x0080);
-                  setLed4RGBUpDown(7, 2, tBuffer[18], tBuffer[19], tBuffer[20], 0x0080);
-                  setLed4RGBUpDown(7, 3, tBuffer[21], tBuffer[22], tBuffer[23], 0x0080);
-
-                  vTaskDelay(delay * speed / portTICK_PERIOD_MS);
+//                  printf("read frame=%d cycles=%d fad_cycle =%d\n",frame,cycles,fad_cycle);
+	          for (loop=0;loop<8;loop++) {
+                      setLed4RGBUpDown(loop/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
+                      setLed4RGBUpDown(loop/4+2, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
+                      setLed4RGBUpDown(loop/4+4, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0800);
+                      setLed4RGBUpDown(loop/4+6, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
+                  }
+                  if (delay_and_buttons(delay*speed)) {
+                      fclose(fh); 
+		      return;
+	          }
 	      }
 	  }
-#if (0)
-          for (l=0;l<8;l++) {
-             for (x=0;x<4;x++) {
-                for (y=0;y<4;y++) {
-                   setLed(l,x,y, tBuffer[(l*64+x*4+y)*3], tBuffer[(l*64+x*4+y)*3+1], tBuffer[(l*64+x*4+y)*3+2]);
-          }  }  }
-#endif
 	  frame++;
       }
       fclose(fh); 
    }
 }
 
-pattern_entry_t patternTable[50] = {
+pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
    {.patternType = PATTERN_BUILT_IN,
     .runMe = fad_testing,
     .patternName = "Fad testing Level 1",
@@ -319,7 +302,7 @@ pattern_entry_t patternTable[50] = {
     .runMe = walking_testing,
     .patternName = "Walking LED test",
     .delay = 200,
-    .cycles = 100,
+    .cycles = 1000,
     .enabled = true},
    {.patternType = PATTERN_FILE,
     .delay = 100,
@@ -359,6 +342,29 @@ pattern_entry_t patternTable[50] = {
     .enabled = true},
   };
 
+void addPattern( char * filename) {
+    uint8_t index;
+
+    for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
+        if ((patternTable[index].patternType == PATTERN_FILE) &&
+            (strcmp(patternTable[index].fileName, filename)==0)) {
+	    return; // found it, don't need to save it
+	}
+    }
+    for (index = 0; patternTable[index].patternType != PATTERN_NONE && index < MAX_PATTERN_ENTRY; index++) ;
+
+    if (index == MAX_PATTERN_ENTRY) {
+	return; // table is full
+    }
+
+    strcpy(patternTable[index].fileName, filename);
+    patternTable[index].delay = 100;
+    patternTable[index].cycles = 10;
+    patternTable[index].enabled = true;
+    strcpy(patternTable[index].patternName, filename);
+    patternTable[index].patternType = PATTERN_FILE;
+}
+
 
 void updatePatternsTask(void *param) {
     uint8_t step = 0;
@@ -380,7 +386,7 @@ void updatePatternsTask(void *param) {
             default:
                 break;
         }
-        step = ( step+1 % 8);
+        step = ((step+1) % MAX_PATTERN_ENTRY);
     }
 }
 

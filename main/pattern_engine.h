@@ -19,14 +19,11 @@
 //
 //**********************************************************************
 
-#ifndef LED_DRIVER_H
-#define LED_DRIVER_H
-void init_LED_driver();
-void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB);
-void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *iB);
+#ifndef PATTERN_ENGINE_H
+#define PATTERN_ENGINE_H
 
-void allLedsOff();
-void allLedsOn();
-void allLedsColor( uint8_t red, uint8_t green, uint8_t blue);
+void updatePatternsTask( void );
+void addPattern( char * );
 
 #endif
+

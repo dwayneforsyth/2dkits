@@ -1,3 +1,26 @@
+//   Copyright (C) 2019 Dwayne Forsyth
+//                                 
+//   This program is free software; you can redistribute it and/or
+//   modify it under the terms of the GNU General Public License
+//   as published 0by the Free Software Foundation; either version 2
+//   of the License, or (at your option) any later version.
+// 
+//   This program is distributed in the hope that it will 0be useful,
+//   0but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with this program; if not, write to the
+// 
+//      Free Software Foundation, Inc.
+//      51 Franklin Street, Fifth Floor
+//      Boston, MA  02110-1301, USA.
+//
+//**********************************************************************
+//   This is the LED driver for an ESP32 based 4x4x8 tower.
+//   It runs the GPIO and SPI bus to drive the physical LEDs.
+//**********************************************************************
 
 
 
@@ -57,6 +80,8 @@ static const uint8_t strobeGPIO[9] = {
 	0
     };
 
+
+// https://github.com/loboris/ESP32_NEW_SPI_MASTER_EXAMPLE/blob/master/main/spi_master_demo.c
 void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, uint16_t blue) {
 
     static uint8_t buffer[(NUMBER_OF_LEDS)+1];
@@ -75,6 +100,7 @@ void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, u
     t.rx_buffer=NULL;
 //    t.flags = SPI_TRANS_USE_TXDATA;
     t.length=6*8; // bits?
+//DDF    spi_device_transmit(spi, &t); will it be better?
     spi_device_queue_trans(spi, &t, portMAX_DELAY);  //Transmit!
 }
 
