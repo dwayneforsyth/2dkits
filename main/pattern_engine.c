@@ -76,10 +76,11 @@ bool delay_and_buttons(uint16_t delay) {
 		     delayCount = 0;
 		     count = ((count+1) % 99);
 		     displayNumber(count);
+		     exit = true;
 	     }
 	}
 	changeBank( 0 );
-        return(true);
+        return(exit);
     }
 
     if (gpio_get_level(34) == 0) {
@@ -93,10 +94,11 @@ bool delay_and_buttons(uint16_t delay) {
 		     delayCount = 0;
 		     count = ((count-1) % 99);
 		     displayNumber(count);
+		     exit = true;
 	     }
 	}
 	changeBank( 0 );
-        return(true);
+        return(exit);
     }
 
     return(exit);
