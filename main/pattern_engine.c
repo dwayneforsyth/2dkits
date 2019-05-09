@@ -38,6 +38,7 @@
 #include "led_driver.h"
 #include "web_server.h"
 #include "disk_system.h"
+#include "numbers_led.h"
 
 #define MAX_PATTERN_ENTRY 50
 
@@ -57,20 +58,44 @@ typedef struct pattern_entry_t {
     bool enabled;
 } pattern_entry_t;
 
+int8_t count = 0;
 
 bool delay_and_buttons(uint16_t delay) {
     bool exit = false;
+    uint16_t delayCount = 0;
 
     vTaskDelay(delay / portTICK_PERIOD_MS);
     if (gpio_get_level(39) == 0) {
         printf("Button 39\n");
-	while (gpio_get_level(39) == 0)  vTaskDelay(1);
+	changeBank( 1 );
+	displayNumber(count);
+	while (gpio_get_level(39) == 0) {
+	     vTaskDelay(1);
+	     delayCount++;
+	     if (delayCount > 100) {
+		     delayCount = 0;
+		     count = ((count+1) % 99);
+		     displayNumber(count);
+	     }
+	}
+	changeBank( 0 );
         return(true);
     }
 
     if (gpio_get_level(34) == 0) {
         printf("Button 34\n");
-	while (gpio_get_level(34) == 0)  vTaskDelay(1);
+	changeBank( 1 );
+	displayNumber(count);
+	while (gpio_get_level(34) == 0) {
+	     vTaskDelay(1);
+	     delayCount++;
+	     if (delayCount > 100) {
+		     delayCount = 0;
+		     count = ((count-1) % 99);
+		     displayNumber(count);
+	     }
+	}
+	changeBank( 0 );
         return(true);
     }
 
@@ -232,7 +257,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
    while(cycles != 0) {
       cycles--;
       sprintf(filename, "/spiffs/%s",name);
-      printf("file=%s\n", filename);
+      if (once==true) printf("file=%s\n", filename);
       fh = fopen(filename, "r");
       frame = 0;
 

@@ -19,15 +19,9 @@
 //
 //**********************************************************************
 
-#ifndef LED_DRIVER_H
-#define LED_DRIVER_H
-void init_LED_driver();
-void changeBank( uint8_t select );
-void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB);
-void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *iB);
+#ifndef NUMBERS_LED_H
+#define NUMBERS_LED_H
 
-void allLedsOff();
-void allLedsOn();
-void allLedsColor( uint8_t red, uint8_t green, uint8_t blue);
+void displayNumber(uint8_t number);
 
 #endif

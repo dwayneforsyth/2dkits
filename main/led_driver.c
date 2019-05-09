@@ -119,8 +119,56 @@ void IRAM_ATTR spi_post_transfer_callback() {
     spi_done = true;
 }
 
+/*******************************************************************************
+    PURPOSE:
+        the ledDataOut is in the format streamed out the SPI port. We access
+	the data the most to send it out the SPI, so keeping it in this format
+	optimized the data for speed.
 
-uint16_t ledDataOut[9][16][4];
+	For this description, a single RGB package LED is 3 LEDs, a Red, Green,
+       	and Blue.
+
+	The tower is a 4x4x8x3 (x,y,layer,color) LED structure. The driver is
+       	(3x16)x8 matrix.  The 3x16 is three colors of 16 bits of data. so every
+       	1/8 cycle up to 48 LEDs are light. The SPI buss pumps out 16 copies of
+       	the 48 LEDs per the 1/8 cycle, giving the intensity or brightness.
+
+	Cycle 0 - up to 48 LEDs on
+	Cycle 0 - intensity 14 or higher
+	Cycle 0 - bringness 13 or higher
+	  ...
+	Cycle 0
+	Cycle 0 - brightness 1 or higher
+	Cycle 1 - up to 48 LEDs on
+	        Cycle 0 - intensity 14 or higher
+        Cycle 1 - bringness 13 or higher
+          ...
+        Cycle 1
+        Cycle 1 - brightness 1 or higher
+	  ...
+	Cycle 7 - up to 48 LEDs on
+	        Cycle 0 - intensity 14 or higher
+        Cycle 7 - bringness 13 or higher
+          ...
+        Cycle 7
+        Cycle 7 - brightness 1 or higher
+
+	We have two copies of the strobe data. When the user pushes the button
+	a second copy of the LEDs structor is used to display the pattern number
+	once done the data is switched back.
+
+*******************************************************************************/
+
+static uint16_t ledDataOut[2][9][16][4];
+static uint8_t bank = 0;
+
+void changeBank( uint8_t select ) {
+
+    if (select < 2) {
+        bank = select;
+    }
+    printf("running LED strobe bank = %d",bank);
+}
 
 void getStrobeOffset(uint8_t z, uint8_t x, uint8_t y, uint8_t *oStrobe, uint16_t *oOffset ) {
 
@@ -174,9 +222,9 @@ void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *
     getStrobeOffset( z, x, y, &oStrobe, &oOffset );
 
     for (ti=0;ti<15;ti++) {
-	if (ledDataOut[oStrobe][ti][0] & oOffset) *iR+=1;
-	if (ledDataOut[oStrobe][ti][1] & oOffset) *iG+=1;
-	if (ledDataOut[oStrobe][ti][2] & oOffset) *iB+=1;
+	if (ledDataOut[bank][oStrobe][ti][0] & oOffset) *iR+=1;
+	if (ledDataOut[bank][oStrobe][ti][1] & oOffset) *iG+=1;
+	if (ledDataOut[bank][oStrobe][ti][2] & oOffset) *iB+=1;
     }
 }
 
@@ -190,19 +238,19 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
 
     for (ti=0;ti<15;ti++) {
 	if (ti < iR) {
-	    ledDataOut[oStrobe][ti][0] |= oOffset;
+	    ledDataOut[bank][oStrobe][ti][0] |= oOffset;
 	} else {
-	    ledDataOut[oStrobe][ti][0] &= ~oOffset;
+	    ledDataOut[bank][oStrobe][ti][0] &= ~oOffset;
 	}
 	if (ti < iG) {
-	    ledDataOut[oStrobe][ti][1] |= oOffset;
+	    ledDataOut[bank][oStrobe][ti][1] |= oOffset;
 	} else {
-	    ledDataOut[oStrobe][ti][1] &= ~oOffset;
+	    ledDataOut[bank][oStrobe][ti][1] &= ~oOffset;
 	}
 	if (ti < iB) {
-	    ledDataOut[oStrobe][ti][2] |= oOffset;
+	    ledDataOut[bank][oStrobe][ti][2] |= oOffset;
 	} else {
-	    ledDataOut[oStrobe][ti][2] &= ~oOffset;
+	    ledDataOut[bank][oStrobe][ti][2] &= ~oOffset;
 	}
     }
 }
@@ -231,9 +279,9 @@ void updateLedTask(void *param) {
 
         while (spi_done != true);
         updateMBI5026Chain( spi,
-     	    ledDataOut[strobe][intensity][1], 
-     	    ledDataOut[strobe][intensity][2], 
-     	    ledDataOut[strobe][intensity][0]);
+     	    ledDataOut[bank][strobe][intensity][1], 
+     	    ledDataOut[bank][strobe][intensity][2], 
+     	    ledDataOut[bank][strobe][intensity][0]);
     }
 }
 
@@ -245,7 +293,7 @@ void allLedsOff() {
     for (s=0;s<9;s++) {
         for (i=0;i<16;i++) {
             for (c=0;c<3;c++) {
-                ledDataOut[s][i][c] = 0x0000;
+                ledDataOut[bank][s][i][c] = 0x0000;
 }   }   }   } 
 
 void allLedsOn() {
@@ -253,7 +301,7 @@ void allLedsOn() {
     for (s=0;s<9;s++) {
         for (i=0;i<16;i++) {
             for (c=0;c<3;c++) {
-                ledDataOut[s][i][c] = 0xffff;
+                ledDataOut[bank][s][i][c] = 0xffff;
 }   }   }   } 
 
 //
