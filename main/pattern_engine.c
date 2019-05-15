@@ -58,7 +58,7 @@ typedef struct pattern_entry_t {
     bool enabled;
 } pattern_entry_t;
 
-int8_t count = 0;
+uint8_t step = 10;
 
 bool delay_and_buttons(uint16_t delay) {
     bool exit = false;
@@ -68,14 +68,14 @@ bool delay_and_buttons(uint16_t delay) {
     if (gpio_get_level(39) == 0) {
         printf("Button 39\n");
 	changeBank( 1 );
-	displayNumber(count);
+	displayNumber(step);
 	while (gpio_get_level(39) == 0) {
 	     vTaskDelay(1);
 	     delayCount++;
 	     if (delayCount > 100) {
 		     delayCount = 0;
-		     count = ((count+1) % 99);
-		     displayNumber(count);
+                     step = ((step+1) % MAX_PATTERN_ENTRY);
+		     displayNumber(step);
 		     exit = true;
 	     }
 	}
@@ -86,14 +86,14 @@ bool delay_and_buttons(uint16_t delay) {
     if (gpio_get_level(34) == 0) {
         printf("Button 34\n");
 	changeBank( 1 );
-	displayNumber(count);
+	displayNumber(step);
 	while (gpio_get_level(34) == 0) {
 	     vTaskDelay(1);
 	     delayCount++;
 	     if (delayCount > 100) {
 		     delayCount = 0;
-		     count = ((count-1) % 99);
-		     displayNumber(count);
+                     step = ((step-1) % MAX_PATTERN_ENTRY);
+		     displayNumber(step);
 		     exit = true;
 	     }
 	}
@@ -270,7 +270,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
  
       if (once==true) {
 	  printf("type=%d speed=%d\n",type,speed);
-	  once = false;
+//	  once = false;
       }
 
       while (!feof(fh)) {
@@ -279,16 +279,27 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 	  if (type == 2) {
               fread(&fad_cycle,1,1, fh);
               fad_cycle *= 2;
-	  } else {
-              fad_cycle = 0;
-	  }
-	  if (fad_cycle == 0) {
-//              printf("read frame=%d cycles=%d fad_cycle =%d\n",frame,cycles,fad_cycle);
+	      while (fad_cycle > 0) {
+		  fad_cycle--;
+ //                 printf("read frame=%d cycles=%d fad_cycle =%d\n",frame,cycles,fad_cycle);
+	          for (loop=0;loop<8;loop++) {
+                      setLed4RGBUpDown((7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
+                      setLed4RGBUpDown((7-loop)/4+2, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
+                      setLed4RGBUpDown((7-loop)/4+4, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
+                      setLed4RGBUpDown((7-loop)/4+6, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
+                  }
+                  if (delay_and_buttons(delay*speed)) {
+                      fclose(fh); 
+		      return;
+	          }
+	      }
+	  } else if (type == 16) {
+//              printf("read On/Off frame=%d cycles=%d\n",frame,cycles);
 	      for (loop=0;loop<8;loop++) {
-                  setLed4RGBOnOff(loop/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
-                  setLed4RGBOnOff(loop/4+2, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
-                  setLed4RGBOnOff(loop/4+4, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0800);
-                  setLed4RGBOnOff(loop/4+6, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
+                  setLed4RGBOnOff((7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
+                  setLed4RGBOnOff((7-loop)/4+2, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
+                  setLed4RGBOnOff((7-loop)/4+4, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0800);
+                  setLed4RGBOnOff((7-loop)/4+6, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
               }
 
               if (delay_and_buttons(delay*speed)) {
@@ -297,20 +308,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 	      }
 
 	  } else {
-	      while (fad_cycle > 0) {
-		  fad_cycle--;
-//                  printf("read frame=%d cycles=%d fad_cycle =%d\n",frame,cycles,fad_cycle);
-	          for (loop=0;loop<8;loop++) {
-                      setLed4RGBUpDown(loop/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
-                      setLed4RGBUpDown(loop/4+2, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
-                      setLed4RGBUpDown(loop/4+4, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0800);
-                      setLed4RGBUpDown(loop/4+6, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
-                  }
-                  if (delay_and_buttons(delay*speed)) {
-                      fclose(fh); 
-		      return;
-	          }
-	      }
+              printf("unknown pattern type=%d\n",type);
 	  }
 	  frame++;
       }
@@ -394,7 +392,6 @@ void addPattern( char * filename) {
 
 
 void updatePatternsTask(void *param) {
-    uint8_t step = 0;
 
     allLedsOff();
     vTaskDelay(100 / portTICK_PERIOD_MS);

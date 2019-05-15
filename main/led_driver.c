@@ -21,7 +21,16 @@
 //   This is the LED driver for an ESP32 based 4x4x8 tower.
 //   It runs the GPIO and SPI bus to drive the physical LEDs.
 //**********************************************************************
-
+//
+//   The 1st version is using a high level spi abstraction layer. I
+//   see too much jitter in the LEDs so a more low level approch will
+//   be required. We need a timer interupt, push 6 bytes down the SPI
+//   then turn the LED bank strobe off, latch the LED driver chips, then
+//   turn on the LED bank strobe.
+//
+//   This is a link to some of the low level spi info.
+//   http://iot-bits.com/esp32/esp32-spi-tutorial-part-1/
+//   https://www.elecrow.com/download/ESP32_technical_reference_manual.pdf
 
 
 #include <stdio.h>
