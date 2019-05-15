@@ -270,7 +270,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
  
       if (once==true) {
 	  printf("type=%d speed=%d\n",type,speed);
-//	  once = false;
+	  once = false;
       }
 
       while (!feof(fh)) {
