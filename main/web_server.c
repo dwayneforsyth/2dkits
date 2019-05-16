@@ -90,9 +90,22 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename)
 
 esp_err_t get_file_handler(httpd_req_t *req)
 {
-    ESP_LOGI(TAG, "ctx = %s", (char *) req->user_ctx);
+    uint8_t sLength = 0;
+    char *filename = (char *) req->user_ctx;
+
+    ESP_LOGI(TAG, "ctx = %s", filename);
+    sLength = strlen(filename);
+    if (strcmp(".jpg",&filename[sLength-4]) == 0) {
+        httpd_resp_set_hdr(req, "Content-type", "image/jpg");
+        ESP_LOGI(TAG, "found jpg:");
+    } else if (strcmp(".html",&filename[sLength-5]) == 0) {
+        httpd_resp_set_hdr(req, "Content-type", "text/html");
+        ESP_LOGI(TAG, "found html:");
+    } else if (strcmp(".css",&filename[sLength-4]) == 0) {
+        httpd_resp_set_hdr(req, "Content-type", "text/html");
+        ESP_LOGI(TAG, "found css:");
+    }
     /* Send a simple response */
-    httpd_resp_set_hdr(req, "Content-type", "image/jpg");
     file_get_handler(req, req->user_ctx);
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
@@ -105,6 +118,7 @@ esp_err_t get_root_handler(httpd_req_t *req)
     httpd_resp_set_hdr(req, "Content-type", "text/html");
     file_get_handler(req, "/spiffs/header.html");
     file_get_handler(req, "/spiffs/index.html");
+    file_get_handler(req, "/spiffs/footer.html");
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
@@ -115,15 +129,6 @@ httpd_uri_t root = {
     .handler   = get_root_handler,
     .user_ctx  = NULL
 };
-
-esp_err_t get_css_handler(httpd_req_t *req)
-{
-    /* Send a simple response */
-    httpd_resp_set_hdr(req, "Content-type", "text/html");
-    file_get_handler(req, "/spiffs/styles.css");
-    httpd_resp_send_chunk(req, NULL, 0);
-    return ESP_OK;
-}
 
 httpd_uri_t logo = {
     .uri       = "/header-bg.jpg",
@@ -149,8 +154,8 @@ httpd_uri_t content = {
 httpd_uri_t ccs = {
     .uri       = "/styles.css",
     .method    = HTTP_GET,
-    .handler   = get_css_handler,
-    .user_ctx  = NULL
+    .handler   = get_file_handler,
+    .user_ctx  = "/spiffs/styles.css"
 };
 
 httpd_uri_t web_dir = {
