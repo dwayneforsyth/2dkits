@@ -38,6 +38,7 @@
 #include <esp_http_server.h>
 
 #include "pattern_engine.h"
+#include "web_server.h"
 
 static const char *TAG = "DISK";
 
@@ -326,8 +327,9 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
     char *dir_footer = "</table></body></html>\n";
 
     httpd_resp_set_hdr(req, "Content-type", "text/html");
+    file_get_handler(req, "/spiffs/header.html");
 
-    sprintf(tbuffer,"<html><head><link rel=\"stylesheet\" href=\"styles.css\"></head><body>List of Directory [%s]\n", path);
+    sprintf(tbuffer,"List of Directory [%s]\n", path);
     httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
 
     time(&now);

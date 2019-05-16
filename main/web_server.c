@@ -59,24 +59,9 @@ static const char *TAG="APP";
 
 esp_err_t file_get_handler(httpd_req_t *req, char *filename)
 {
-    /* Assuming that the sdcard has been initialized (formatted to FAT) and loaded with some files.
-     * Refer to sd_card_example to to know how to initialize the sd card */
-//    size_t filename_len = strlen(filename);
-
-//    if (filename_len == 0) {
-//        const char * resp_str = "Please specify a filename. eg. file?somefile.txt";
-//        httpd_resp_send(req, resp_str, strlen(resp_str));
-//        return ESP_OK;
-//    }
-//    filename = malloc(strlen(filepath_prefix) + filename_len + 1); // extra 1 byte for null termination
-//    strncpy(filename, filepath_prefix, strlen(filepath_prefix));
-
-    // Get null terminated filename
-//    httpd_req_get_url_query_str(req, filename + strlen(filepath_prefix), filename_len + 1);
     ESP_LOGI(TAG, "Reading file : %s", filename);
 
     FILE *f = fopen(filename, "r");
-//    free(filename);
     if (f == NULL) {
         const char * resp_str = "File doesn't exist";
         httpd_resp_send(req, resp_str, strlen(resp_str));
@@ -89,22 +74,38 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename)
     size_t chunksize;
     do {
         chunksize = fread(chunk, 1, sizeof(chunk), f);
-        if (httpd_resp_send_chunk(req, chunk, chunksize) != ESP_OK) {
-            fclose(f);
-            return ESP_FAIL;
-        }
+	if (chunksize != 0) {
+            if (httpd_resp_send_chunk(req, chunk, chunksize) != ESP_OK) {
+                fclose(f);
+                return ESP_FAIL;
+            }
+	}
     } while (chunksize != 0);
 
-    httpd_resp_send_chunk(req, NULL, 0);
     fclose(f);
+    // Adding this logging caused the code to start working.....
+    ESP_LOGI(TAG, "done file : %s", filename);
     return ESP_OK;
 }
+
+esp_err_t get_file_handler(httpd_req_t *req)
+{
+    ESP_LOGI(TAG, "ctx = %s", (char *) req->user_ctx);
+    /* Send a simple response */
+    httpd_resp_set_hdr(req, "Content-type", "image/jpg");
+    file_get_handler(req, req->user_ctx);
+    httpd_resp_send_chunk(req, NULL, 0);
+    return ESP_OK;
+}
+
 
 esp_err_t get_root_handler(httpd_req_t *req)
 {
     /* Send a simple response */
     httpd_resp_set_hdr(req, "Content-type", "text/html");
+    file_get_handler(req, "/spiffs/header.html");
     file_get_handler(req, "/spiffs/index.html");
+    httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
 
@@ -120,8 +121,30 @@ esp_err_t get_css_handler(httpd_req_t *req)
     /* Send a simple response */
     httpd_resp_set_hdr(req, "Content-type", "text/html");
     file_get_handler(req, "/spiffs/styles.css");
+    httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
+
+httpd_uri_t logo = {
+    .uri       = "/header-bg.jpg",
+    .method    = HTTP_GET,
+    .handler   = get_file_handler,
+    .user_ctx  = "/spiffs/header-bg.jpg"
+};
+
+httpd_uri_t title = {
+    .uri       = "/box-title-bg.jpg",
+    .method    = HTTP_GET,
+    .handler   = get_file_handler,
+    .user_ctx  = "/spiffs/box-title-bg.jpg"
+};
+
+httpd_uri_t content = {
+    .uri       = "/content-bg.jpg",
+    .method    = HTTP_GET,
+    .handler   = get_file_handler,
+    .user_ctx  = "/spiffs/content-bg.jpg"
+};
 
 httpd_uri_t ccs = {
     .uri       = "/styles.css",
@@ -150,6 +173,9 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &root);
         httpd_register_uri_handler(server, &ccs);
         httpd_register_uri_handler(server, &web_dir);
+        httpd_register_uri_handler(server, &logo);
+        httpd_register_uri_handler(server, &title);
+        httpd_register_uri_handler(server, &content);
         return server;
     }
 

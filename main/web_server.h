@@ -22,7 +22,10 @@
 #ifndef WEB_SERVER_H
 #define WEB_SERVER_H
 
+#include <esp_system.h>
+
 void initialise_wifi(void *arg);
+esp_err_t file_get_handler(httpd_req_t *req, char *filename);
 
 #endif
 
