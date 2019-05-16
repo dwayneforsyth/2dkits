@@ -21,6 +21,9 @@
 //   This is the web server, wifi, and internet stuff for an ESP32 based 4x4x8 tower.
 //   Why does a Blinkie need to talk to the internet? because it can!
 //**********************************************************************
+//   We are running a dual mode, we can connect to a network, and operate
+//   as a hotspot too. 
+//**********************************************************************
 
 
 /* Simple HTTP Server Example
@@ -52,8 +55,12 @@
  * with the config you want -
  * ie. #define EXAMPLE_WIFI_SSID "mywifissid"
 */
-#define EXAMPLE_WIFI_SSID "dforsythnet"
-#define EXAMPLE_WIFI_PASS ""
+#define EXAMPLE_WIFI_SSID "Optimal-LAN"
+#define EXAMPLE_WIFI_PASS "wifiworks"
+//#define EXAMPLE_WIFI_SSID "dforsythnet"
+//#define EXAMPLE_WIFI_PASS ""
+#define AP_EXAMPLE_WIFI_SSID "blinkie\0"
+#define AP_EXAMPLE_WIFI_PASS "12345678"
 
 static const char *TAG="APP";
 
@@ -92,6 +99,7 @@ esp_err_t get_file_handler(httpd_req_t *req)
 {
     uint8_t sLength = 0;
     char *filename = (char *) req->user_ctx;
+    bool headFoot = false;
 
     ESP_LOGI(TAG, "ctx = %s", filename);
     sLength = strlen(filename);
@@ -101,12 +109,15 @@ esp_err_t get_file_handler(httpd_req_t *req)
     } else if (strcmp(".html",&filename[sLength-5]) == 0) {
         httpd_resp_set_hdr(req, "Content-type", "text/html");
         ESP_LOGI(TAG, "found html:");
+        headFoot = true;
     } else if (strcmp(".css",&filename[sLength-4]) == 0) {
         httpd_resp_set_hdr(req, "Content-type", "text/html");
         ESP_LOGI(TAG, "found css:");
     }
     /* Send a simple response */
+    if (headFoot) file_get_handler(req, "/spiffs/header.html");
     file_get_handler(req, req->user_ctx);
+    if (headFoot) file_get_handler(req, "/spiffs/footer.html");
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
@@ -126,8 +137,22 @@ esp_err_t get_root_handler(httpd_req_t *req)
 httpd_uri_t root = {
     .uri       = "/",
     .method    = HTTP_GET,
-    .handler   = get_root_handler,
-    .user_ctx  = NULL
+    .handler   = get_file_handler,
+    .user_ctx  = "/spiffs/index.html"
+};
+
+httpd_uri_t about = {
+    .uri       = "/about.html",
+    .method    = HTTP_GET,
+    .handler   = get_file_handler,
+    .user_ctx  = "/spiffs/about.html"
+};
+
+httpd_uri_t settings = {
+    .uri       = "/settings.html",
+    .method    = HTTP_GET,
+    .handler   = get_file_handler,
+    .user_ctx  = "/spiffs/settings.html"
 };
 
 httpd_uri_t logo = {
@@ -180,6 +205,8 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &web_dir);
         httpd_register_uri_handler(server, &logo);
         httpd_register_uri_handler(server, &title);
+        httpd_register_uri_handler(server, &about);
+        httpd_register_uri_handler(server, &settings);
         httpd_register_uri_handler(server, &content);
         return server;
     }
@@ -241,14 +268,30 @@ void initialise_wifi(void *arg)
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-    wifi_config_t wifi_config = {
+    wifi_config_t wifi_config_sta = {
         .sta = {
             .ssid = EXAMPLE_WIFI_SSID,
             .password = EXAMPLE_WIFI_PASS,
         },
     };
-    ESP_LOGI(TAG, "Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
+    wifi_config_t wifi_config_ap = {
+        .ap = {
+            .ssid = AP_EXAMPLE_WIFI_SSID,
+            .ssid_len = 0,
+            .password = "",
+            .channel = 9, // ap will show up to the same network it connects to via sta.
+            .authmode = WIFI_AUTH_OPEN,
+            .beacon_interval = 400,
+            .max_connection = 16,
+        }
+    };
+
+    ESP_LOGI(TAG, "Setting WiFi AP: SSID %s", wifi_config_ap.ap.ssid);
+    ESP_LOGI(TAG, "Setting WiFi STA: SSID %s", wifi_config_sta.sta.ssid);
+
+
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
+    ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_AP, &wifi_config_ap) );
+    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
     ESP_ERROR_CHECK(esp_wifi_start());
 }
