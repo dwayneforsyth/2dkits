@@ -329,6 +329,9 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
     httpd_resp_set_hdr(req, "Content-type", "text/html");
     file_get_handler(req, "/spiffs/header.html");
 
+    sprintf(tbuffer,"</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Disk Dir</div><div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n");
+    httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
+
     sprintf(tbuffer,"List of Directory [%s]\n", path);
     httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
 

@@ -55,10 +55,10 @@
  * with the config you want -
  * ie. #define EXAMPLE_WIFI_SSID "mywifissid"
 */
-#define EXAMPLE_WIFI_SSID "Optimal-LAN"
-#define EXAMPLE_WIFI_PASS "wifiworks"
-//#define EXAMPLE_WIFI_SSID "dforsythnet"
-//#define EXAMPLE_WIFI_PASS ""
+//#define EXAMPLE_WIFI_SSID "Optimal-LAN"
+//#define EXAMPLE_WIFI_PASS "wifiworks"
+#define EXAMPLE_WIFI_SSID "dforsythnet"
+#define EXAMPLE_WIFI_PASS ""
 #define AP_EXAMPLE_WIFI_SSID "blinkie\0"
 #define AP_EXAMPLE_WIFI_PASS "12345678"
 
@@ -155,6 +155,13 @@ httpd_uri_t settings = {
     .user_ctx  = "/spiffs/settings.html"
 };
 
+httpd_uri_t patterns = {
+    .uri       = "/patterns.html",
+    .method    = HTTP_GET,
+    .handler   = get_file_handler,
+    .user_ctx  = "/spiffs/patterns.html"
+};
+
 httpd_uri_t logo = {
     .uri       = "/header-bg.jpg",
     .method    = HTTP_GET,
@@ -194,6 +201,7 @@ httpd_handle_t start_webserver(void)
 {
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.max_uri_handlers = 10;
 
     // Start the httpd server
     ESP_LOGI(TAG, "Starting server on port: %d", config.server_port);
@@ -207,6 +215,7 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &title);
         httpd_register_uri_handler(server, &about);
         httpd_register_uri_handler(server, &settings);
+        httpd_register_uri_handler(server, &patterns);
         httpd_register_uri_handler(server, &content);
         return server;
     }
