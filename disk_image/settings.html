@@ -1,7 +1,6 @@
-
 </div></td>
     <td valign="top">
-    <div id="navBreadCrumb">Home
+    <div id="navBreadCrumb">
 </div>
 
 <div class="centerColumn" id="indexDefault">
@@ -10,23 +9,139 @@
 <h2 class="greeting">Settings</h2>
 
 </div><ul>
-	This is a place holder for the settings....
-        <h3> Wifi Hotspot </h3>
-<li>SSID
-<li>Password
-<li>Channel
-        <h3> Wifi network </h3>
-<li>SSID
-<li>Password
-        <h3> LED mapping </h3>
-<li>7 layer (top)
-<li>6 layer
-<li>5 layer
-<li>4 layer
-<li>3 layer
-<li>2 layer
-<li>1 layer
-<li>0 layer (base)
-
+	<form action="/form-settings" method="post">
+	<h3> Wifi Hotspot </h3><ul>
+		<li><label for="hssid">SSID</label>
+		<input type="text" id="hssid" name="hssid" value="blinkie">
+		<li><label for="hpasswd">Password</label>
+		<input type="text" id="hpasswd" name="hpassd">
+		<li><label for="hchan">Channel</label>
+			<select id="hchan" name="hchan">
+				<optgroup label="hrfchan">
+					<option>1</option>
+					<option>2</option>
+					<option>3</option>
+					<option>4</option>
+					<option>5</option>
+					<option>6</option>
+					<option>7</option>
+					<option>8</option>
+					<option>9</option>
+					<option>10</option>
+					<option>11</option>
+					<option>12</option>
+					<option>13</option>
+					</optgroup>
+			</select>
+	</ul>
+        <h3> Wifi network </h3><ul>
+		<li><label for="wssid">SSID</label>
+		<input type="text" id="wssid" name="wssid">
+		<li><label for="wpasswd">Password</label>
+		<input type="text" id="wpasswd" name="wpassd">
+	</ul>
+	<h3> Time </h3><ul>
+		<li><label for="tz">Timezone</label>
+			<select id="tz" name="tz">
+				<optgroup label="tz">
+					<option>-4 EDT</option>
+					<option>-5 CDT</option>
+					<option>-6 CST</option>
+					<option>-7 PDT</option>
+					<option>-8 AKDT</option>
+					<option>-9 HDT</option>
+					</optgroup>
+			</select>
+	</ul>
+		<h3> LED mapping </h3><ul>
+	<li><label for="layer7">Layer 7</label>
+			<select id="layer7" name="layer7">
+				<optgroup label="layer7">
+					<option>RGB</option>
+					<option>RBG</option>
+					<option>GRB</option>
+					<option>GBR</option>
+					<option>BRG</option>
+					<option>BGR</option>
+					</optgroup>
+			</select>(top)
+	<li><label for="layer6">Layer 6</label>
+			<select id="layer6" name="layer6">
+				<optgroup label="layer6">
+					<option>RGB</option>
+					<option>RBG</option>
+					<option>GRB</option>
+					<option>GBR</option>
+					<option>BRG</option>
+					<option>BGR</option>
+					</optgroup>
+			</select>
+	<li><label for="layer5">Layer 5</label>
+			<select id="layer5" name="layer5">
+				<optgroup label="layer5">
+					<option>RGB</option>
+					<option>RBG</option>
+					<option>GRB</option>
+					<option>GBR</option>
+					<option>BRG</option>
+					<option>BGR</option>
+					</optgroup>
+			</select>
+	<li><label for="layer4">Layer 4</label>
+			<select id="layer4" name="layer4">
+				<optgroup label="layer4">
+					<option>RGB</option>
+					<option>RBG</option>
+					<option>GRB</option>
+					<option>GBR</option>
+					<option>BRG</option>
+					<option>BGR</option>
+					</optgroup>
+			</select>
+	<li><label for="layer3">Layer 3</label>
+			<select id="layer3" name="layer3">
+				<optgroup label="layer3">
+					<option>RGB</option>
+					<option>RBG</option>
+					<option>GRB</option>
+					<option>GBR</option>
+					<option>BRG</option>
+					<option>BGR</option>
+					</optgroup>
+			</select>
+	<li><label for="layer2">Layer 2</label>
+			<select id="layer2" name="layer2">
+				<optgroup label="layer2">
+					<option>RGB</option>
+					<option>RBG</option>
+					<option>GRB</option>
+					<option>GBR</option>
+					<option>BRG</option>
+					<option>BGR</option>
+					</optgroup>
+			</select>
+	<li><label for="layer1">Layer 1</label>
+			<select id="layer1" name="layer1">
+				<optgroup label="layer1">
+					<option>RGB</option>
+					<option>RBG</option>
+					<option>GRB</option>
+					<option>GBR</option>
+					<option>BRG</option>
+					<option>BGR</option>
+					</optgroup>
+			</select>
+	<li><label for="layer0">Layer 0</label>
+			<select id="layer0" name="layer0">
+				<optgroup label="layer0">
+					<option>RGB</option>
+					<option>RBG</option>
+					<option>GRB</option>
+					<option>GBR</option>
+					<option>BRG</option>
+					<option>BGR</option>
+					</optgroup>
+			</select>(base)
+	</ul>
 </ul>
-
+	</form>
