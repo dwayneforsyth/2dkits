@@ -317,9 +317,7 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
     char tbuffer[80];
     char tbuffer2[80];
     struct stat sb;
-    time_t now;
     struct tm *tm_info;
-    struct tm timeinfo;
     char *lpath = NULL;
     int statok;
     char *error_open = "Error opening directory\n";
@@ -327,19 +325,13 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
     char *dir_footer = "</table></body></html>\n";
 
     httpd_resp_set_hdr(req, "Content-type", "text/html");
-    file_get_handler(req, "/spiffs/header.html");
+    file_get_handler(req, "/spiffs/header.html",false);
 
     sprintf(tbuffer,"</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Disk Dir</div><div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n");
     httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
 
     sprintf(tbuffer,"List of Directory [%s]\n", path);
     httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
-
-    time(&now);
-    localtime_r(&now, &timeinfo);
-    strftime(tbuffer, 80, "%d/%m/%Y %R", &timeinfo);
-    sprintf(tbuffer2,"Time is %s<br>",tbuffer);
-    httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
 
     // Open directory
     dir = opendir(path);
@@ -411,6 +403,7 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
     sprintf(tbuffer, "<tr><td colspan=4>SPIFFS: free %d KB of %d KB\n", (tot-used) / 1024, tot / 1024);
     httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
     httpd_resp_send_chunk(req, dir_footer, strlen(dir_footer));
+    file_get_handler(req, "/spiffs/footer.html",false);
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }

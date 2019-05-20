@@ -41,11 +41,13 @@
 #include <esp_system.h>
 #include <nvs_flash.h>
 #include <sys/param.h>
+#include <time.h>
 
 #include <esp_http_server.h>
 #include <esp_sntp.h>
 
 #include "disk_system.h"
+#include "pattern_engine.h"
 
 /* A simple example that demonstrates how to create GET and POST
  * handlers for the web server.
@@ -64,7 +66,31 @@
 
 static const char *TAG="APP";
 
-esp_err_t file_get_handler(httpd_req_t *req, char *filename)
+esp_err_t lookupToken(httpd_req_t *req, char *token) {
+    char tBuffer[80];
+    time_t now;
+    struct tm timeinfo;
+
+
+    if (strcmp("%patternNumber",token)==0) {
+	sprintf(tBuffer, "%d",getPatternNumber());
+        httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
+    } else if (strcmp("%patternName",token)==0) {
+	sprintf(tBuffer, "%s",getPatternName());
+        httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
+    } else if (strcmp("%timeDate",token)==0) {
+        time(&now);
+        localtime_r(&now, &timeinfo);
+        strftime(tBuffer, 80, "%c", &timeinfo);
+        httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
+    } else {
+	sprintf(tBuffer, "Error: unkown token %s",token);
+        httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
+    }
+    return(ESP_OK);
+}
+
+esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
 {
     ESP_LOGI(TAG, "Reading file : %s", filename);
 
@@ -78,16 +104,68 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename)
     /* Read file in chunks (relaxes any constraint due to large file sizes)
      * and send HTTP response in chunked encoding */
     char   chunk[1024];
-    size_t chunksize;
+    char   token[20];
+    size_t chunkSize;
+    bool readingToken = false;
+    uint16_t chunkIndex;
+    uint16_t chunkHead = 0;
+    uint8_t tokenIndex = 0;
+
     do {
-        chunksize = fread(chunk, 1, sizeof(chunk), f);
-	if (chunksize != 0) {
-            if (httpd_resp_send_chunk(req, chunk, chunksize) != ESP_OK) {
-                fclose(f);
-                return ESP_FAIL;
+        chunkSize = fread(chunk, 1, sizeof(chunk), f);
+	if (chunkSize != 0) {
+	    for (chunkIndex=0;chunkIndex<chunkSize;chunkIndex++) {
+	        if ((binary == false) && (chunk[chunkIndex] == '%')) {
+		    if (readingToken == true) {
+			readingToken = false;
+			chunkHead = chunkIndex+1;
+		        token[tokenIndex] = 0;
+                        // perform token lookup
+                        ESP_LOGI(TAG, "token = %s", token);
+			lookupToken(req, token);
+		    } else {
+			readingToken = true;
+		        token[0] = '%';
+			tokenIndex = 1;
+			// dump current buffer
+                        if (httpd_resp_send_chunk(req, &chunk[chunkHead], chunkIndex-chunkHead) != ESP_OK) {
+                            fclose(f);
+                            return ESP_FAIL;
+			}
+                    }
+		} else if (readingToken == true) {
+		    token[tokenIndex] = chunk[chunkIndex];
+		    tokenIndex++;
+		    // ok, it was not a token...
+		    if (tokenIndex > 20) {
+                        if (httpd_resp_send_chunk(req, token, tokenIndex) != ESP_OK) {
+                            fclose(f);
+                            return ESP_FAIL;
+			}
+			readingToken = false;
+			chunkHead = chunkIndex+1;
+		        token[tokenIndex] = 0;
+		    }
+		}
+	    }
+	    if (readingToken == false) {
+	        // dump the buffer
+                if (httpd_resp_send_chunk(req, &chunk[chunkHead], chunkIndex-chunkHead) != ESP_OK) {
+                    fclose(f);
+                    return ESP_FAIL;
+	        }
             }
 	}
-    } while (chunksize != 0);
+    } while (chunkSize != 0);
+
+    // ok, it was not a token...
+    if (readingToken == true) {
+        token[tokenIndex] = 0;
+        if (httpd_resp_send_chunk(req, token, tokenIndex) != ESP_OK) {
+            fclose(f);
+            return ESP_FAIL;
+	}
+    }
 
     fclose(f);
     // Adding this logging caused the code to start working.....
@@ -115,24 +193,13 @@ esp_err_t get_file_handler(httpd_req_t *req)
         ESP_LOGI(TAG, "found css:");
     }
     /* Send a simple response */
-    if (headFoot) file_get_handler(req, "/spiffs/header.html");
-    file_get_handler(req, req->user_ctx);
-    if (headFoot) file_get_handler(req, "/spiffs/footer.html");
+    if (headFoot) file_get_handler(req, "/spiffs/header.html", true);
+    file_get_handler(req, req->user_ctx,!headFoot);
+    if (headFoot) file_get_handler(req, "/spiffs/footer.html", false);
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
 
-
-esp_err_t get_root_handler(httpd_req_t *req)
-{
-    /* Send a simple response */
-    httpd_resp_set_hdr(req, "Content-type", "text/html");
-    file_get_handler(req, "/spiffs/header.html");
-    file_get_handler(req, "/spiffs/index.html");
-    file_get_handler(req, "/spiffs/footer.html");
-    httpd_resp_send_chunk(req, NULL, 0);
-    return ESP_OK;
-}
 
 httpd_uri_t root = {
     .uri       = "/",

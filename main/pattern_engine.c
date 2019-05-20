@@ -390,6 +390,13 @@ void addPattern( char * filename) {
     patternTable[index].patternType = PATTERN_FILE;
 }
 
+uint8_t getPatternNumber() {
+	return(step);
+}
+
+char * getPatternName() {
+	return(patternTable[step].patternName);
+}
 
 void updatePatternsTask(void *param) {
 

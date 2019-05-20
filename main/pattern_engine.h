@@ -25,5 +25,8 @@
 void updatePatternsTask( void );
 void addPattern( char * );
 
+uint8_t getPatternNumber();
+char * getPatternName();
+
 #endif
 
