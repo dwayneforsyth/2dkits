@@ -91,6 +91,21 @@ static const uint8_t strobeGPIO[9] = {
 
 
 // https://github.com/loboris/ESP32_NEW_SPI_MASTER_EXAMPLE/blob/master/main/spi_master_demo.c
+
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, uint16_t blue) {
 
     static uint8_t buffer[(NUMBER_OF_LEDS)+1];
@@ -113,11 +128,39 @@ void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, u
     spi_device_queue_trans(spi, &t, portMAX_DELAY);  //Transmit!
 }
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void IRAM_ATTR spi_pre_transfer_callback() {
     gpio_set_level(PIN_NUM_CS, 0);
     spi_done = false;
 }
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void IRAM_ATTR spi_post_transfer_callback() {
     gpio_set_level(strobeGPIO[oldStrobe], 0);
     gpio_set_level(STROBE, 1);
@@ -171,6 +214,20 @@ void IRAM_ATTR spi_post_transfer_callback() {
 static uint16_t ledDataOut[2][9][16][4];
 static uint8_t bank = 0;
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void changeBank( uint8_t select ) {
 
     if (select < 2) {
@@ -179,6 +236,20 @@ void changeBank( uint8_t select ) {
     printf("running LED strobe bank = %d",bank);
 }
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void getStrobeOffset(uint8_t z, uint8_t x, uint8_t y, uint8_t *oStrobe, uint16_t *oOffset ) {
 
     switch(z) {
@@ -221,6 +292,20 @@ void getStrobeOffset(uint8_t z, uint8_t x, uint8_t y, uint8_t *oStrobe, uint16_t
 
 }
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *iB) {
     uint8_t oStrobe = 0;
     uint16_t oOffset = 0;
@@ -237,6 +322,20 @@ void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *
     }
 }
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB) {
     uint8_t oStrobe = 0;
     uint16_t oOffset = 0;
@@ -264,12 +363,22 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
     }
 }
 
-//
-// this is the highest pri task, and it is currently running full speed
-// it releases controll 1/9 of time while all the leds are off.
-//
-// have a bug where strobe 0 is running brigher then the others
-//
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+        this is the highest pri task, and it is currently running full speed
+        it releases controll 1/9 of time while all the leds are off.
+
+*******************************************************************************/
 void updateLedTask(void *param) {
     static uint8_t intensity = 0;
 
@@ -294,9 +403,20 @@ void updateLedTask(void *param) {
     }
 }
 
-//
-// bypass all the math and sets the strob data to all zeros.
-//
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES: bypass all the math and sets the strob data to all zeros.
+
+*******************************************************************************/
 void allLedsOff() {
     uint8_t s,i,c;
     for (s=0;s<9;s++) {
@@ -305,6 +425,20 @@ void allLedsOff() {
                 ledDataOut[bank][s][i][c] = 0x0000;
 }   }   }   } 
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void allLedsOn() {
     uint8_t s,i,c;
     for (s=0;s<9;s++) {
@@ -316,6 +450,20 @@ void allLedsOn() {
 //
 //
 //
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void allLedsColor( uint8_t red, uint8_t green, uint8_t blue) {
     uint8_t l,x,y;
     for (l=0;l<8;l++) {
@@ -324,6 +472,20 @@ void allLedsColor( uint8_t red, uint8_t green, uint8_t blue) {
                setLed(l,x,y, red,green,blue);
 }   }   }   }
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void init_LED_driver() {
     esp_err_t ret;
     uint8_t i;

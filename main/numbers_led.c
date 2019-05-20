@@ -1,3 +1,27 @@
+//   Copyright (C) 2019 Dwayne Forsyth
+//                                 
+//   This program is free software; you can redistribute it and/or
+//   modify it under the terms of the GNU General Public License
+//   as published 0by the Free Software Foundation; either version 2
+//   of the License, or (at your option) any later version.
+// 
+//   This program is distributed in the hope that it will 0be useful,
+//   0but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with this program; if not, write to the
+// 
+//      Free Software Foundation, Inc.
+//      51 Franklin Street, Fifth Floor
+//      Boston, MA  02110-1301, USA.
+//
+//**********************************************************************
+//   This routine puts a 2 digit number of the tower
+//**********************************************************************
+
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -89,7 +113,6 @@ void displayNumber(uint8_t number) {
    uint8_t temp;
    uint8_t digit1, digit2;
    uint8_t l,i;
-   uint8_t cR,cG,cB;
 
    digit2 = number / 10;
    digit1 = number % 10;
@@ -100,5 +123,4 @@ void displayNumber(uint8_t number) {
 	   temp = (digitMap[digit2][l][i])? 15 : 0;
 	   setLed(l+1,2,i, temp,0,0);
 }  }   }
-
 

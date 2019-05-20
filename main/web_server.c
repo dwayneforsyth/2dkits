@@ -66,6 +66,25 @@
 
 static const char *TAG="APP";
 
+
+/*******************************************************************************
+    PURPOSE: pushes context to the web connection based on the token passed in.
+
+    INPUTS:
+        Web connection
+        Token
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+        sends data down the web connection.
+
+*******************************************************************************/
+
 esp_err_t lookupToken(httpd_req_t *req, char *token) {
     char tBuffer[80];
     time_t now;
@@ -90,6 +109,20 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
     return(ESP_OK);
 }
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
 {
     ESP_LOGI(TAG, "Reading file : %s", filename);
@@ -173,6 +206,20 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
     return ESP_OK;
 }
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 esp_err_t get_file_handler(httpd_req_t *req)
 {
     uint8_t sLength = 0;
@@ -201,6 +248,20 @@ esp_err_t get_file_handler(httpd_req_t *req)
 }
 
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 httpd_uri_t root = {
     .uri       = "/",
     .method    = HTTP_GET,
@@ -264,6 +325,20 @@ httpd_uri_t web_dir = {
     .user_ctx  = NULL
 };
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 httpd_handle_t start_webserver(void)
 {
     httpd_handle_t server = NULL;
@@ -297,6 +372,20 @@ void stop_webserver(httpd_handle_t server)
     httpd_stop(server);
 }
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     httpd_handle_t *server = (httpd_handle_t *) ctx;
@@ -337,6 +426,20 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
     return ESP_OK;
 }
 
+/*******************************************************************************
+    PURPOSE: 
+
+    INPUTS:
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void initialise_wifi(void *arg)
 {
     tcpip_adapter_init();
