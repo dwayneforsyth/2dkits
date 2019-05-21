@@ -291,6 +291,43 @@ void getStrobeOffset(uint8_t z, uint8_t x, uint8_t y, uint8_t *oStrobe, uint16_t
     }
 
 }
+#define RED 0
+#define GREEN 1
+#define BLUE 2
+/*******************************************************************************
+    PURPOSE: We have different physical LEDs with the pins driving different
+             colors. This maps the RGB values to the correct pins. We are
+             going to assume all the LEDs on a given level have the same
+             pinout.
+
+    INPUTS:
+             level = which layer of the cube/tower 0 .. 7, 0 is base
+             color = 0 .. 2, Red, Green, Blue
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+             which pin is the right one to toggle
+
+    NOTES:
+
+*******************************************************************************/
+uint8_t ledAdjust(uint8_t level, uint8_t color) {
+
+    uint8_t colorMap[8][3] = {
+        {RED, GREEN, BLUE},
+        {RED, GREEN, BLUE},
+        {RED, GREEN, BLUE},
+        {RED, GREEN, BLUE},
+        {RED, GREEN, BLUE},
+        {RED, GREEN, BLUE},
+        {RED, GREEN, BLUE},
+        {RED, GREEN, BLUE},
+    };
+
+    return(colorMap[level, color];
+}
 
 /*******************************************************************************
     PURPOSE: 
@@ -316,9 +353,9 @@ void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *
     getStrobeOffset( z, x, y, &oStrobe, &oOffset );
 
     for (ti=0;ti<15;ti++) {
-	if (ledDataOut[bank][oStrobe][ti][0] & oOffset) *iR+=1;
-	if (ledDataOut[bank][oStrobe][ti][1] & oOffset) *iG+=1;
-	if (ledDataOut[bank][oStrobe][ti][2] & oOffset) *iB+=1;
+	if (ledDataOut[bank][oStrobe][ti][ledAdjust(z,RED)] & oOffset) *iR+=1;
+	if (ledDataOut[bank][oStrobe][ti][ledAdjust(z,GREEN)] & oOffset) *iG+=1;
+	if (ledDataOut[bank][oStrobe][ti][ledAdjust(z,BLUE)] & oOffset) *iB+=1;
     }
 }
 
@@ -346,19 +383,19 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
 
     for (ti=0;ti<15;ti++) {
 	if (ti < iR) {
-	    ledDataOut[bank][oStrobe][ti][0] |= oOffset;
+	    ledDataOut[bank][oStrobe][ti][ledAdjust(z,RED)] |= oOffset;
 	} else {
-	    ledDataOut[bank][oStrobe][ti][0] &= ~oOffset;
+	    ledDataOut[bank][oStrobe][ti][ledAdjust(z,RED)] &= ~oOffset;
 	}
 	if (ti < iG) {
-	    ledDataOut[bank][oStrobe][ti][1] |= oOffset;
+	    ledDataOut[bank][oStrobe][ti][ledAdjust(z,GREEN)] |= oOffset;
 	} else {
-	    ledDataOut[bank][oStrobe][ti][1] &= ~oOffset;
+	    ledDataOut[bank][oStrobe][ti][ledAdjust(z,GREEN)] &= ~oOffset;
 	}
 	if (ti < iB) {
-	    ledDataOut[bank][oStrobe][ti][2] |= oOffset;
+	    ledDataOut[bank][oStrobe][ti][ledAdjust(z,BLUE)] |= oOffset;
 	} else {
-	    ledDataOut[bank][oStrobe][ti][2] &= ~oOffset;
+	    ledDataOut[bank][oStrobe][ti][ledAdjust(z,BLUE)] &= ~oOffset;
 	}
     }
 }
