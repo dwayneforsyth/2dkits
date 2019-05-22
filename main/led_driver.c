@@ -316,7 +316,7 @@ void getStrobeOffset(uint8_t z, uint8_t x, uint8_t y, uint8_t *oStrobe, uint16_t
 uint8_t ledAdjust(uint8_t level, uint8_t color) {
 
     uint8_t colorMap[8][3] = {
-        {RED, GREEN, BLUE},
+        {BLUE, GREEN, RED},
         {RED, GREEN, BLUE},
         {RED, GREEN, BLUE},
         {RED, GREEN, BLUE},
@@ -326,7 +326,7 @@ uint8_t ledAdjust(uint8_t level, uint8_t color) {
         {RED, GREEN, BLUE},
     };
 
-    return(colorMap[level, color];
+    return(colorMap[level][color]);
 }
 
 /*******************************************************************************
