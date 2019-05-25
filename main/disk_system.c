@@ -365,13 +365,12 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
     char *error_open = "Error opening directory\n";
     char *dir_header = "<table><tr><th>T<th>Size<th>Date/Time<th>Name\n";
     char *dir_footer = "</table></body></html>\n";
+    char *dir_heading = "</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Disk Dir</div><div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n";
 
     httpd_resp_set_hdr(req, "Content-type", "text/html");
-    file_get_handler(req, "/spiffs/header.html",false);
+    file_get_handler(req, "/spiffs/header.html",true);
 
-    sprintf(tbuffer,"</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Disk Dir</div><div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n");
-    httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
-
+    httpd_resp_send_chunk(req, dir_heading, strlen(dir_heading));
     sprintf(tbuffer,"List of Directory [%s]\n", path);
     httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
 
