@@ -102,23 +102,37 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
         localtime_r(&now, &timeinfo);
         strftime(tBuffer, 80, "%c", &timeinfo);
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
+    } else if (strcmp("%hssid",token)==0) {
+	sprintf(tBuffer, "blinkie"); //DDF hard codded
+        httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
+    } else if (strcmp("%hpasswd",token)==0) {
+	sprintf(tBuffer, "[none]"); //DDF hard codded
+        httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
+    } else if (strncmp("%hchsel",token,7)==0) {
+	//DDF send nothing - hard codded
     } else {
-	sprintf(tBuffer, "Error: unkown token %s",token);
+	sprintf(tBuffer, "%s%%",token);
         httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
     }
     return(ESP_OK);
 }
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE:
+        Sends a file on the intern file system to the html handler. If the file
+	is not binary, it will scan for %tokens% and call a procedure to send
+	other data in its place.
 
     INPUTS:
+        http handler
+	file name
+	binary flag
 
     OUTPUTS:
         NONE
 
     RETURN CODE:
-        NONE
+        Error code
 
     NOTES:
 
@@ -131,7 +145,7 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
     if (f == NULL) {
         const char * resp_str = "File doesn't exist";
         httpd_resp_send(req, resp_str, strlen(resp_str));
-        return ESP_OK;
+        return ESP_FAIL;
     }
 
     /* Read file in chunks (relaxes any constraint due to large file sizes)
@@ -146,6 +160,7 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
 
     do {
         chunkSize = fread(chunk, 1, sizeof(chunk), f);
+	chunkHead = 0;
 	if (chunkSize != 0) {
 	    for (chunkIndex=0;chunkIndex<chunkSize;chunkIndex++) {
 	        if ((binary == false) && (chunk[chunkIndex] == '%')) {
