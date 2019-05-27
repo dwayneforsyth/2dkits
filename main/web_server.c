@@ -108,7 +108,17 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
     } else if (strcmp("%hpasswd",token)==0) {
 	sprintf(tBuffer, "[none]"); //DDF hard codded
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
+    } else if (strcmp("%wssid",token)==0) {
+	sprintf(tBuffer, "dforsyth.net"); //DDF hard codded
+        httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
+    } else if (strcmp("%wpasswd",token)==0) {
+	sprintf(tBuffer, "[none2]"); //DDF hard codded
+        httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strncmp("%hchsel",token,7)==0) {
+	//DDF send nothing - hard codded
+    } else if (strncmp("%rgb",token,4)==0) {
+	//DDF send nothing - hard codded
+    } else if (strncmp("%tz",token,3)==0) {
 	//DDF send nothing - hard codded
     } else {
 	sprintf(tBuffer, "%s%%",token);
@@ -485,7 +495,7 @@ void initialise_wifi(void *arg)
 
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
-    ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_AP, &wifi_config_ap) );
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config_ap) );
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
     ESP_ERROR_CHECK(esp_wifi_start());
 }

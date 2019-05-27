@@ -5,6 +5,13 @@
 
 <div class="centerColumn" id="indexDefault">
 <h1 id="indexDefaultHeading"></h1>
+</div></td>
+    <td valign="top">
+    <div id="navBreadCrumb">
+</div>
+
+<div class="centerColumn" id="indexDefault">
+<h1 id="indexDefaultHeading"></h1>
 
 <h2 class="greeting">Settings</h2>
 
@@ -12,44 +19,44 @@
 	<form action="/form-settings" method="post">
 	<h3> Wifi Hotspot </h3><ul>
 		<li><label for="hssid">SSID</label>
-		<input type="text" id="hssid" name="hssid" value="blinkie">
+		<input type="text" id="hssid" name="hssid" value="%hssid%">
 		<li><label for="hpasswd">Password</label>
-		<input type="text" id="hpasswd" name="hpassd">
+		<input type="text" id="hpasswd" name="hpasswd" value="%hpasswd%">
 		<li><label for="hchan">Channel</label>
 			<select id="hchan" name="hchan">
 				<optgroup label="hrfchan">
-					<option>1</option>
-					<option>2</option>
-					<option>3</option>
-					<option>4</option>
-					<option>5</option>
-					<option>6</option>
-					<option>7</option>
-					<option>8</option>
-					<option>9</option>
-					<option>10</option>
-					<option>11</option>
-					<option>12</option>
-					<option>13</option>
+					<option %hchsel01% >1</option>
+					<option %hchsel02% >2</option>
+					<option %hchsel03% >3</option>
+					<option %hchsel04% >4</option>
+					<option %hchsel05% >5</option>
+					<option %hchsel06% >6</option>
+					<option %hchsel07% >7</option>
+					<option %hchsel08% >8</option>
+					<option %hchsel09% >9</option>
+					<option %hchsel10% >10</option>
+					<option %hchsel11% >11</option>
+					<option %hchsel12% >12</option>
+					<option %hchsel13% >13</option>
 					</optgroup>
 			</select>
 	</ul>
         <h3> Wifi network </h3><ul>
 		<li><label for="wssid">SSID</label>
-		<input type="text" id="wssid" name="wssid">
+		<input type="text" id="wssid" name="wssid" value="%wssid%">
 		<li><label for="wpasswd">Password</label>
-		<input type="text" id="wpasswd" name="wpassd">
+		<input type="text" id="wpasswd" name="wpasswd value="%wpasswd%">
 	</ul>
 	<h3> Time </h3><ul>
 		<li><label for="tz">Timezone</label>
 			<select id="tz" name="tz">
 				<optgroup label="tz">
-					<option>-4 EDT</option>
-					<option>-5 CDT</option>
-					<option>-6 CST</option>
-					<option>-7 PDT</option>
-					<option>-8 AKDT</option>
-					<option>-9 HDT</option>
+					<option %tz04% >-4 EDT</option>
+					<option %tz05% >-5 CDT</option>
+					<option %tz06% >-6 CST</option>
+					<option %tz07% >-7 PDT</option>
+					<option %tz08% >-8 AKDT</option>
+					<option %tz09% >-9 HDT</option>
 					</optgroup>
 			</select>
 	</ul>
@@ -57,89 +64,89 @@
 	<li><label for="layer7">Layer 7</label>
 			<select id="layer7" name="layer7">
 				<optgroup label="layer7">
-					<option>RGB</option>
-					<option>RBG</option>
-					<option>GRB</option>
-					<option>GBR</option>
-					<option>BRG</option>
-					<option>BGR</option>
+					<option %rgb70% >RGB</option>
+					<option %rgb71% >RBG</option>
+					<option %rgb72% >GRB</option>
+					<option %rgb73% >GBR</option>
+					<option %rgb74% >BRG</option>
+					<option %rgb75% >BGR</option>
 					</optgroup>
 			</select>(top)
 	<li><label for="layer6">Layer 6</label>
 			<select id="layer6" name="layer6">
 				<optgroup label="layer6">
-					<option>RGB</option>
-					<option>RBG</option>
-					<option>GRB</option>
-					<option>GBR</option>
-					<option>BRG</option>
-					<option>BGR</option>
+					<option %rgb60% >RGB</option>
+					<option %rgb61% >RBG</option>
+					<option %rgb62% >GRB</option>
+					<option %rgb63% >GBR</option>
+					<option %rgb64% >BRG</option>
+					<option %rgb65% >BGR</option>
 					</optgroup>
 			</select>
 	<li><label for="layer5">Layer 5</label>
 			<select id="layer5" name="layer5">
 				<optgroup label="layer5">
-					<option>RGB</option>
-					<option>RBG</option>
-					<option>GRB</option>
-					<option>GBR</option>
-					<option>BRG</option>
-					<option>BGR</option>
+					<option %rgb50% >RGB</option>
+					<option %rgb51% >RBG</option>
+					<option %rgb52% >GRB</option>
+					<option %rgb53% >GBR</option>
+					<option %rgb54% >BRG</option>
+					<option %rgb55% >BGR</option>
 					</optgroup>
 			</select>
 	<li><label for="layer4">Layer 4</label>
 			<select id="layer4" name="layer4">
 				<optgroup label="layer4">
-					<option>RGB</option>
-					<option>RBG</option>
-					<option>GRB</option>
-					<option>GBR</option>
-					<option>BRG</option>
-					<option>BGR</option>
+					<option %rgb40% >RGB</option>
+					<option %rgb41% >RBG</option>
+					<option %rgb42% >GRB</option>
+					<option %rgb43% >GBR</option>
+					<option %rgb44% >BRG</option>
+					<option %rgb45% >BGR</option>
 					</optgroup>
 			</select>
 	<li><label for="layer3">Layer 3</label>
 			<select id="layer3" name="layer3">
 				<optgroup label="layer3">
-					<option>RGB</option>
-					<option>RBG</option>
-					<option>GRB</option>
-					<option>GBR</option>
-					<option>BRG</option>
-					<option>BGR</option>
+					<option %rgb30% >RGB</option>
+					<option %rgb31% >RBG</option>
+					<option %rgb32% >GRB</option>
+					<option %rgb33% >GBR</option>
+					<option %rgb34% >BRG</option>
+					<option %rgb35% >BGR</option>
 					</optgroup>
 			</select>
 	<li><label for="layer2">Layer 2</label>
 			<select id="layer2" name="layer2">
 				<optgroup label="layer2">
-					<option>RGB</option>
-					<option>RBG</option>
-					<option>GRB</option>
-					<option>GBR</option>
-					<option>BRG</option>
-					<option>BGR</option>
+					<option %rgb20% >RGB</option>
+					<option %rgb21% >RBG</option>
+					<option %rgb22% >GRB</option>
+					<option %rgb23% >GBR</option>
+					<option %rgb24% >BRG</option>
+					<option %rgb25% >BGR</option>
 					</optgroup>
 			</select>
 	<li><label for="layer1">Layer 1</label>
 			<select id="layer1" name="layer1">
 				<optgroup label="layer1">
-					<option>RGB</option>
-					<option>RBG</option>
-					<option>GRB</option>
-					<option>GBR</option>
-					<option>BRG</option>
-					<option>BGR</option>
+					<option %rgb10% >RGB</option>
+					<option %rgb11% >RBG</option>
+					<option %rgb12% >GRB</option>
+					<option %rgb13% >GBR</option>
+					<option %rgb14% >BRG</option>
+					<option %rgb15% >BGR</option>
 					</optgroup>
 			</select>
 	<li><label for="layer0">Layer 0</label>
 			<select id="layer0" name="layer0">
 				<optgroup label="layer0">
-					<option>RGB</option>
-					<option>RBG</option>
-					<option>GRB</option>
-					<option>GBR</option>
-					<option>BRG</option>
-					<option>BGR</option>
+					<option %rgb00% >RGB</option>
+					<option %rgb01% >RBG</option>
+					<option %rgb02% >GRB</option>
+					<option %rgb03% >GBR</option>
+					<option %rgb04% >BRG</option>
+					<option %rgb05% >BGR</option>
 					</optgroup>
 			</select>(base)
 	</ul>

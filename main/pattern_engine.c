@@ -211,6 +211,10 @@ void rgb_test( uint16_t cycles, uint16_t delay) {
 
    while(cycles != 0) {
       cycles--;
+      allLedsColor( 15,15,15);
+      if (delay_and_buttons(delay)) return;
+      allLedsColor( 0,0,0);
+      if (delay_and_buttons(1000)) return; // hard code 1 second
       allLedsColor( 15,0,0);
       if (delay_and_buttons(delay)) return;
       allLedsColor( 0,15,0);
@@ -318,10 +322,10 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 
 pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
    {.patternType = PATTERN_BUILT_IN,
-    .runMe = fad_testing,
-    .patternName = "Fad testing Level 1",
-    .delay = 100,
-    .cycles = 100,
+    .runMe = rgb_test,
+    .patternName = "Just a RGB test",
+    .delay = 1000 * 3,
+    .cycles = 10,
     .enabled = true},
    {.patternType = PATTERN_BUILT_IN,
     .runMe = walking_testing,
@@ -360,10 +364,10 @@ pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
     .cycles = 10,
     .enabled = true},
    {.patternType = PATTERN_BUILT_IN,
-    .runMe = rgb_test,
-    .patternName = "Just a RGB test",
-    .delay = 1000 * 3,
-    .cycles = 10,
+    .runMe = fad_testing,
+    .patternName = "Fad testing Level 1",
+    .delay = 100,
+    .cycles = 100,
     .enabled = true},
   };
 
