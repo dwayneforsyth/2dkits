@@ -48,6 +48,8 @@
 
 #include "disk_system.h"
 #include "pattern_engine.h"
+#include "global.h"
+extern blinkieAppData_t xAppData;
 
 /* A simple example that demonstrates how to create GET and POST
  * handlers for the web server.
@@ -57,10 +59,10 @@
  * with the config you want -
  * ie. #define EXAMPLE_WIFI_SSID "mywifissid"
 */
-//#define EXAMPLE_WIFI_SSID "Optimal-LAN"
-//#define EXAMPLE_WIFI_PASS "wifiworks"
-#define EXAMPLE_WIFI_SSID "dforsythnet"
-#define EXAMPLE_WIFI_PASS ""
+#define EXAMPLE_WIFI_SSID "Optimal-LAN"
+#define EXAMPLE_WIFI_PASS "wifiworks"
+//#define EXAMPLE_WIFI_SSID "dforsythnet"
+//#define EXAMPLE_WIFI_PASS ""
 #define AP_EXAMPLE_WIFI_SSID "blinkie\0"
 #define AP_EXAMPLE_WIFI_PASS "12345678"
 
@@ -120,6 +122,10 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
 	//DDF send nothing - hard codded
     } else if (strncmp("%tz",token,3)==0) {
 	//DDF send nothing - hard codded
+    } else if (strcmp("%sasip",token)==0) {
+	sprintf(tBuffer, "%s", xAppData.ipName);
+        httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
+	
     } else {
 	sprintf(tBuffer, "%s%%",token);
         httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
@@ -413,7 +419,7 @@ void stop_webserver(httpd_handle_t server)
 *******************************************************************************/
 static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
-    httpd_handle_t *server = (httpd_handle_t *) ctx;
+    wifi_sta_info_t *sta;
 
     switch(event->event_id) {
     case SYSTEM_EVENT_STA_START:
@@ -421,15 +427,10 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         ESP_ERROR_CHECK(esp_wifi_connect());
         break;
     case SYSTEM_EVENT_STA_GOT_IP:
+        xAppData.ipName = ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip);
         ESP_LOGI(TAG, "SYSTEM_EVENT_STA_GOT_IP");
         ESP_LOGI(TAG, "Got IP: %s",
                 ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
-
-        /* Start the web server */
-        if (*server == NULL) {
-            *server = start_webserver();
-        }
-
         ESP_LOGI(TAG, "Initializing SNTP");
         sntp_setoperatingmode(SNTP_OPMODE_POLL);
         sntp_setservername(0, "pool.ntp.org");
@@ -437,15 +438,23 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED");
+        xAppData.ipName = NULL;
         ESP_ERROR_CHECK(esp_wifi_connect());
-
-        /* Stop the web server */
-        if (*server) {
-            stop_webserver(*server);
-            *server = NULL;
+        break;
+    case SYSTEM_EVENT_AP_STAIPASSIGNED:
+        ESP_LOGI(TAG,"station connected to access point.");
+        wifi_sta_list_t sta_list;
+        ESP_ERROR_CHECK( esp_wifi_ap_get_sta_list(&sta_list));
+        for(int i = 0; i < sta_list.num; i++)
+        {
+            //Print the mac address of the connected station
+            sta =  &(sta_list.sta[i]);
+            ESP_LOGI(TAG,"Station %d MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", i,
+                sta->mac[0], sta->mac[1], sta->mac[2], sta->mac[3], sta->mac[4], sta->mac[5]);
         }
         break;
     default:
+       ESP_LOGI(TAG, "Network event %d",event->event_id);
         break;
     }
     return ESP_OK;
@@ -498,4 +507,5 @@ void initialise_wifi(void *arg)
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config_ap) );
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
     ESP_ERROR_CHECK(esp_wifi_start());
+    start_webserver();
 }
