@@ -4,5 +4,9 @@
 
 blinkieAppData_t xAppData = {
    .ipName = NULL,
+   .wifi = {{ "dforsythnet","" },
+            { "dforsythnet2","" },
+            { "Optimal-LAN","wifiworks"}
+           }
 };
     

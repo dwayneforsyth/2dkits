@@ -419,6 +419,14 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     wifi_sta_info_t *sta;
     static bool serverInit = false;
+    static uint8_t wifiIndex = 0;
+
+    wifi_config_t wifi_config_sta = {
+        .sta = {
+            .ssid = "",
+            .password = "",
+        },
+    };
 
     switch(event->event_id) {
     case SYSTEM_EVENT_STA_START:
@@ -445,6 +453,13 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
     case SYSTEM_EVENT_STA_DISCONNECTED:
         ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED");
         xAppData.ipName = NULL;
+
+        wifiIndex = (wifiIndex + 1) % WIFI_TABLE_SIZE;
+        strcpy((char *) wifi_config_sta.sta.ssid, xAppData.wifi[wifiIndex].ssid);
+        strcpy((char *) wifi_config_sta.sta.password, xAppData.wifi[wifiIndex].passwd);
+        ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
+
+        ESP_LOGI(TAG, "Trying WiFi STA: SSID >%s< PASSWD >%s<", wifi_config_sta.sta.ssid, wifi_config_sta.sta.password);
         ESP_ERROR_CHECK(esp_wifi_connect());
         break;
     case SYSTEM_EVENT_AP_STAIPASSIGNED:
@@ -494,8 +509,8 @@ void initialise_wifi(void *arg)
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
     wifi_config_t wifi_config_sta = {
         .sta = {
-            .ssid = EXAMPLE_WIFI_SSID,
-            .password = EXAMPLE_WIFI_PASS,
+            .ssid = "",
+            .password = "",
         },
     };
     wifi_config_t wifi_config_ap = {
@@ -510,8 +525,11 @@ void initialise_wifi(void *arg)
         }
     };
 
+    strcpy((char *) wifi_config_sta.sta.ssid, xAppData.wifi[0].ssid);
+    strcpy((char *) wifi_config_sta.sta.password, xAppData.wifi[0].passwd);
+
     ESP_LOGI(TAG, "Setting WiFi AP: SSID %s", wifi_config_ap.ap.ssid);
-    ESP_LOGI(TAG, "Setting WiFi STA: SSID %s", wifi_config_sta.sta.ssid);
+    ESP_LOGI(TAG, "Trying WiFi STA: SSID >%s< PASSWD >%s<", wifi_config_sta.sta.ssid, wifi_config_sta.sta.password);
 
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));

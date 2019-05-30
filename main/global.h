@@ -22,8 +22,16 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+typedef struct wifiData_t {
+   char ssid[64];
+   char passwd[128];
+} wifiData_t;
+
+#define WIFI_TABLE_SIZE 3
+
 typedef struct blinkieAppData_t {
    char *ipName;
+   wifiData_t wifi[WIFI_TABLE_SIZE];
 } blinkieAppData_t;
 
 #endif
