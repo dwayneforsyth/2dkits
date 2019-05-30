@@ -10,5 +10,8 @@ blinkieAppData_t xAppData = {
            },
    .apSsid = "blinkie",
    .apPasswd = "",
+   .apChan = 9,
+   .apMac = {0,0,0,0,0,0},
+   .staMac = {0,0,0,0,0,0},
 };
     

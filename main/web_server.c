@@ -114,7 +114,16 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
 	    sprintf(tBuffer, "[none]");
 	}
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
-	
+    } else if (strcmp("%apmac",token)==0) {
+	sprintf(tBuffer, "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
+           xAppData.apMac[0], xAppData.apMac[1], xAppData.apMac[2],
+           xAppData.apMac[3], xAppData.apMac[4], xAppData.apMac[5]);
+        httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
+    } else if (strcmp("%stamac",token)==0) {
+	sprintf(tBuffer, "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
+           xAppData.staMac[0], xAppData.staMac[1], xAppData.staMac[2],
+           xAppData.staMac[3], xAppData.staMac[4], xAppData.staMac[5]);
+        httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else {
 	sprintf(tBuffer, "%s%%",token);
         httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
@@ -503,14 +512,21 @@ void initialise_wifi(void *arg)
             .ssid = "",
             .ssid_len = 0,
             .password = "",
-            .channel = 9, // ap will show up to the same network it connects to via sta.
             .authmode = WIFI_AUTH_OPEN,
             .beacon_interval = 400,
             .max_connection = 16,
         }
     };
+    
     strcpy((char *) wifi_config_ap.ap.ssid, xAppData.apSsid);
     strcpy((char *) wifi_config_ap.ap.password, xAppData.apPasswd);
+    // ap will show up to the same network it connects to via sta.
+    wifi_config_ap.ap.channel = xAppData.apChan;
+    if (xAppData.apPasswd[0] == 0) {
+       wifi_config_ap.ap.authmode = WIFI_AUTH_OPEN;
+    } else {
+       wifi_config_ap.ap.authmode = WIFI_AUTH_WPA2_PSK;
+    }
 
     strcpy((char *) wifi_config_sta.sta.ssid, xAppData.wifi[0].ssid);
     strcpy((char *) wifi_config_sta.sta.password, xAppData.wifi[0].passwd);
@@ -522,6 +538,8 @@ void initialise_wifi(void *arg)
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config_ap) );
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
+    ESP_ERROR_CHECK(esp_wifi_get_mac(WIFI_IF_AP, xAppData.apMac) );
+    ESP_ERROR_CHECK(esp_wifi_get_mac(ESP_IF_WIFI_STA, xAppData.staMac));
     ESP_ERROR_CHECK(esp_wifi_start());
 //    start_webserver();
 }

@@ -399,7 +399,11 @@ uint8_t getPatternNumber() {
 }
 
 char * getPatternName() {
-	return(patternTable[step].patternName);
+        static  char * none = "[no name]";
+
+        char * tmp = patternTable[step].patternName;
+        if (tmp[0] == 0) return(none);
+	return(tmp);
 }
 
 void updatePatternsTask(void *param) {
