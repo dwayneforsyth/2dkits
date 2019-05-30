@@ -31,6 +31,8 @@ typedef struct wifiData_t {
 
 typedef struct blinkieAppData_t {
    char *ipName;
+   char apSsid[64];
+   char apPasswd[128];
    wifiData_t wifi[WIFI_TABLE_SIZE];
 } blinkieAppData_t;
 

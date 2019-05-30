@@ -51,22 +51,7 @@
 #include "global.h"
 extern blinkieAppData_t xAppData;
 
-/* A simple example that demonstrates how to create GET and POST
- * handlers for the web server.
- * The examples use simple WiFi configuration that you can set via
- * 'make menuconfig'.
- * If you'd rather not, just change the below entries to strings
- * with the config you want -
- * ie. #define EXAMPLE_WIFI_SSID "mywifissid"
-*/
-//#define EXAMPLE_WIFI_SSID "Optimal-LAN"
-//#define EXAMPLE_WIFI_PASS "wifiworks"
-#define EXAMPLE_WIFI_SSID "dforsythnet"
-#define EXAMPLE_WIFI_PASS ""
-#define AP_EXAMPLE_WIFI_SSID "blinkie\0"
-#define AP_EXAMPLE_WIFI_PASS "12345678"
-
-static const char *TAG="APP";
+static const char *TAG="WEB";
 
 
 /*******************************************************************************
@@ -515,7 +500,7 @@ void initialise_wifi(void *arg)
     };
     wifi_config_t wifi_config_ap = {
         .ap = {
-            .ssid = AP_EXAMPLE_WIFI_SSID,
+            .ssid = "",
             .ssid_len = 0,
             .password = "",
             .channel = 9, // ap will show up to the same network it connects to via sta.
@@ -524,11 +509,13 @@ void initialise_wifi(void *arg)
             .max_connection = 16,
         }
     };
+    strcpy((char *) wifi_config_ap.ap.ssid, xAppData.apSsid);
+    strcpy((char *) wifi_config_ap.ap.password, xAppData.apPasswd);
 
     strcpy((char *) wifi_config_sta.sta.ssid, xAppData.wifi[0].ssid);
     strcpy((char *) wifi_config_sta.sta.password, xAppData.wifi[0].passwd);
 
-    ESP_LOGI(TAG, "Setting WiFi AP: SSID %s", wifi_config_ap.ap.ssid);
+    ESP_LOGI(TAG, "Setting WiFi AP: SSID >%s< PASSWD >%s<", wifi_config_ap.ap.ssid, wifi_config_ap.ap.password);
     ESP_LOGI(TAG, "Trying WiFi STA: SSID >%s< PASSWD >%s<", wifi_config_sta.sta.ssid, wifi_config_sta.sta.password);
 
 

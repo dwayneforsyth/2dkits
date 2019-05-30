@@ -7,6 +7,8 @@ blinkieAppData_t xAppData = {
    .wifi = {{ "dforsythnet","" },
             { "dforsythnet2","" },
             { "Optimal-LAN","wifiworks"}
-           }
+           },
+   .apSsid = "blinkie",
+   .apPasswd = "",
 };
     
