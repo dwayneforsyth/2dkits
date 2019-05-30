@@ -59,10 +59,10 @@ extern blinkieAppData_t xAppData;
  * with the config you want -
  * ie. #define EXAMPLE_WIFI_SSID "mywifissid"
 */
-#define EXAMPLE_WIFI_SSID "Optimal-LAN"
-#define EXAMPLE_WIFI_PASS "wifiworks"
-//#define EXAMPLE_WIFI_SSID "dforsythnet"
-//#define EXAMPLE_WIFI_PASS ""
+//#define EXAMPLE_WIFI_SSID "Optimal-LAN"
+//#define EXAMPLE_WIFI_PASS "wifiworks"
+#define EXAMPLE_WIFI_SSID "dforsythnet"
+#define EXAMPLE_WIFI_PASS ""
 #define AP_EXAMPLE_WIFI_SSID "blinkie\0"
 #define AP_EXAMPLE_WIFI_PASS "12345678"
 
@@ -123,7 +123,11 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
     } else if (strncmp("%tz",token,3)==0) {
 	//DDF send nothing - hard codded
     } else if (strcmp("%sasip",token)==0) {
-	sprintf(tBuffer, "%s", xAppData.ipName);
+	if (xAppData.ipName != NULL) {
+	    sprintf(tBuffer, "%s", xAppData.ipName);
+	} else {
+	    sprintf(tBuffer, "[none]");
+	}
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
 	
     } else {
@@ -397,12 +401,6 @@ httpd_handle_t start_webserver(void)
     return NULL;
 }
 
-void stop_webserver(httpd_handle_t server)
-{
-    // Stop the httpd server
-    httpd_stop(server);
-}
-
 /*******************************************************************************
     PURPOSE: 
 
@@ -420,6 +418,7 @@ void stop_webserver(httpd_handle_t server)
 static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     wifi_sta_info_t *sta;
+    static bool serverInit = false;
 
     switch(event->event_id) {
     case SYSTEM_EVENT_STA_START:
@@ -431,6 +430,13 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         ESP_LOGI(TAG, "SYSTEM_EVENT_STA_GOT_IP");
         ESP_LOGI(TAG, "Got IP: %s",
                 ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+
+        /* Start the web server */
+	if (serverInit == false) {
+	   start_webserver();
+	   serverInit = true;
+	}
+
         ESP_LOGI(TAG, "Initializing SNTP");
         sntp_setoperatingmode(SNTP_OPMODE_POLL);
         sntp_setservername(0, "pool.ntp.org");
@@ -443,6 +449,11 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         break;
     case SYSTEM_EVENT_AP_STAIPASSIGNED:
         ESP_LOGI(TAG,"station connected to access point.");
+        /* Start the web server */
+	if (serverInit == false) {
+	   start_webserver();
+	   serverInit = true;
+	}
         wifi_sta_list_t sta_list;
         ESP_ERROR_CHECK( esp_wifi_ap_get_sta_list(&sta_list));
         for(int i = 0; i < sta_list.num; i++)
@@ -507,5 +518,5 @@ void initialise_wifi(void *arg)
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config_ap) );
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
     ESP_ERROR_CHECK(esp_wifi_start());
-    start_webserver();
+//    start_webserver();
 }
