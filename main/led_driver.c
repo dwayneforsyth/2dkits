@@ -122,53 +122,12 @@ void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, u
 
     t.tx_buffer=&buffer;               //The data is the cmd itself
     t.rx_buffer=NULL;
-//    t.flags = SPI_TRANS_USE_TXDATA;
     t.length=6*8; // bits?
-//DDF    spi_device_transmit(spi, &t); will it be better?
-    spi_device_queue_trans(spi, &t, portMAX_DELAY);  //Transmit!
-}
+    t.addr=NULL;
+    t.cmd=NULL;
 
-/*******************************************************************************
-    PURPOSE: 
-
-    INPUTS:
-
-    OUTPUTS:
-        NONE
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
-
-*******************************************************************************/
-void IRAM_ATTR spi_pre_transfer_callback() {
-    gpio_set_level(PIN_NUM_CS, 0);
-    spi_done = false;
-}
-
-/*******************************************************************************
-    PURPOSE: 
-
-    INPUTS:
-
-    OUTPUTS:
-        NONE
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
-
-*******************************************************************************/
-void IRAM_ATTR spi_post_transfer_callback() {
-    gpio_set_level(strobeGPIO[oldStrobe], 0);
-    gpio_set_level(STROBE, 1);
-    gpio_set_level(STROBE, 0);
-    gpio_set_level(PIN_NUM_CS, 1);
-    // once spi is done, turn strobe on
-    gpio_set_level(strobeGPIO[strobe], 1);
-    spi_done = true;
+    ret=spi_device_transmit(spi, &t);
+//    spi_device_queue_trans(spi, &t, portMAX_DELAY);  //Transmit!
 }
 
 /*******************************************************************************
@@ -429,7 +388,7 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
         it releases controll 1/9 of time while all the leds are off.
 
 *******************************************************************************/
-void updateLedTask(void *param) {
+void IRAM_ATTR updateLedTask(void *param) {
     static uint8_t intensity = 0;
 
     while (1) {
@@ -437,19 +396,24 @@ void updateLedTask(void *param) {
         if (intensity >= 15) {
             intensity = 0;
 	    oldStrobe = strobe;
+            gpio_set_level(strobeGPIO[oldStrobe], 0);
             strobe++;
 	    if (strobe >= 8) {
 		 strobe = 0;
-                 gpio_set_level(strobeGPIO[7], 0);
 	         vTaskDelay(2); // all leds are off, release control
 	    }
         }
 
-        while (spi_done != true);
+
         updateMBI5026Chain( spi,
      	    ledDataOut[bank][strobe][intensity][1], 
      	    ledDataOut[bank][strobe][intensity][2], 
      	    ledDataOut[bank][strobe][intensity][0]);
+
+        gpio_set_level(STROBE, 1);
+        gpio_set_level(STROBE, 0);
+        gpio_set_level(strobeGPIO[strobe], 1);
+	vTaskDelay(1); // all leds are off, release control
     }
 }
 
