@@ -41,4 +41,7 @@ typedef struct blinkieAppData_t {
    uint8_t staMac[6];
 } blinkieAppData_t;
 
+void loadSettings();
+void storeSettings();
+
 #endif

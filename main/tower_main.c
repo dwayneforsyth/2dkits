@@ -41,6 +41,7 @@
 #include "web_server.h"
 #include "disk_system.h"
 #include "pattern_engine.h"
+#include "global.h"
 
 /*
    This code drive the 2DKits.com 4x4x8 tower
@@ -60,7 +61,7 @@ void app_main()
 
     initialise_disk();
     disk_dir_list("/spiffs",NULL);
-
+    loadSettings();
 
 #define GPIO_INPUT_IO_0     34
 #define GPIO_INPUT_IO_1     39
