@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := spi_leds
+PROJECT_NAME := tower
 
 include $(IDF_PATH)/make/project.mk
 

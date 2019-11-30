@@ -121,12 +121,9 @@ void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, u
     buffer[5] = blue & 0xff;
 
     t.tx_buffer=&buffer;               //The data is the cmd itself
-    t.rx_buffer=NULL;
     t.length=6*8; // bits?
-    t.addr=NULL;
-    t.cmd=NULL;
 
-    ret=spi_device_transmit(spi, &t);
+    spi_device_transmit(spi, &t);
 //    spi_device_queue_trans(spi, &t, portMAX_DELAY);  //Transmit!
 }
 
@@ -519,8 +516,8 @@ void init_LED_driver() {
         .mode=3,                                //SPI mode 3
         .spics_io_num=-1,                       //CS pin
         .queue_size=7,                          //We want to be able to queue 7 transactions at a time
-	.pre_cb=spi_pre_transfer_callback,
-	.post_cb=spi_post_transfer_callback,
+//	.pre_cb=spi_pre_transfer_callback,
+//	.post_cb=spi_post_transfer_callback,
     };
 
     gpio_pad_select_gpio(BLINK_GPIO);

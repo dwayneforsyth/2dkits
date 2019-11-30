@@ -245,7 +245,7 @@ void disk_dir_list(char *path, char *match) {
     DIR *dir = NULL;
     struct dirent *ent;
     char type;
-    char size[9];
+    char size[12];
     char tpath[255];
     char tbuffer[80];
     struct stat sb;
@@ -289,9 +289,9 @@ void disk_dir_list(char *path, char *match) {
                 if (statok) strcpy(size, "       ?");
                 else {
                     total += sb.st_size;
-                    if (sb.st_size < (1024*1024)) sprintf(size,"%8d", (int)sb.st_size);
-                    else if ((sb.st_size/1024) < (1024*1024)) sprintf(size,"%6dKB", (int)(sb.st_size / 1024));
-                    else sprintf(size,"%6dMB", (int)(sb.st_size / (1024 * 1024)));
+                    if (sb.st_size < (1024*1024)) snprintf(size, sizeof(size), "%8d", (int)sb.st_size);
+                    else if ((sb.st_size/1024) < (1024*1024)) snprintf(size, sizeof(size), "%6dKB", (int)(sb.st_size / 1024));
+                    else snprintf(size, sizeof(size), "%6dMB", (int)(sb.st_size / (1024 * 1024)));
                 }
             }
             else {
@@ -354,10 +354,10 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
     DIR *dir = NULL;
     struct dirent *ent;
     char type;
-    char size[9];
+    char size[12];
     char tpath[255];
-    char tbuffer[80];
-    char tbuffer2[80];
+    char tbuffer[123];
+    char tbuffer2[129];
     struct stat sb;
     struct tm *tm_info;
     char *lpath = NULL;
@@ -371,7 +371,7 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
     file_get_handler(req, "/spiffs/header.html",true);
 
     httpd_resp_send_chunk(req, dir_heading, strlen(dir_heading));
-    sprintf(tbuffer,"List of Directory [%s]\n", path);
+    snprintf(tbuffer,sizeof(tbuffer),"List of Directory [%s]\n", path);
     httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
 
     // Open directory
@@ -418,7 +418,7 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
                 strcpy(size, "       -");
             }
 
-            sprintf(tbuffer2, "<tr><td>%c<td align=\"right\">%s<td>%s<td>%s\n",
+            snprintf(tbuffer2, sizeof(tbuffer2), "<tr><td>%c<td align=\"right\">%.40s<td>%.40s<td>%.40s\n",
                 type,
                 size,
                 tbuffer,
@@ -428,10 +428,10 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
 	}
     }
     if (total) {
-    	if (total < (1024*1024)) sprintf(tbuffer, "   %8d", (int)total);
-    	else if ((total/1024) < (1024*1024)) sprintf(tbuffer, "   %6dKB", (int)(total / 1024));
-    	else sprintf(tbuffer, "   %6dMB", (int)(total / (1024 * 1024)));
-    	sprintf(tbuffer2, "<tr><td colspan=4>%s in %d file(s)\n", tbuffer, nfiles);
+    	if (total < (1024*1024)) snprintf(tbuffer, sizeof(tbuffer), "   %8d", (int)total);
+    	else if ((total/1024) < (1024*1024)) snprintf(tbuffer, sizeof(tbuffer), "   %6dKB", (int)(total / 1024));
+    	else snprintf(tbuffer, sizeof(tbuffer), "   %6dMB", (int)(total / (1024 * 1024)));
+    	snprintf(tbuffer2, sizeof(tbuffer2), "<tr><td colspan=4>%.40s in %d file(s)\n", tbuffer, nfiles);
         httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
     }
 
