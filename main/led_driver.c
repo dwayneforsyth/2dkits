@@ -32,7 +32,6 @@
 //   http://iot-bits.com/esp32/esp32-spi-tutorial-part-1/
 //   https://www.elecrow.com/download/ESP32_technical_reference_manual.pdf
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,19 +40,21 @@
 #include "esp_system.h"
 #include "driver/spi_master.h"
 #include "soc/gpio_struct.h"
+#include "soc/spi_reg.h"
 #include "driver/gpio.h"
-
 /*
    This code drive the 2DKits.com 4x4x8 tower
 */
 
-#define BLINK_GPIO   02
-#define PIN_NUM_MISO 12
-#define PIN_NUM_MOSI 14
-#define PIN_NUM_CLK  13
-#define PIN_NUM_CS   04
+#define PROTO1
 
-#define STROBE       18
+#define BLINK_GPIO   02
+#define PIN_NUM_MISO 12 //12
+#define PIN_NUM_MOSI 14 //13
+#define PIN_NUM_CLK  13 //14
+#define PIN_NUM_CS   04 //04?
+
+#define LATCH        18
 #define COMSIG0      15 // 15
 #define COMSIG1      23 // 22
 #define COMSIG2      22 // 23
@@ -73,9 +74,6 @@ typedef struct {
 } ledData_t;
 
 spi_device_handle_t spi;
-static uint8_t strobe = 0;
-static uint8_t oldStrobe = 0;
-bool spi_done = true;
 
 static const uint8_t strobeGPIO[9] = {
         COMSIG0,
@@ -106,25 +104,26 @@ static const uint8_t strobeGPIO[9] = {
     NOTES:
 
 *******************************************************************************/
-void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, uint16_t blue) {
+void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, uint16_t blue, uint8_t strobe) {
 
-    static uint8_t buffer[(NUMBER_OF_LEDS)+1];
+    static uint8_t buffer[128][(NUMBER_OF_LEDS)+1];
 
-    spi_transaction_t t;
-    memset(&t, 0, sizeof(t));       //Zero out the transaction
+    static spi_transaction_t t[128];
+    memset(&t[strobe], 0, sizeof(t[0]));       //Zero out the transaction
 
-    buffer[0] = red >> 8;
-    buffer[1] = red & 0xff;
-    buffer[2] = green >> 8;
-    buffer[3] = green & 0xff;
-    buffer[4] = blue >> 8;
-    buffer[5] = blue & 0xff;
+    buffer[strobe][0] = red >> 8;
+    buffer[strobe][1] = red & 0xff;
+    buffer[strobe][2] = green >> 8;
+    buffer[strobe][3] = green & 0xff;
+    buffer[strobe][4] = blue >> 8;
+    buffer[strobe][5] = blue & 0xff;
 
-    t.tx_buffer=&buffer;               //The data is the cmd itself
-    t.length=6*8; // bits?
+    t[strobe].tx_buffer=&buffer[strobe];               //The data is the cmd itself
+    t[strobe].length=6*8; // bits?
+    t[strobe].user = strobe;
 
-    spi_device_transmit(spi, &t);
-//    spi_device_queue_trans(spi, &t, portMAX_DELAY);  //Transmit!
+    spi_device_queue_trans(spi, &t[strobe], portMAX_DELAY);  //Transmit!
+
 }
 
 /*******************************************************************************
@@ -385,32 +384,40 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
         it releases controll 1/9 of time while all the leds are off.
 
 *******************************************************************************/
+
+void IRAM_ATTR spi_post_transfer_callback(spi_transaction_t *curTrans) {
+    static uint8_t oldStrobe = 0;
+    uint8_t strobe = ((uint8_t) curTrans->user) >>4;
+    
+    if (oldStrobe != strobe) {
+	gpio_set_level(strobeGPIO[oldStrobe], 0); // row off
+	oldStrobe = strobe;
+    }
+
+    gpio_set_level(LATCH, 1); //Latch in col
+    asm volatile ("nop");
+    gpio_set_level(LATCH, 0); //clear latch;
+
+    gpio_set_level(strobeGPIO[strobe], 1); // row on
+}
+
 void IRAM_ATTR updateLedTask(void *param) {
-    static uint8_t intensity = 0;
+    uint8_t intensity = 0;
+    uint8_t strobe = 0;
 
     while (1) {
-        intensity++;
-        if (intensity >= 15) {
-            intensity = 0;
-	    oldStrobe = strobe;
-            gpio_set_level(strobeGPIO[oldStrobe], 0);
-            strobe++;
-	    if (strobe >= 8) {
-		 strobe = 0;
-	         vTaskDelay(2); // all leds are off, release control
+
+	// start loading next frame
+	for (strobe=0;strobe<8; strobe++) {
+            for (intensity=0;intensity<16;intensity++) {
+                updateMBI5026Chain( spi,
+                    ledDataOut[bank][strobe][intensity][1],
+                    ledDataOut[bank][strobe][intensity][2],
+                    ledDataOut[bank][strobe][intensity][0],(strobe<<4)+intensity);
 	    }
-        }
-
-
-        updateMBI5026Chain( spi,
-     	    ledDataOut[bank][strobe][intensity][1], 
-     	    ledDataOut[bank][strobe][intensity][2], 
-     	    ledDataOut[bank][strobe][intensity][0]);
-
-        gpio_set_level(STROBE, 1);
-        gpio_set_level(STROBE, 0);
-        gpio_set_level(strobeGPIO[strobe], 1);
-	vTaskDelay(1); // all leds are off, release control
+	}
+        updateMBI5026Chain( spi, 0,0,0,0); //LEDs off
+        vTaskDelay(4);
     }
 }
 
@@ -430,8 +437,8 @@ void IRAM_ATTR updateLedTask(void *param) {
 *******************************************************************************/
 void allLedsOff() {
     uint8_t s,i,c;
-    for (s=0;s<9;s++) {
-        for (i=0;i<16;i++) {
+    for (s=0;s<8;s++) {
+        for (i=0;i<15;i++) {
             for (c=0;c<3;c++) {
                 ledDataOut[bank][s][i][c] = 0x0000;
 }   }   }   } 
@@ -452,8 +459,8 @@ void allLedsOff() {
 *******************************************************************************/
 void allLedsOn() {
     uint8_t s,i,c;
-    for (s=0;s<9;s++) {
-        for (i=0;i<16;i++) {
+    for (s=0;s<8;s++) {
+        for (i=0;i<15;i++) {
             for (c=0;c<3;c++) {
                 ledDataOut[bank][s][i][c] = 0xffff;
 }   }   }   } 
@@ -495,6 +502,8 @@ void allLedsColor( uint8_t red, uint8_t green, uint8_t blue) {
         NONE
 
     NOTES:
+    http://iot-bits.com/esp32/esp32-spi-tutorial-part-1/
+    https://www.mouser.com/pdfdocs/ESP32-Tech_Reference.pdf
 
 *******************************************************************************/
 void init_LED_driver() {
@@ -506,18 +515,19 @@ void init_LED_driver() {
         .sclk_io_num=PIN_NUM_CLK,
         .quadwp_io_num=-1,
         .quadhd_io_num=-1,
-	.max_transfer_sz=6*8
+	.max_transfer_sz=6*8,
+//	.flags=SPI_DEVICE_NO_DUMMY
     };
     const spi_device_interface_config_t devcfg={
 	.command_bits = 0,
 	.address_bits = 0,
 	.dummy_bits = 0,
-        .clock_speed_hz=25*1000*1000,            //Clock out at 4 MHz
+        .clock_speed_hz=25*1000*1000,           //Clock out at 25 MHz
         .mode=3,                                //SPI mode 3
         .spics_io_num=-1,                       //CS pin
-        .queue_size=7,                          //We want to be able to queue 7 transactions at a time
+        .queue_size=129,                          //We want to be able to queue 128 transactions at a time
 //	.pre_cb=spi_pre_transfer_callback,
-//	.post_cb=spi_post_transfer_callback,
+	.post_cb=spi_post_transfer_callback,
     };
 
     gpio_pad_select_gpio(BLINK_GPIO);
@@ -528,9 +538,9 @@ void init_LED_driver() {
     gpio_set_direction(PIN_NUM_CS, GPIO_MODE_OUTPUT);
     gpio_set_level(PIN_NUM_CS, 1);
 
-    gpio_pad_select_gpio(STROBE);
-    gpio_set_direction(STROBE, GPIO_MODE_OUTPUT);
-    gpio_set_level(STROBE, 0);
+    gpio_pad_select_gpio(LATCH);
+    gpio_set_direction(LATCH , GPIO_MODE_OUTPUT);
+    gpio_set_level(LATCH, 0);
 
     for (i=0;i<8;i++) {
         gpio_pad_select_gpio(strobeGPIO[i]);
