@@ -7,6 +7,8 @@ git clone git.2dkits.com:/home/git/tower.git
 git clone https://github.com/espressif/esp-idf.git
 wget https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
 tar -xvzf xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
+bash
 source setup_vars.sh
 cd tower
-make
+//make
+idf.py build
