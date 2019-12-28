@@ -72,7 +72,7 @@ bool delay_and_buttons(uint16_t delay) {
 	while (gpio_get_level(39) == 0) {
 	     vTaskDelay(1);
 	     delayCount++;
-	     if (delayCount > 100) {
+	     if (delayCount > 500) {
 		     delayCount = 0;
                      step = ((step+1) % MAX_PATTERN_ENTRY);
 		     displayNumber(step);
@@ -90,7 +90,7 @@ bool delay_and_buttons(uint16_t delay) {
 	while (gpio_get_level(34) == 0) {
 	     vTaskDelay(1);
 	     delayCount++;
-	     if (delayCount > 100) {
+	     if (delayCount > 500) {
 		     delayCount = 0;
                      step = ((step-1) % MAX_PATTERN_ENTRY);
 		     displayNumber(step);
@@ -204,6 +204,46 @@ void rgb_fade( uint16_t cycles, uint16_t delay) {
              if (delay_and_buttons(delay)) return;
 	  }
       }
+   }
+}
+
+void layer_test( uint16_t cycles, uint16_t delay) {
+   uint8_t l,x,y,c;
+
+   while(cycles != 0) {
+      cycles--;
+      for(c=0;c<3;c++) {
+         for(l=0;l<8;l++) {
+            allLedsColor( 0,0,0);
+            for(x=0;x<4;x++) {
+	       for (y=0;y<4;y++) {
+                  setLed(l,x,y,(c==0)? 15:0,(c==1)? 15:0,(c==2)? 15:0);
+	       }
+	    }
+            if (delay_and_buttons(delay)) return;
+         }
+      }
+   }
+}
+
+void ledflash_test( uint16_t cycles, uint16_t delay) {
+   uint8_t i;
+
+   while(cycles != 0) {
+      cycles--;
+      for (i=0;i<16;i++) {
+         setLed(0,0,0, i,0,0);
+         if (delay_and_buttons(100)) return;
+      }
+      for (i=14;i==0;i--) {
+         setLed(0,0,0, i,0,0);
+         if (delay_and_buttons(100)) return;
+      }
+      if (delay_and_buttons(delay)) return;
+      setLed(0,0,0, 0,15,0);
+      if (delay_and_buttons(delay)) return;
+      setLed(0,0,0, 0,0,15);
+      if (delay_and_buttons(delay)) return;
    }
 }
 
@@ -322,6 +362,18 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 
 pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
    {.patternType = PATTERN_BUILT_IN,
+    .runMe = ledflash_test,
+    .patternName = "led flash test",
+    .delay = 1000,
+    .cycles = 200,
+    .enabled = true},
+   {.patternType = PATTERN_BUILT_IN,
+    .runMe = layer_test,
+    .patternName = "Just a RGB test",
+    .delay = 500,
+    .cycles = 10,
+    .enabled = true},
+   {.patternType = PATTERN_BUILT_IN,
     .runMe = rgb_test,
     .patternName = "Just a RGB test",
     .delay = 1000 * 3,
@@ -387,7 +439,7 @@ void addPattern( char * filename) {
     }
 
     strcpy(patternTable[index].fileName, filename);
-    patternTable[index].delay = 100;
+    patternTable[index].delay = 20;
     patternTable[index].cycles = 10;
     patternTable[index].enabled = true;
     strcpy(patternTable[index].patternName, filename);
