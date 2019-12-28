@@ -106,9 +106,9 @@ static const uint8_t strobeGPIO[9] = {
 *******************************************************************************/
 void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, uint16_t blue, uint8_t strobe) {
 
-    static uint8_t buffer[128][(NUMBER_OF_LEDS)+1];
+    static uint8_t buffer[129][(NUMBER_OF_LEDS)+1];
 
-    static spi_transaction_t t[128];
+    static spi_transaction_t t[129];
     memset(&t[strobe], 0, sizeof(t[0]));       //Zero out the transaction
 
     buffer[strobe][0] = red >> 8;
@@ -166,7 +166,7 @@ void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, u
 
 *******************************************************************************/
 
-static uint16_t ledDataOut[2][9][16][4];
+static uint16_t ledDataOut[2][8][16][4];
 static uint8_t bank = 0;
 
 /*******************************************************************************
@@ -370,8 +370,11 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
 
 /*******************************************************************************
     PURPOSE: 
+        Lack the data in the LED Drivers, and setup the 8 line column driver.
 
     INPUTS:
+        SPI transaction just finished. THe user file has the strobe and intensity
+	setting stored in it. (It is not a pointer to user data)
 
     OUTPUTS:
         NONE
@@ -380,8 +383,7 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
         NONE
 
     NOTES:
-        this is the highest pri task, and it is currently running full speed
-        it releases controll 1/9 of time while all the leds are off.
+        This is running under the interupt context, keep is short and sweet.        
 
 *******************************************************************************/
 
@@ -394,12 +396,33 @@ void IRAM_ATTR spi_post_transfer_callback(spi_transaction_t *curTrans) {
 	oldStrobe = strobe;
     }
 
-    gpio_set_level(LATCH, 1); //Latch in col
+    gpio_set_level(LATCH, 1); //clear latch;
     asm volatile ("nop");
-    gpio_set_level(LATCH, 0); //clear latch;
+    gpio_set_level(LATCH, 0); //Latch in col
 
     gpio_set_level(strobeGPIO[strobe], 1); // row on
 }
+
+/*******************************************************************************
+    PURPOSE: 
+        This will queue up 129 spi messages, one display cycle, then sleep for
+        8 ms.
+
+        8 cycles (columns) * 16 intensities + 1 all LEDs off.	
+
+    INPUTS:
+        NONE
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+        this is the highest pri task.
+
+*******************************************************************************/
 
 void IRAM_ATTR updateLedTask(void *param) {
     uint8_t intensity = 0;
@@ -417,7 +440,7 @@ void IRAM_ATTR updateLedTask(void *param) {
 	    }
 	}
         updateMBI5026Chain( spi, 0,0,0,0); //LEDs off
-        vTaskDelay(4);
+        vTaskDelay(4); // 2ms units, 8 ms delay.
     }
 }
 
@@ -455,6 +478,7 @@ void allLedsOff() {
         NONE
 
     NOTES:
+        bypass all the math and sets the strob data to all zeros.
 
 *******************************************************************************/
 void allLedsOn() {
@@ -465,9 +489,6 @@ void allLedsOn() {
                 ledDataOut[bank][s][i][c] = 0xffff;
 }   }   }   } 
 
-//
-//
-//
 /*******************************************************************************
     PURPOSE: 
 
@@ -516,16 +537,15 @@ void init_LED_driver() {
         .quadwp_io_num=-1,
         .quadhd_io_num=-1,
 	.max_transfer_sz=6*8,
-//	.flags=SPI_DEVICE_NO_DUMMY
     };
     const spi_device_interface_config_t devcfg={
 	.command_bits = 0,
 	.address_bits = 0,
 	.dummy_bits = 0,
         .clock_speed_hz=25*1000*1000,           //Clock out at 25 MHz
-        .mode=3,                                //SPI mode 3
+        .mode=0,                                //SPI mode 0
         .spics_io_num=-1,                       //CS pin
-        .queue_size=129,                          //We want to be able to queue 128 transactions at a time
+        .queue_size=129,                          //We want to be able to queue 129 transactions at a time
 //	.pre_cb=spi_pre_transfer_callback,
 	.post_cb=spi_post_transfer_callback,
     };
