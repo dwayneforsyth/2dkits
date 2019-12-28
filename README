@@ -12,3 +12,11 @@ source setup_vars.sh
 cd tower
 //make
 idf.py build
+
+============
+ #
+ # HTTP Server
+ #
+-CONFIG_HTTPD_MAX_REQ_HDR_LEN=512
++CONFIG_HTTPD_MAX_REQ_HDR_LEN=1024
+
