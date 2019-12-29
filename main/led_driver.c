@@ -139,7 +139,6 @@ void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, u
     t[strobe].user = strobe;
 
     spi_device_queue_trans(spi, &t[strobe], portMAX_DELAY);  //Transmit!
-
 }
 
 /*******************************************************************************
@@ -409,9 +408,9 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
         This is running under the interupt context, keep is short and sweet.        
 
 *******************************************************************************/
+#ifdef ROW_GAP
 void IRAM_ATTR spi_pre_transfer_callback(spi_transaction_t *curTrans) {
 
-#ifdef ROW_GAP
     uint8_t strobe = ((uint8_t) curTrans->user) >>4;
 
     static uint8_t oldStrobe = 0;
@@ -421,8 +420,8 @@ void IRAM_ATTR spi_pre_transfer_callback(spi_transaction_t *curTrans) {
 	} 
 	oldStrobe = strobe;
     }
-#endif
 }
+#endif
 
 /*******************************************************************************
     PURPOSE: 
@@ -452,12 +451,10 @@ void IRAM_ATTR spi_post_transfer_callback(spi_transaction_t *curTrans) {
 
 #ifndef ROW_GAP
     static uint8_t oldStrobe = 0;
-    if (oldStrobe != strobe) {
-	if (oldStrobe <8) {
-	    gpio_set_level(strobeGPIO[oldStrobe], 0); // row off
-	} 
-	oldStrobe = strobe;
-    }
+    if (oldStrobe <8) {
+        gpio_set_level(strobeGPIO[oldStrobe], 0); // row off
+    } 
+    oldStrobe = strobe;
 #endif
     gpio_set_level(LATCH, 1); //clear latch;
     asm volatile ("nop");
@@ -492,6 +489,7 @@ void IRAM_ATTR spi_post_transfer_callback(spi_transaction_t *curTrans) {
 void IRAM_ATTR updateLedTask(void *param) {
     uint8_t intensity = 0;
     uint8_t strobe = 0;
+    spi_transaction_t *lastSpi;
 
     while (1) {
 
@@ -504,8 +502,14 @@ void IRAM_ATTR updateLedTask(void *param) {
                     ledDataOut[bank][strobe][intensity][0],(strobe<<4)+intensity);
 	    }
 	}
-        updateMBI5026Chain( spi, 0,0,0,0x80); //LEDs off
-        vTaskDelay(7); // 2ms units, 8 ms delay.
+
+	// this is dumb, need to read the result of each request to see when the
+	// queue is empty. we will get blocked each time a "done" entry is still
+	// in the queue.
+	uint8_t index;
+	for (index=0;index<(8*16);index++) {
+	     spi_device_get_trans_result(spi, &lastSpi, portMAX_DELAY);
+	}
     }
 }
 
