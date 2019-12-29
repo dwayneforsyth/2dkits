@@ -59,11 +59,13 @@ typedef struct pattern_entry_t {
 } pattern_entry_t;
 
 uint8_t step = 10;
+uint8_t pendingExit = false;
 
 bool delay_and_buttons(uint16_t delay) {
-    bool exit = false;
+    bool exit = pendingExit;
     uint16_t delayCount = 0;
 
+    pendingExit = false;
     vTaskDelay(delay / portTICK_PERIOD_MS);
     if (gpio_get_level(39) == 0) {
         printf("Button 39\n");
@@ -421,6 +423,13 @@ void addPattern( char * filename) {
 
 uint8_t getPatternNumber() {
 	return(step);
+}
+
+void setPatternNumber(uint8_t newStep) {
+    if (step != newStep) {
+	step = ((newStep-1) % MAX_PATTERN_ENTRY);
+	pendingExit = true;
+    }
 }
 
 char * getPatternName() {

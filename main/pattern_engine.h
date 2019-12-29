@@ -27,6 +27,7 @@ void addPattern( char * );
 
 uint8_t getPatternNumber();
 char * getPatternName();
+void setPatternNumber(uint8_t newStep);
 
 #endif
 
