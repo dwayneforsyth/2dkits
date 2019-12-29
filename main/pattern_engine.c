@@ -226,27 +226,6 @@ void layer_test( uint16_t cycles, uint16_t delay) {
    }
 }
 
-void ledflash_test( uint16_t cycles, uint16_t delay) {
-   uint8_t i;
-
-   while(cycles != 0) {
-      cycles--;
-      for (i=0;i<16;i++) {
-         setLed(0,0,0, i,0,0);
-         if (delay_and_buttons(100)) return;
-      }
-      for (i=14;i==0;i--) {
-         setLed(0,0,0, i,0,0);
-         if (delay_and_buttons(100)) return;
-      }
-      if (delay_and_buttons(delay)) return;
-      setLed(0,0,0, 0,15,0);
-      if (delay_and_buttons(delay)) return;
-      setLed(0,0,0, 0,0,15);
-      if (delay_and_buttons(delay)) return;
-   }
-}
-
 void rgb_test( uint16_t cycles, uint16_t delay) {
 
    while(cycles != 0) {
@@ -361,12 +340,6 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 }
 
 pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
-   {.patternType = PATTERN_BUILT_IN,
-    .runMe = ledflash_test,
-    .patternName = "led flash test",
-    .delay = 1000,
-    .cycles = 200,
-    .enabled = true},
    {.patternType = PATTERN_BUILT_IN,
     .runMe = layer_test,
     .patternName = "Just a RGB test",
