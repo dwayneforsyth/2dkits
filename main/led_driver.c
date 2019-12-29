@@ -387,14 +387,17 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
 /*******************************************************************************
     PURPOSE: 
         Hope was to turn off the TD62783APG "old" row line earlier (72us) to
-	reduce the ghosting, can see the change on the analyser. do not see the
-	ghosting reduced... It should shut off in 1.8us, do not think this is the
-	cause of the ghost.
+	reduce the ghosting. It should shut off in 1.8us, do not think this is
+        a cause of GHosting. The Saleae analysis shows the output of the TD62783APG
+        longer then it should be (and does not reflect when the LEDs are going. I
+        think nothing drains the power level after the LEDs cut out.
+       
+	I found the cause of most of the ghosting so and do not think the early
+        row cutoff is adding value.
 
     INPUTS:
         SPI transaction about to start. THe user file has the strobe and intensity
 	setting stored in it. (It is not a pointer to user data)
-
 
     OUTPUTS:
         NONE
@@ -407,25 +410,29 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
 
 *******************************************************************************/
 void IRAM_ATTR spi_pre_transfer_callback(spi_transaction_t *curTrans) {
-    static uint8_t oldStrobe = 0;
 
+#ifdef ROW_GAP
     uint8_t strobe = ((uint8_t) curTrans->user) >>4;
 
+    static uint8_t oldStrobe = 0;
     if (oldStrobe != strobe) {
 	if (oldStrobe <8) {
 	    gpio_set_level(strobeGPIO[oldStrobe], 0); // row off
 	} 
 	oldStrobe = strobe;
     }
+#endif
 }
 
 /*******************************************************************************
     PURPOSE: 
-        Lack the data in the LED Drivers, and setup the 8 line column driver.
+        Latches the SPI data just loaded into the driver of the MBI5026 Column
+        Changes the driver line that is activive ont he TD62783 chip. Row	
 
     INPUTS:
-        SPI transaction just finished. THe user file has the strobe and intensity
+        SPI transaction just finished. The user file has the strobe and intensity
 	setting stored in it. (It is not a pointer to user data)
+	The strobe is used for the TD62783 line to make active.
 
     OUTPUTS:
         NONE
@@ -434,13 +441,24 @@ void IRAM_ATTR spi_pre_transfer_callback(spi_transaction_t *curTrans) {
         NONE
 
     NOTES:
-        This is running under the interupt context, keep is short and sweet.        
+        This is running under the interupt context, keep is short and sweet.
+
+        I do not think the "oldStrobe" logic is adding any value.	
 
 *******************************************************************************/
 void IRAM_ATTR spi_post_transfer_callback(spi_transaction_t *curTrans) {
 
     uint8_t strobe = ((uint8_t) curTrans->user) >>4;
 
+#ifndef ROW_GAP
+    static uint8_t oldStrobe = 0;
+    if (oldStrobe != strobe) {
+	if (oldStrobe <8) {
+	    gpio_set_level(strobeGPIO[oldStrobe], 0); // row off
+	} 
+	oldStrobe = strobe;
+    }
+#endif
     gpio_set_level(LATCH, 1); //clear latch;
     asm volatile ("nop");
     gpio_set_level(LATCH, 0); //Latch in col
@@ -593,7 +611,9 @@ void init_LED_driver() {
         .mode=0,                                //SPI mode 0
         .spics_io_num=-1,                       //CS pin
         .queue_size=129,                          //We want to be able to queue 129 transactions at a time
+#ifdef ROW_GAP
 	.pre_cb=spi_pre_transfer_callback,
+#endif
 	.post_cb=spi_post_transfer_callback,
     };
 
