@@ -52,9 +52,9 @@
 #define PIN_NUM_MISO 12 //12
 #define PIN_NUM_MOSI 14 //13
 #define PIN_NUM_CLK  13 //14
-#define PIN_NUM_CS   04 //04?
+#define PIN_NUM_CS   18 //04?
 
-#define LATCH        18
+#define LATCH        04 // 18
 #define COMSIG0      15 // 15
 #define COMSIG1      23 // 22
 #define COMSIG2      22 // 23
@@ -603,7 +603,7 @@ void init_LED_driver() {
 
     gpio_pad_select_gpio(PIN_NUM_CS);
     gpio_set_direction(PIN_NUM_CS, GPIO_MODE_OUTPUT);
-    gpio_set_level(PIN_NUM_CS, 1);
+    gpio_set_level(PIN_NUM_CS, 0);
 
     gpio_pad_select_gpio(LATCH);
     gpio_set_direction(LATCH , GPIO_MODE_OUTPUT);
