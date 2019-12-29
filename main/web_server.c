@@ -153,6 +153,7 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
 *******************************************************************************/
 esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
 {
+
     ESP_LOGI(TAG, "Reading file : %s", filename);
 
     FILE *f = fopen(filename, "r");
@@ -255,6 +256,27 @@ esp_err_t get_file_handler(httpd_req_t *req)
     char *filename = (char *) req->user_ctx;
     bool headFoot = false;
 
+    char*  buf;
+    size_t buf_len;
+
+    /* Read URL query string length and allocate memory for length + 1,
+     * extra byte for null termination */
+    buf_len = httpd_req_get_url_query_len(req) + 1;
+    if (buf_len > 1) {
+        buf = malloc(buf_len);
+        if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
+            ESP_LOGI(TAG, "Found URL query => %s", buf);
+            char param[32];
+            /* Get value of expected key from query string */
+            if (httpd_query_key_value(buf, "pattern", param, sizeof(param)) == ESP_OK) {
+                ESP_LOGI(TAG, "Pattern = %d", atoi(param));
+		setPatternNumber(atoi(param));
+            }
+        }
+        free(buf);
+    }
+	
+
     ESP_LOGI(TAG, "ctx = %s", filename);
     sLength = strlen(filename);
     if (strcmp(".jpg",&filename[sLength-4]) == 0) {
@@ -276,6 +298,37 @@ esp_err_t get_file_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+/* An HTTP POST handler */
+static esp_err_t save_settings_handler(httpd_req_t *req)
+{
+    char buf[100];
+    int ret, remaining = req->content_len;
+
+    while (remaining > 0) {
+        /* Read the data for the request */
+        if ((ret = httpd_req_recv(req, buf,
+                        MIN(remaining, sizeof(buf)))) <= 0) {
+            if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
+                /* Retry receiving if timeout occurred */
+                continue;
+            }
+            return ESP_FAIL;
+        }
+
+        /* Send back the same data */
+        httpd_resp_send_chunk(req, buf, ret);
+        remaining -= ret;
+
+        /* Log data received */
+        ESP_LOGI(TAG, "=========== RECEIVED DATA ==========");
+        ESP_LOGI(TAG, "%.*s", ret, buf);
+        ESP_LOGI(TAG, "====================================");
+    }
+
+    // End response
+    httpd_resp_send_chunk(req, NULL, 0);
+    return ESP_OK;
+}
 
 /*******************************************************************************
     PURPOSE: 
@@ -354,6 +407,13 @@ httpd_uri_t web_dir = {
     .user_ctx  = NULL
 };
 
+httpd_uri_t save = {
+    .uri       = "/form-settings",
+    .method    = HTTP_POST,
+    .handler   = save_settings_handler,
+    .user_ctx  = NULL,
+};
+
 /*******************************************************************************
     PURPOSE: 
 
@@ -388,6 +448,7 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &settings);
         httpd_register_uri_handler(server, &patterns);
         httpd_register_uri_handler(server, &content);
+        httpd_register_uri_handler(server, &save);
         return server;
     }
 
