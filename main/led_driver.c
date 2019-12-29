@@ -46,7 +46,7 @@
    This code drive the 2DKits.com 4x4x8 tower
 */
 
-#define PROTO1
+//#define PROTO1
 
 #define BLINK_GPIO   02
 #define PIN_NUM_MISO 12 //12
@@ -75,7 +75,7 @@ typedef struct {
 
 spi_device_handle_t spi;
 
-static const uint8_t strobeGPIO[9] = {
+static const uint8_t strobeGPIO[8] = {
         COMSIG0,
         COMSIG1,
         COMSIG2,
@@ -84,7 +84,6 @@ static const uint8_t strobeGPIO[9] = {
         COMSIG5,
         COMSIG6,
         COMSIG7,
-	0
     };
 
 
@@ -107,16 +106,33 @@ static const uint8_t strobeGPIO[9] = {
 void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, uint16_t blue, uint8_t strobe) {
 
     static uint8_t buffer[129][(NUMBER_OF_LEDS)+1];
-
+    static uint8_t mark1 = 0xAA;
     static spi_transaction_t t[129];
+    static uint8_t mark2 = 0xAA;
     memset(&t[strobe], 0, sizeof(t[0]));       //Zero out the transaction
 
+
+    if ((mark1 != 0xAA)||(mark2 != 0xAA)) {
+	    ESP_ERROR_CHECK(1);
+    }
+
+    if (strobe > 127) strobe = 128;
+
+#if (1)
     buffer[strobe][0] = red >> 8;
     buffer[strobe][1] = red & 0xff;
     buffer[strobe][2] = green >> 8;
     buffer[strobe][3] = green & 0xff;
     buffer[strobe][4] = blue >> 8;
     buffer[strobe][5] = blue & 0xff;
+#else
+    buffer[strobe][0] = 0xff;
+    buffer[strobe][1] = 0xff;
+    buffer[strobe][2] = strobe>>4;
+    buffer[strobe][3] = strobe & 0x0F;
+    buffer[strobe][4] = 0xAA;
+    buffer[strobe][5] = 0xff;
+#endif
 
     t[strobe].tx_buffer=&buffer[strobe];               //The data is the cmd itself
     t[strobe].length=6*8; // bits?
@@ -388,11 +404,30 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
 *******************************************************************************/
 
 void IRAM_ATTR spi_post_transfer_callback(spi_transaction_t *curTrans) {
+    static uint8_t mark1 = 0xAA;
     static uint8_t oldStrobe = 0;
+    static uint8_t mark2 = 0xAA;
+
+    if ((mark1 != 0xAA)||(mark2 != 0xAA)) {
+	    ESP_ERROR_CHECK(1);
+    }
+
     uint8_t strobe = ((uint8_t) curTrans->user) >>4;
-    
+
+    oldStrobe = 10;
     if (oldStrobe != strobe) {
-	gpio_set_level(strobeGPIO[oldStrobe], 0); // row off
+	if (oldStrobe <8) {
+	    gpio_set_level(strobeGPIO[oldStrobe], 0); // row off
+	} else {
+            gpio_set_level(strobeGPIO[0], 0); // row off
+            gpio_set_level(strobeGPIO[1], 0); // row off
+            gpio_set_level(strobeGPIO[2], 0); // row off
+            gpio_set_level(strobeGPIO[3], 0); // row off
+            gpio_set_level(strobeGPIO[4], 0); // row off
+            gpio_set_level(strobeGPIO[5], 0); // row off
+            gpio_set_level(strobeGPIO[6], 0); // row off
+            gpio_set_level(strobeGPIO[7], 0); // row off
+        }
 	oldStrobe = strobe;
     }
 
@@ -400,7 +435,9 @@ void IRAM_ATTR spi_post_transfer_callback(spi_transaction_t *curTrans) {
     asm volatile ("nop");
     gpio_set_level(LATCH, 0); //Latch in col
 
-    gpio_set_level(strobeGPIO[strobe], 1); // row on
+    if (strobe < 8) {
+        gpio_set_level(strobeGPIO[strobe], 1); // row on
+    }
 }
 
 /*******************************************************************************
@@ -439,8 +476,8 @@ void IRAM_ATTR updateLedTask(void *param) {
                     ledDataOut[bank][strobe][intensity][0],(strobe<<4)+intensity);
 	    }
 	}
-        updateMBI5026Chain( spi, 0,0,0,0); //LEDs off
-        vTaskDelay(4); // 2ms units, 8 ms delay.
+        updateMBI5026Chain( spi, 0,0,0,0x80); //LEDs off
+        vTaskDelay(7); // 2ms units, 8 ms delay.
     }
 }
 
@@ -542,7 +579,7 @@ void init_LED_driver() {
 	.command_bits = 0,
 	.address_bits = 0,
 	.dummy_bits = 0,
-        .clock_speed_hz=25*1000*1000,           //Clock out at 25 MHz
+        .clock_speed_hz=750*1000,           //Clock out at 750 KHz (Yes this is slow)
         .mode=0,                                //SPI mode 0
         .spics_io_num=-1,                       //CS pin
         .queue_size=129,                          //We want to be able to queue 129 transactions at a time
