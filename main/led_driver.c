@@ -386,6 +386,41 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
 
 /*******************************************************************************
     PURPOSE: 
+        Hope was to turn off the TD62783APG "old" row line earlier (72us) to
+	reduce the ghosting, can see the change on the analyser. do not see the
+	ghosting reduced... It should shut off in 1.8us, do not think this is the
+	cause of the ghost.
+
+    INPUTS:
+        SPI transaction about to start. THe user file has the strobe and intensity
+	setting stored in it. (It is not a pointer to user data)
+
+
+    OUTPUTS:
+        NONE
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+        This is running under the interupt context, keep is short and sweet.        
+
+*******************************************************************************/
+void IRAM_ATTR spi_pre_transfer_callback(spi_transaction_t *curTrans) {
+    static uint8_t oldStrobe = 0;
+
+    uint8_t strobe = ((uint8_t) curTrans->user) >>4;
+
+    if (oldStrobe != strobe) {
+	if (oldStrobe <8) {
+	    gpio_set_level(strobeGPIO[oldStrobe], 0); // row off
+	} 
+	oldStrobe = strobe;
+    }
+}
+
+/*******************************************************************************
+    PURPOSE: 
         Lack the data in the LED Drivers, and setup the 8 line column driver.
 
     INPUTS:
@@ -402,34 +437,9 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
         This is running under the interupt context, keep is short and sweet.        
 
 *******************************************************************************/
-
 void IRAM_ATTR spi_post_transfer_callback(spi_transaction_t *curTrans) {
-    static uint8_t mark1 = 0xAA;
-    static uint8_t oldStrobe = 0;
-    static uint8_t mark2 = 0xAA;
-
-    if ((mark1 != 0xAA)||(mark2 != 0xAA)) {
-	    ESP_ERROR_CHECK(1);
-    }
 
     uint8_t strobe = ((uint8_t) curTrans->user) >>4;
-
-    oldStrobe = 10;
-    if (oldStrobe != strobe) {
-	if (oldStrobe <8) {
-	    gpio_set_level(strobeGPIO[oldStrobe], 0); // row off
-	} else {
-            gpio_set_level(strobeGPIO[0], 0); // row off
-            gpio_set_level(strobeGPIO[1], 0); // row off
-            gpio_set_level(strobeGPIO[2], 0); // row off
-            gpio_set_level(strobeGPIO[3], 0); // row off
-            gpio_set_level(strobeGPIO[4], 0); // row off
-            gpio_set_level(strobeGPIO[5], 0); // row off
-            gpio_set_level(strobeGPIO[6], 0); // row off
-            gpio_set_level(strobeGPIO[7], 0); // row off
-        }
-	oldStrobe = strobe;
-    }
 
     gpio_set_level(LATCH, 1); //clear latch;
     asm volatile ("nop");
@@ -583,7 +593,7 @@ void init_LED_driver() {
         .mode=0,                                //SPI mode 0
         .spics_io_num=-1,                       //CS pin
         .queue_size=129,                          //We want to be able to queue 129 transactions at a time
-//	.pre_cb=spi_pre_transfer_callback,
+	.pre_cb=spi_pre_transfer_callback,
 	.post_cb=spi_post_transfer_callback,
     };
 
