@@ -360,7 +360,11 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
     uint8_t oStrobe = 0;
     uint16_t oOffset = 0;
     uint8_t ti = 0;
+    uint8_t tR, tG, tB;
 
+    // check for no change, might be a cause of the flicker...
+    getLed(z,x,y, &tR, &tG, &tB);
+    if ((tR == iR)&&(tG == iG)&&(tB == iB)) return;
 
     getStrobeOffset( z, x, y, &oStrobe, &oOffset );
 
