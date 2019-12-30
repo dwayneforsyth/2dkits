@@ -42,6 +42,7 @@
 #include "soc/gpio_struct.h"
 #include "soc/spi_reg.h"
 #include "driver/gpio.h"
+#include "led_driver.h"
 /*
    This code drive the 2DKits.com 4x4x8 tower
 */
@@ -362,7 +363,19 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
     uint8_t ti = 0;
     uint8_t tR, tG, tB;
 
-    // check for no change, might be a cause of the flicker...
+    if (iR == LED_PLUS) { iR = (tR=15)? 15: tR+1; }
+    if (iG == LED_PLUS) { iG = (tG=15)? 15: tG+1; }
+    if (iB == LED_PLUS) { iB = (tB=15)? 15: tB+1; }
+
+    if (iR == LED_MINUS) { iR = (tR=0)? 0: tR-1; }
+    if (iG == LED_MINUS) { iG = (tG=0)? 0: tG-1; }
+    if (iB == LED_MINUS) { iB = (tB=0)? 0: tB-1; }
+
+    if (iR == LED_NOOP) { iR = tR; }
+    if (iG == LED_NOOP) { iG = tG; }
+    if (iB == LED_NOOP) { iB = tB; }
+
+    // save some time if no change
     getLed(z,x,y, &tR, &tG, &tB);
     if ((tR == iR)&&(tG == iG)&&(tB == iB)) return;
 

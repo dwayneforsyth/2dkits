@@ -255,8 +255,9 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 
       while (!feof(fh)) {
           // read entry
-          fread(tBuffer,2,(8*3), fh);
-	  if (type == 2) {
+          switch (type) {
+          case 2:
+              fread(tBuffer,2,(8*3), fh);
               fread(&fad_cycle,1,1, fh);
               fad_cycle *= 2;
 	      while (fad_cycle > 0) {
@@ -273,7 +274,9 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 		      return;
 	          }
 	      }
-	  } else if (type == 16) {
+              break;
+	  case 16:
+              fread(tBuffer,2,(8*3), fh);
               printf("read frame=%d cycles=%d\n",frame,cycles);
 	      for (loop=0;loop<8;loop++) {
                   setLed4RGBOnOff(7-(7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
@@ -286,9 +289,32 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
                   fclose(fh); 
 		  return;
 	      }
-
-	  } else {
+          case 32: {
+              uint8_t red, green, blue, temp;
+              uint8_t loops,tLoops[2],l,x,y;
+              cycles = tBuffer[2];
+              fread(tBuffer,2,(8*4*4), fh);
+              fread(tLoops,1,2, fh);
+              for (loops=0;loops<tLoops[0];loops++) {
+                  for (l=0;l<8;l++) {
+                      for (x=0;x<4;l++) {
+                          for (y=0;y<4;y++) {
+                              temp = tBuffer[(l*8+x*4+y)];
+                              blue =   temp & 0x1f;
+                              green = (temp >>5) & 0x1f;
+                              red =   (temp >>10) & 0x1f;
+                              setLed(l,x,y, red,green,blue);
+                  }   }   }
+                  if (delay_and_buttons(delay*speed)) {
+                      fclose(fh); 
+		      return;
+	          }
+              }
+              break;
+          }
+          default:
               printf("unknown pattern type=%d\n",type);
+              break;
 	  }
 	  frame++;
       }

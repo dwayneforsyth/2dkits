@@ -21,6 +21,11 @@
 
 #ifndef LED_DRIVER_H
 #define LED_DRIVER_H
+
+#define LED_PLUS 16
+#define LED_MINUS 17
+#define LED_NOOP 18
+
 void init_LED_driver();
 void changeBank( uint8_t select );
 void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB);
