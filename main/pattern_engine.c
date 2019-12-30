@@ -110,53 +110,6 @@ bool delay_and_buttons(uint16_t delay) {
    This code drive the 2DKits.com 4x4x8 tower
 */
 
-void fad_testing( uint16_t cycles, uint16_t delay) {
-
-    bool dr = true;
-    bool db = true;
-    bool dg = false;
-    uint8_t r = 0;
-    uint8_t b = 11;
-    uint8_t g = 11;
-
-    while(cycles != 0) {
-	cycles--;
-
-	b = (db==true)? b+1 : b-1; 
-
-	if (b==15) { db = false; }
-       	else if (b==0) { db = true; }
-
-	r = (dr==true) ? r+1 : r-1;
-
-	if (r==15) { dr = false; }
-       	else if (r==0) { dr = true; }
-
-	g = (dg==true)? g+1 : g-1;
-
-	if (g==15) { dg = false; }
-       	else if (g==0) { dg = true; }
-
-        setLed(0,0,0, b,b,b);
-        setLed(0,0,1, r,g,b);
-        setLed(0,0,2, r,g,b);
-        setLed(0,0,3, r,g,b);
-        setLed(0,1,0, b,b,b);
-        setLed(0,1,1, r,r,r);
-        setLed(0,1,2, r,r,r);
-        setLed(0,1,3, r,r,r);
-        setLed(0,2,0, b,b,b);
-        setLed(0,2,1, g,g,g);
-        setLed(0,2,2, g,g,g);
-        setLed(0,2,3, g,g,g);
-        setLed(0,3,0, b,b,b);
-        setLed(0,3,1, r,g,g);
-        setLed(0,3,2, r,g,g);
-        setLed(0,3,3, r,g,g);
-
-        if (delay_and_buttons(delay)) return;
-    }
-}
 
 void walking_testing( uint16_t cycles, uint16_t delay) {
     uint16_t step = 0x007f;
@@ -281,6 +234,8 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
    uint16_t frame = 0;
    bool once = true;
 
+   allLedsColor( 0,0,0);
+
    while(cycles != 0) {
       cycles--;
       sprintf(filename, "/spiffs/%s",name);
@@ -294,7 +249,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
       speed = tBuffer[1];
  
       if (once==true) {
-	  printf("type=%d speed=%d\n",type,speed);
+	  printf("type=%d speed=%d delay=%d math=%d\n",type,speed,delay,delay*speed);
 	  once = false;
       }
 
@@ -308,10 +263,10 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 		  fad_cycle--;
  //                 printf("read frame=%d cycles=%d fad_cycle =%d\n",frame,cycles,fad_cycle);
 	          for (loop=0;loop<8;loop++) {
-                      setLed4RGBUpDown((7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
-                      setLed4RGBUpDown((7-loop)/4+2, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
-                      setLed4RGBUpDown((7-loop)/4+4, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
-                      setLed4RGBUpDown((7-loop)/4+6, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
+                      setLed4RGBUpDown(7-(7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
+                      setLed4RGBUpDown(7-((7-loop)/4+2), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
+                      setLed4RGBUpDown(7-((7-loop)/4+4), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
+                      setLed4RGBUpDown(7-((7-loop)/4+6), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
                   }
                   if (delay_and_buttons(delay*speed)) {
                       fclose(fh); 
@@ -319,12 +274,12 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 	          }
 	      }
 	  } else if (type == 16) {
-//              printf("read On/Off frame=%d cycles=%d\n",frame,cycles);
+              printf("read frame=%d cycles=%d\n",frame,cycles);
 	      for (loop=0;loop<8;loop++) {
-                  setLed4RGBOnOff((7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
-                  setLed4RGBOnOff((7-loop)/4+2, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
-                  setLed4RGBOnOff((7-loop)/4+4, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0800);
-                  setLed4RGBOnOff((7-loop)/4+6, loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
+                  setLed4RGBOnOff(7-(7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
+                  setLed4RGBOnOff(7-((7-loop)/4+2), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
+                  setLed4RGBOnOff(7-((7-loop)/4+4), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0800);
+                  setLed4RGBOnOff(7-((7-loop)/4+6), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
               }
 
               if (delay_and_buttons(delay*speed)) {
@@ -344,7 +299,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
    {.patternType = PATTERN_BUILT_IN,
     .runMe = layer_test,
-    .patternName = "Just a RGB test",
+    .patternName = "Layer test",
     .delay = 500,
     .cycles = 10,
     .enabled = true},
@@ -360,41 +315,11 @@ pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
     .delay = 200,
     .cycles = 1000,
     .enabled = true},
-   {.patternType = PATTERN_FILE,
-    .delay = 100,
-    .cycles = 10,
-    .fileName = "test.pat",
-    .patternName = "test.pat off disk",
-    .enabled = true},
-   {.patternType = PATTERN_FILE,
-    .delay = 100,
-    .cycles = 3,
-    .fileName = "rainbow3.pat",
-    .patternName = "rainbow3.pat off disk",
-    .enabled = true},
-   {.patternType = PATTERN_FILE,
-    .delay = 100,
-    .cycles = 10,
-    .fileName = "test3.pat",
-    .patternName = "test.pat off disk",
-    .enabled = true},
-   {.patternType = PATTERN_FILE,
-    .delay = 100,
-    .cycles = 10,
-    .fileName = "rainbow.pat",
-    .patternName = "rainbow - off disk",
-    .enabled = true},
    {.patternType = PATTERN_BUILT_IN,
     .runMe = rgb_fade,
     .patternName = "RGB all Fade test",
     .delay = 100,
     .cycles = 10,
-    .enabled = true},
-   {.patternType = PATTERN_BUILT_IN,
-    .runMe = fad_testing,
-    .patternName = "Fad testing Level 1",
-    .delay = 100,
-    .cycles = 100,
     .enabled = true},
   };
 
@@ -414,7 +339,7 @@ void addPattern( char * filename) {
     }
 
     strcpy(patternTable[index].fileName, filename);
-    patternTable[index].delay = 20;
+    patternTable[index].delay = 63;
     patternTable[index].cycles = 10;
     patternTable[index].enabled = true;
     strcpy(patternTable[index].patternName, filename);
