@@ -299,7 +299,8 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
               int8_t l,x,y;
               cycles = tBuffer[2];
               fread(tBuffer,2,(8*4*4), fh);
-              fread(tLoops,1,2, fh);
+              fread(tLoops,1,1, fh);
+              fread(&delay,1,1, fh);
 	      printf("\nframe %d\n",frame);
               for (loops=0;loops<tLoops[0];loops++) {
                   for (l=7;l>=0;l--) {
