@@ -95,7 +95,7 @@ void writeFrame(FILE *ptr) {
         fwrite( &patternFrame, sizeof(patternFrame), 1, ptr);
 }
 
-void main(void) {
+void make_boom(void) {
    int8_t l,x,y;
 
         FILE *ptr = fopen("new.pat","wb");
@@ -298,4 +298,44 @@ void main(void) {
         printFrame();
         fclose(ptr);
 }
+void make_test(void) {
+   int8_t l,x,y;
 
+        FILE *ptr = fopen("test99.pat","wb");
+        strncpy(header.name,"test99",16);
+        fwrite( &header, sizeof(header), 1, ptr);
+        printHeader();
+
+        levelLedsColor(0, 0, 0, 0);
+        levelLedsColor(1, 1, 1, 1);
+        levelLedsColor(2, 2, 2, 2);
+        levelLedsColor(3, 3, 3, 3);
+        levelLedsColor(4, 4, 4, 4);
+        levelLedsColor(5, 5, 5, 5);
+        levelLedsColor(6, 6, 6, 6);
+        levelLedsColor(7, 7, 7, 7);
+
+        patternFrame.cycles = 8;
+        writeFrame(ptr);
+        printFrame();
+
+        levelLedsColor(0, 2, 2, 2);
+        levelLedsColor(1, 3, 3, 3);
+        levelLedsColor(2, 4, 4, 4);
+        levelLedsColor(3, 5, 5, 5);
+        levelLedsColor(4, 6, 6, 6);
+        levelLedsColor(5, 7, 7, 7);
+        levelLedsColor(6, 8, 8, 8);
+        levelLedsColor(7, 9, 9, 9);
+
+        patternFrame.cycles = 8;
+        writeFrame(ptr);
+        printFrame();
+
+        fclose(ptr);
+}
+
+void main(void) {
+    make_boom();
+    make_test();
+}

@@ -224,7 +224,7 @@ void setLed4RGBUpDown(uint8_t l, uint8_t x, uint16_t red, uint16_t green, uint16
 }
 
 void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
-   uint16_t tBuffer[64*3];
+   uint16_t tBuffer[256];
    char filename[40];
    FILE *fh;
    uint8_t type;
@@ -242,6 +242,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
       if (once==true) printf("file=%s\n", filename);
       fh = fopen(filename, "r");
       frame = 0;
+      printf("================================================\n");
 
       // read header
       fread(tBuffer,1, 24, fh);
@@ -289,22 +290,33 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
                   fclose(fh); 
 		  return;
 	      }
+	      break;
           case 32: {
-              uint8_t red, green, blue, temp;
-              uint8_t loops,tLoops[2],l,x,y;
+	      const char *LEDValue[19] = { "0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","+","-","#" };
+              uint8_t red, green, blue;
+	      uint16_t temp;
+              uint8_t loops,tLoops[2];
+              int8_t l,x,y;
               cycles = tBuffer[2];
               fread(tBuffer,2,(8*4*4), fh);
               fread(tLoops,1,2, fh);
+	      printf("\nframe %d\n",frame);
               for (loops=0;loops<tLoops[0];loops++) {
-                  for (l=0;l<8;l++) {
-                      for (x=0;x<4;l++) {
+                  for (l=7;l>=0;l--) {
+                      for (x=0;x<4;x++) {
                           for (y=0;y<4;y++) {
-                              temp = tBuffer[(l*8+x*4+y)];
+                              temp = tBuffer[(l*16+x*4+y)];
                               blue =   temp & 0x1f;
                               green = (temp >>5) & 0x1f;
                               red =   (temp >>10) & 0x1f;
                               setLed(l,x,y, red,green,blue);
-                  }   }   }
+//			      printf("%4X ", temp);
+//			      printf(" (%2s,%2s,%2s)",LEDValue[red],LEDValue[green],LEDValue[blue]);
+			  }
+//		          printf("\n");
+                      }
+	       	  }
+		  printf("cycles=%d delay=%d\n",loops,delay*speed);
                   if (delay_and_buttons(delay*speed)) {
                       fclose(fh); 
 		      return;
@@ -313,7 +325,8 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
               break;
           }
           default:
-              printf("unknown pattern type=%d\n",type);
+              printf("unknown pattern type=%d file=%s\n",type, filename);
+	      return;
               break;
 	  }
 	  frame++;
