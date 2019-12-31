@@ -17,14 +17,16 @@ typedef struct blinkieHeader_t {
 typedef struct blinkieFrame32_t {
    uint16_t led[8][4][4];
    uint8_t cycles;
-   uint8_t pad;
+   uint8_t delay;
 } blinkieFrame32_t;
 
 #define LED_PLUS 16
 #define LED_MINUS 17
 #define LED_NOOP 18
 
-blinkieFrame32_t patternFrame;
+blinkieFrame32_t patternFrame = {
+   .delay = 10,
+};
 blinkieHeader_t header = {
    .type = 32,
    .speed = 100,
@@ -98,7 +100,7 @@ void writeFrame(FILE *ptr) {
 void make_boom(void) {
    int8_t l,x,y;
 
-        FILE *ptr = fopen("new.pat","wb");
+        FILE *ptr = fopen("boom.pat","wb");
         strncpy(header.name,"Boom",16);
         fwrite( &header, sizeof(header), 1, ptr);
         printHeader();
@@ -111,6 +113,7 @@ void make_boom(void) {
 	    setLed(l,2,2, LED_PLUS, LED_NOOP, LED_NOOP);
         }
         patternFrame.cycles = 8;
+	patternFrame.delay = 1;
         writeFrame(ptr);
         printFrame();
 
@@ -131,6 +134,7 @@ void make_boom(void) {
 	    setLed(l,3,2, LED_PLUS, LED_NOOP, LED_NOOP);
         }
         patternFrame.cycles = 8;
+	patternFrame.delay = 1;
         writeFrame(ptr);
         printFrame();
 
@@ -153,6 +157,7 @@ void make_boom(void) {
         levelLedsColor(3, LED_PLUS, LED_NOOP, LED_NOOP);
         levelLedsColor(4, LED_PLUS, LED_NOOP, LED_NOOP);
         patternFrame.cycles = 8;
+	patternFrame.delay = 1;
         writeFrame(ptr);
         printFrame();
 
@@ -177,6 +182,7 @@ void make_boom(void) {
         levelLedsColor(4, LED_PLUS, LED_NOOP, LED_NOOP);
         levelLedsColor(5, LED_PLUS, LED_NOOP, LED_NOOP);
         patternFrame.cycles = 8;
+	patternFrame.delay = 1;
         writeFrame(ptr);
         printFrame();
 
@@ -197,6 +203,7 @@ void make_boom(void) {
         levelLedsColor(5, LED_PLUS, LED_NOOP, LED_NOOP);
         levelLedsColor(6, LED_PLUS, LED_NOOP, LED_NOOP);
         patternFrame.cycles = 8;
+	patternFrame.delay = 1;
         writeFrame(ptr);
         printFrame();
 
@@ -208,6 +215,7 @@ void make_boom(void) {
 	    setLed(l,2,2, LED_MINUS, LED_NOOP, LED_NOOP);
         }
         patternFrame.cycles = 8;
+	patternFrame.delay = 1;
         writeFrame(ptr);
         printFrame();
 
@@ -228,6 +236,7 @@ void make_boom(void) {
 	    setLed(l,3,2, LED_MINUS, LED_NOOP, LED_NOOP);
         }
         patternFrame.cycles = 8;
+	patternFrame.delay = 1;
         writeFrame(ptr);
         printFrame();
 
@@ -250,6 +259,7 @@ void make_boom(void) {
         levelLedsColor(3, LED_MINUS, LED_NOOP, LED_NOOP);
         levelLedsColor(4, LED_MINUS, LED_NOOP, LED_NOOP);
         patternFrame.cycles = 8;
+	patternFrame.delay = 1;
         writeFrame(ptr);
         printFrame();
 
@@ -274,6 +284,7 @@ void make_boom(void) {
         levelLedsColor(4, LED_MINUS, LED_NOOP, LED_NOOP);
         levelLedsColor(5, LED_MINUS, LED_NOOP, LED_NOOP);
         patternFrame.cycles = 8;
+	patternFrame.delay = 1;
         writeFrame(ptr);
         printFrame();
 
@@ -292,10 +303,18 @@ void make_boom(void) {
         levelLedsColor(3, LED_MINUS, LED_NOOP, LED_NOOP);
         levelLedsColor(4, LED_MINUS, LED_NOOP, LED_NOOP);
         levelLedsColor(5, LED_MINUS, LED_NOOP, LED_NOOP);
-        levelLedsColor(7, LED_MINUS, LED_NOOP, LED_NOOP);
+        levelLedsColor(6, LED_MINUS, LED_NOOP, LED_NOOP);
         patternFrame.cycles = 8;
+	patternFrame.delay = 1;
         writeFrame(ptr);
         printFrame();
+
+	allLedsColor(LED_MINUS,LED_NOOP,LED_NOOP);
+        patternFrame.cycles = 8;
+	patternFrame.delay = 1;
+        writeFrame(ptr);
+        printFrame();
+
         fclose(ptr);
 }
 void make_test(void) {
