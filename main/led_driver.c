@@ -365,10 +365,6 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
 
     getLed(z,x,y, &tR, &tG, &tB);
 
-    if ((z==0)&&(x==0)&&(y==0)) {
-	    printf( "change (%d %d %d) old (%d %d %d) ",iR, iG, iB, tR, tG, tB);
-    }
-
     if (iR == LED_PLUS) { iR = (tR==15)? 15: tR+1; }
     if (iG == LED_PLUS) { iG = (tG==15)? 15: tG+1; }
     if (iB == LED_PLUS) { iB = (tB==15)? 15: tB+1; }
@@ -380,10 +376,6 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
     if (iR == LED_NOOP) { iR = tR; }
     if (iG == LED_NOOP) { iG = tG; }
     if (iB == LED_NOOP) { iB = tB; }
-
-    if ((z==0)&&(x==0)&&(y==0)) {
-	    printf( "new (%d %d %d)\n",iR, iG, iB);
-    }
 
     // save some time if no change
     if ((tR == iR)&&(tG == iG)&&(tB == iB)) return;
