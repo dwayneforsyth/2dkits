@@ -263,7 +263,6 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
               fad_cycle *= 2;
 	      while (fad_cycle > 0) {
 		  fad_cycle--;
- //                 printf("read frame=%d cycles=%d fad_cycle =%d\n",frame,cycles,fad_cycle);
 	          for (loop=0;loop<8;loop++) {
                       setLed4RGBUpDown(7-(7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
                       setLed4RGBUpDown(7-((7-loop)/4+2), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
@@ -292,12 +291,11 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 	      }
 	      break;
           case 32: {
-	      const char *LEDValue[19] = { "0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","+","-","#" };
+//	      const char *LEDValue[19] = { "0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","+","-","#" };
               uint8_t red, green, blue;
 	      uint16_t temp;
               uint8_t loops,tLoops[2];
               int8_t l,x,y;
-              cycles = tBuffer[2];
               fread(tBuffer,2,(8*4*4), fh);
               fread(tLoops,1,1, fh);
               fread(&delay,1,1, fh);
