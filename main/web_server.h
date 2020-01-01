@@ -25,6 +25,7 @@
 #include <esp_system.h>
 
 void initialise_wifi(void *arg);
+void parseUrl(void);
 esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary);
 
 #endif

@@ -236,6 +236,28 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
     return ESP_OK;
 }
 
+void parseUrl(void) {
+    char*  buf;
+    size_t buf_len;
+
+    /* Read URL query string length and allocate memory for length + 1,
+     * extra byte for null termination */
+    buf_len = httpd_req_get_url_query_len(req) + 1;
+    if (buf_len > 1) {
+        buf = malloc(buf_len);
+        if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
+            ESP_LOGI(TAG, "Found URL query => %s", buf);
+            char param[32];
+            /* Get value of expected key from query string */
+            if (httpd_query_key_value(buf, "pattern", param, sizeof(param)) == ESP_OK) {
+                ESP_LOGI(TAG, "Pattern = %d", atoi(param));
+		setPatternNumber(atoi(param));
+            }
+        }
+        free(buf);
+    }
+}
+
 /*******************************************************************************
     PURPOSE: 
 
@@ -256,26 +278,8 @@ esp_err_t get_file_handler(httpd_req_t *req)
     char *filename = (char *) req->user_ctx;
     bool headFoot = false;
 
-    char*  buf;
-    size_t buf_len;
-
-    /* Read URL query string length and allocate memory for length + 1,
-     * extra byte for null termination */
-    buf_len = httpd_req_get_url_query_len(req) + 1;
-    if (buf_len > 1) {
-        buf = malloc(buf_len);
-        if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
-            ESP_LOGI(TAG, "Found URL query => %s", buf);
-            char param[32];
-            /* Get value of expected key from query string */
-            if (httpd_query_key_value(buf, "pattern", param, sizeof(param)) == ESP_OK) {
-                ESP_LOGI(TAG, "Pattern = %d", atoi(param));
-		setPatternNumber(atoi(param));
-            }
-        }
-        free(buf);
-    }
-	
+    // any inputs?
+    parseUrl();
 
     ESP_LOGI(TAG, "ctx = %s", filename);
     sLength = strlen(filename);
@@ -368,8 +372,8 @@ httpd_uri_t settings = {
 httpd_uri_t patterns = {
     .uri       = "/patterns.html",
     .method    = HTTP_GET,
-    .handler   = get_file_handler,
-    .user_ctx  = "/spiffs/patterns.html"
+    .handler   = web_pattern_list,
+    .user_ctx  = NULL
 };
 
 httpd_uri_t logo = {
