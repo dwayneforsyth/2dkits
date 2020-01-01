@@ -322,8 +322,8 @@ void make_boom(void) {
         writeFrame(ptr);
         printFrame();
 
-        fclose(ptr);
     }
+    fclose(ptr);
 }
 void make_test(void) {
    int8_t l,x,y;
