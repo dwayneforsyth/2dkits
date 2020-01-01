@@ -52,7 +52,7 @@ void app_main()
  
     printf("Hello from Tower\n");
     init_LED_driver();
-    xTaskCreate(updatePatternsTask, "updatePatternsTask", 4*1024, NULL, 23, NULL);
+    allLedsColor(0,15,0);
 
 
     static httpd_handle_t server = NULL;
@@ -62,6 +62,8 @@ void app_main()
     initialise_disk();
     disk_dir_list("/spiffs",NULL);
     loadSettings();
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    xTaskCreate(updatePatternsTask, "updatePatternsTask", 4*1024, NULL, 23, NULL);
 
 #define GPIO_INPUT_IO_0     34
 #define GPIO_INPUT_IO_1     39
