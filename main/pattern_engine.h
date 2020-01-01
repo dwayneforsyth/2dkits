@@ -28,6 +28,7 @@ void addPattern( char * );
 uint8_t getPatternNumber();
 char * getPatternName();
 void setPatternNumber(uint8_t newStep);
+esp_err_t web_pattern_list( httpd_req_t *req);
 
 #endif
 

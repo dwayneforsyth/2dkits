@@ -58,7 +58,7 @@ typedef struct pattern_entry_t {
     bool enabled;
 } pattern_entry_t;
 
-uint8_t step = 10;
+uint8_t step = 0;
 uint8_t pendingExit = false;
 
 bool delay_and_buttons(uint16_t delay) {
@@ -334,6 +334,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
    }
 }
 
+
 pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
    {.patternType = PATTERN_BUILT_IN,
     .runMe = layer_test,
@@ -401,6 +402,39 @@ char * getPatternName() {
         char * tmp = patternTable[step].patternName;
         if (tmp[0] == 0) return(none);
 	return(tmp);
+}
+
+esp_err_t web_pattern_list(httpd_req_t *req)  {
+    const char *pattern_header = "<table><tr><th>Id<th>Name<th>Type<th>Speed<th>Cycles\n";
+    const char *pattern_footer = "</table></body></html>\n";
+    const char *pattern_heading = "</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Pattern List</div><div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n";
+
+    char tbuffer2[129];
+    uint8_t index;
+
+    parseUrl();
+
+    httpd_resp_set_hdr(req, "Content-type", "text/html");
+    file_get_handler(req, "/spiffs/header.html",true);
+
+    httpd_resp_send_chunk(req, pattern_heading, strlen(pattern_heading));
+
+    httpd_resp_send_chunk(req, pattern_header, strlen(pattern_header));
+    for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
+	if (patternTable[index].patternType != PATTERN_NONE) {
+            snprintf(tbuffer2, sizeof(tbuffer2), "<tr><td>%i<td align=\"left\">%s<td>%s<td>%d<td>%d\n",
+               index,
+               patternTable[index].patternName,
+               (patternTable[index].patternType == PATTERN_BUILT_IN)? "Build In":"File System",
+	       patternTable[index].delay,
+	       patternTable[index].cycles
+            );
+            httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
+	}
+    }
+    httpd_resp_send_chunk(req, pattern_footer, strlen(pattern_footer));
+    httpd_resp_send_chunk(req, NULL, 0);
+    return ESP_OK;
 }
 
 void updatePatternsTask(void *param) {
