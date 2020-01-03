@@ -405,14 +405,14 @@ char * getPatternName() {
 }
 
 esp_err_t web_pattern_list(httpd_req_t *req)  {
-    const char *pattern_header = "<table><tr><th>Id<th>Name<th>Type<th>Speed<th>Cycles\n";
+    const char *pattern_header = "<table><tr><th>Status<th>Id<th>Name<th>Type<th>Speed<th>Cycles\n";
     const char *pattern_footer = "</table></body></html>\n";
     const char *pattern_heading = "</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Pattern List</div><div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n";
 
     char tbuffer2[129];
     uint8_t index;
 
-    parseUrl();
+    parseUrl(req);
 
     httpd_resp_set_hdr(req, "Content-type", "text/html");
     file_get_handler(req, "/spiffs/header.html",true);
@@ -422,7 +422,8 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
     httpd_resp_send_chunk(req, pattern_header, strlen(pattern_header));
     for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
 	if (patternTable[index].patternType != PATTERN_NONE) {
-            snprintf(tbuffer2, sizeof(tbuffer2), "<tr><td>%i<td align=\"left\">%s<td>%s<td>%d<td>%d\n",
+            snprintf(tbuffer2, sizeof(tbuffer2), "<tr><td>%s<td>%d<td align=\"left\">%s<td>%s<td>%d<td>%d\n",
+	       (step == index)? "==>" : "",
                index,
                patternTable[index].patternName,
                (patternTable[index].patternType == PATTERN_BUILT_IN)? "Build In":"File System",

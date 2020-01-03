@@ -236,7 +236,7 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
     return ESP_OK;
 }
 
-void parseUrl(void) {
+void parseUrl(httpd_req_t *req) {
     char*  buf;
     size_t buf_len;
 
@@ -279,7 +279,7 @@ esp_err_t get_file_handler(httpd_req_t *req)
     bool headFoot = false;
 
     // any inputs?
-    parseUrl();
+    parseUrl(req);
 
     ESP_LOGI(TAG, "ctx = %s", filename);
     sLength = strlen(filename);
