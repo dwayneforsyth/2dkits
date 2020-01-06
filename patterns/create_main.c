@@ -7,6 +7,7 @@
 #include "core_utils.h"
 #include "pattern_boom.h"
 #include "pattern_diamon.h"
+#include "pattern_cubes.h"
 
 #if (0)
 // header is 24 bytes
@@ -107,4 +108,5 @@ void main(void) {
     make_boom();
     make_diamon1();
     make_diamon2();
+    make_cubes();
 }
