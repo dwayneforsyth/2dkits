@@ -52,7 +52,7 @@ void app_main()
  
     printf("Hello from Tower\n");
     init_LED_driver();
-    allLedsColor(0,15,0);
+//    allLedsColor(0,15,0);
 
 
     static httpd_handle_t server = NULL;

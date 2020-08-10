@@ -6,3 +6,6 @@ idf_component_register(SRCS "disk_system.c"
    "tower_main.c"
    "web_server.c"
    INCLUDE_DIRS "")
+
+spiffs_create_partition_image(storage ../disk_image FLASH_IN_PROJECT)
+
