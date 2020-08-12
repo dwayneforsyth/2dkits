@@ -1,0 +1,13 @@
+#!/bin/bash
+
+RELEASE="00.00.01"
+
+TXT_FILE="current_test_firmware.txt"
+BIN_FILE_PATH="build/tower.bin"
+
+echo "$RELEASE kits/kit25/tower_test_$RELEASE.bin" > $TXT_FILE
+echo "$RELEASE"
+
+scp $TXT_FILE      forsyth@www.dforsyth.net:/home/httpd/html_2dkits/kits/kit25/$TXT_FILE
+scp $BIN_FILE_PATH forsyth@www.dforsyth.net:/home/httpd/html_2dkits/kits/kit25/tower_test_$RELEASE.bin
+

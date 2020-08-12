@@ -43,12 +43,9 @@
 static const char *TAG = "DISK";
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE: init interface to flash disk
 
     INPUTS:
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         NONE
@@ -226,17 +223,14 @@ static int fnmatch(const char *pattern, const char *string, int flags)
 
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE: get a disk dir in ascii
 
     INPUTS:
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         NONE
 
-    NOTES:
+    NOTES: should make printer cb to support ascii and html in one function
 
 *******************************************************************************/
 //-----------------------------------------
@@ -333,12 +327,9 @@ void disk_dir_list(char *path, char *match) {
 }
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE: get disk drive output in htlp format
 
     INPUTS:
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         NONE

@@ -61,9 +61,6 @@ static const char *TAG="WEB";
         Web connection
         Token
 
-    OUTPUTS:
-        NONE
-
     RETURN CODE:
         NONE
 
@@ -141,9 +138,6 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
         http handler
 	file name
 	binary flag
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         Error code
@@ -259,12 +253,9 @@ void parseUrl(httpd_req_t *req) {
 }
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE: sends a file through the web interface
 
-    INPUTS:
-
-    OUTPUTS:
-        NONE
+    INPUTS: http request
 
     RETURN CODE:
         NONE
@@ -335,17 +326,7 @@ static esp_err_t save_settings_handler(httpd_req_t *req)
 }
 
 /*******************************************************************************
-    PURPOSE: 
-
-    INPUTS:
-
-    OUTPUTS:
-        NONE
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
+    PURPOSE: mapping of web path to function to call
 
 *******************************************************************************/
 httpd_uri_t root = {
@@ -419,12 +400,9 @@ httpd_uri_t save = {
 };
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE: start the web server
 
     INPUTS:
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         NONE
@@ -461,12 +439,9 @@ httpd_handle_t start_webserver(void)
 }
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE: event handler for wifi
 
     INPUTS:
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         NONE
@@ -546,12 +521,9 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
 }
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE:  start the wifi interface
 
-    INPUTS:
-
-    OUTPUTS:
-        NONE
+    INPUTS: arg per task, not used
 
     RETURN CODE:
         NONE

@@ -41,6 +41,7 @@
 #include "web_server.h"
 #include "disk_system.h"
 #include "pattern_engine.h"
+#include "console.h"
 #include "global.h"
 
 /*
@@ -60,7 +61,7 @@ void app_main()
     initialise_wifi(&server);
 
     initialise_disk();
-    disk_dir_list("/spiffs",NULL);
+//    disk_dir_list("/spiffs",NULL);
     loadSettings();
     vTaskDelay(1000 / portTICK_PERIOD_MS);
     xTaskCreate(updatePatternsTask, "updatePatternsTask", 4*1024, NULL, 23, NULL);
@@ -83,6 +84,7 @@ void app_main()
     //configure GPIO with the given settings
     gpio_config(&io_conf);
 
+    consoleInit();
 
 
 //  The ESP32 framework has already started the Scheduler, starting it again just

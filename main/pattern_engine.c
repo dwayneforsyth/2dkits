@@ -242,7 +242,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
       if (once==true) printf("file=%s\n", filename);
       fh = fopen(filename, "r");
       frame = 0;
-      printf("================================================\n");
+//      printf("================================================\n");
 
       // read header
       fread(tBuffer,1, 24, fh);
@@ -277,7 +277,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
               break;
 	  case 16:
               fread(tBuffer,2,(8*3), fh);
-              printf("read frame=%d cycles=%d\n",frame,cycles);
+//              printf("read frame=%d cycles=%d\n",frame,cycles);
 	      for (loop=0;loop<8;loop++) {
                   setLed4RGBOnOff(7-(7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
                   setLed4RGBOnOff(7-((7-loop)/4+2), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
@@ -299,7 +299,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
               fread(tBuffer,2,(8*4*4), fh);
               fread(tLoops,1,1, fh);
               fread(&delay,1,1, fh);
-	      printf("\nframe %d\n",frame);
+//	      printf("\nframe %d\n",frame);
               for (loops=0;loops<tLoops[0];loops++) {
                   for (l=7;l>=0;l--) {
                       for (x=0;x<4;x++) {
@@ -315,7 +315,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 //		          printf("\n");
                       }
 	       	  }
-		  printf("cycles=%d delay=%d\n",loops,delay*speed);
+//		  printf("cycles=%d delay=%d\n",loops,delay*speed);
                   if (delay_and_buttons(delay*speed)) {
                       fclose(fh); 
 		      return;

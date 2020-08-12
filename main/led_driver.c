@@ -47,7 +47,7 @@
    This code drive the 2DKits.com 4x4x8 tower
 */
 
-//#define PROTO1
+#define PROTO1
 
 #define BLINK_GPIO   02
 #define PIN_NUM_MISO 12 //12
@@ -94,9 +94,6 @@ static const uint8_t strobeGPIO[8] = {
     PURPOSE: 
 
     INPUTS:
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         NONE
@@ -190,9 +187,6 @@ static uint8_t bank = 0;
 
     INPUTS:
 
-    OUTPUTS:
-        NONE
-
     RETURN CODE:
         NONE
 
@@ -211,9 +205,6 @@ void changeBank( uint8_t select ) {
     PURPOSE: 
 
     INPUTS:
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         NONE
@@ -275,9 +266,6 @@ void getStrobeOffset(uint8_t z, uint8_t x, uint8_t y, uint8_t *oStrobe, uint16_t
              level = which layer of the cube/tower 0 .. 7, 0 is base
              color = 0 .. 2, Red, Green, Blue
 
-    OUTPUTS:
-        NONE
-
     RETURN CODE:
              which pin is the right one to toggle
 
@@ -318,9 +306,6 @@ uint8_t ledAdjust(uint8_t level, uint8_t color) {
 
     INPUTS:
 
-    OUTPUTS:
-        NONE
-
     RETURN CODE:
         NONE
 
@@ -347,9 +332,6 @@ void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *
     PURPOSE: 
 
     INPUTS:
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         NONE
@@ -416,9 +398,6 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
         SPI transaction about to start. THe user file has the strobe and intensity
 	setting stored in it. (It is not a pointer to user data)
 
-    OUTPUTS:
-        NONE
-
     RETURN CODE:
         NONE
 
@@ -450,9 +429,6 @@ void IRAM_ATTR spi_pre_transfer_callback(spi_transaction_t *curTrans) {
         SPI transaction just finished. The user file has the strobe and intensity
 	setting stored in it. (It is not a pointer to user data)
 	The strobe is used for the TD62783 line to make active.
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         NONE
@@ -493,9 +469,6 @@ void IRAM_ATTR spi_post_transfer_callback(spi_transaction_t *curTrans) {
     INPUTS:
         NONE
 
-    OUTPUTS:
-        NONE
-
     RETURN CODE:
         NONE
 
@@ -508,26 +481,34 @@ void IRAM_ATTR updateLedTask(void *param) {
     uint8_t intensity = 0;
     uint8_t strobe = 0;
     spi_transaction_t *lastSpi;
+    static uint8_t queued = 0;
+    uint8_t index;
 
     while (1) {
 
 	// start loading next frame
 	for (strobe=0;strobe<8; strobe++) {
             for (intensity=0;intensity<16;intensity++) {
+		queued++;
                 updateMBI5026Chain( spi,
                     ledDataOut[bank][strobe][intensity][1],
                     ledDataOut[bank][strobe][intensity][2],
                     ledDataOut[bank][strobe][intensity][0],(strobe<<4)+intensity);
+	    }
+	    if (queued > 100) {
+	        for (index=0;index<10;index++) {
+	            spi_device_get_trans_result(spi, &lastSpi, portMAX_DELAY);
+		    queued--;
+		}
 	    }
 	}
 
 	// this is dumb, need to read the result of each request to see when the
 	// queue is empty. we will get blocked each time a "done" entry is still
 	// in the queue.
-	uint8_t index;
-	for (index=0;index<(8*16);index++) {
-	     spi_device_get_trans_result(spi, &lastSpi, portMAX_DELAY);
-	}
+//	for (index=0;index<(8*16);index++) {
+//	     spi_device_get_trans_result(spi, &lastSpi, portMAX_DELAY);
+//	}
     }
 }
 
@@ -535,9 +516,6 @@ void IRAM_ATTR updateLedTask(void *param) {
     PURPOSE: 
 
     INPUTS:
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         NONE
@@ -557,9 +535,6 @@ void allLedsOff() {
     PURPOSE: 
 
     INPUTS:
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         NONE
@@ -581,9 +556,6 @@ void allLedsOn() {
 
     INPUTS:
 
-    OUTPUTS:
-        NONE
-
     RETURN CODE:
         NONE
 
@@ -602,9 +574,6 @@ void allLedsColor( uint8_t red, uint8_t green, uint8_t blue) {
     PURPOSE: 
 
     INPUTS:
-
-    OUTPUTS:
-        NONE
 
     RETURN CODE:
         NONE
@@ -629,6 +598,7 @@ void init_LED_driver() {
 	.command_bits = 0,
 	.address_bits = 0,
 	.dummy_bits = 0,
+//        .clock_speed_hz=2000*1000,           //Clock out at 2 MHz (Yes this is slow)
         .clock_speed_hz=750*1000,           //Clock out at 750 KHz (Yes this is slow)
         .mode=0,                                //SPI mode 0
         .spics_io_num=-1,                       //CS pin

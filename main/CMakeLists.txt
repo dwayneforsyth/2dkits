@@ -5,7 +5,14 @@ idf_component_register(SRCS "disk_system.c"
    "pattern_engine.c"
    "tower_main.c"
    "web_server.c"
+   "ota.c"
+   "console.c"
+   "cmd_system.c"
+   "cmd_ota.c"
    INCLUDE_DIRS "")
 
 spiffs_create_partition_image(storage ../disk_image FLASH_IN_PROJECT)
+
+# root for ota http
+target_add_binary_data(${COMPONENT_TARGET} "trustid_x3_root.pem" TEXT)
 
