@@ -58,11 +58,13 @@ void app_main()
 
     static httpd_handle_t server = NULL;
     ESP_ERROR_CHECK(nvs_flash_init());
-    initialise_wifi(&server);
 
+    initialise_wifi_p1(&server);
     initialise_disk();
     disk_dir_list("/spiffs",NULL); // this has a side effect of loading the patterns
     loadSettings();
+
+    initialise_wifi_p2(&server);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
     xTaskCreate(updatePatternsTask, "updatePatternsTask", 4*1024, NULL, 23, NULL);
 

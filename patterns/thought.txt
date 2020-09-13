@@ -7,7 +7,7 @@ name=Walking pattern
 #
 #   xrrr-rrgg-gggb-bbbb
 #
-# Frame 0
+Frame 0
 #level=7
     ( 0, 0, 0) ( 0, 0, 0) ( 0, 0, 0) ( 0, 0, 0)  
     ( 0, 0, 0) ( 0, 0, 0) ( 0, 0, 0) ( 0, 0, 0)  

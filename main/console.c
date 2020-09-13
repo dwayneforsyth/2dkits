@@ -15,6 +15,7 @@ static const char* TAG = "console";
 
 #include "console.h"
 #include "cmd_system.h"
+#include "version.h"
 
 static void initialize_console(void)
 {
@@ -38,8 +39,7 @@ static void initialize_console(void)
             .data_bits = UART_DATA_8_BITS,
             .parity = UART_PARITY_DISABLE,
             .stop_bits = UART_STOP_BITS_1,
-            .use_ref_tick = true
-
+	    .use_ref_tick = true
     };
     /* Install UART driver for interrupt-driven reads and writes */
     ESP_ERROR_CHECK( uart_driver_install(CONFIG_ESP_CONSOLE_UART_NUM,
@@ -125,8 +125,14 @@ void consoleInit( void ) {
     /* Register commands */
     esp_console_register_help_command();
     register_system();
-    commands_ota();
+    commands_dfu();
+    commands_wifi();
+    commands_download();
+#ifndef TIXCLOCK
     commands_pattern();
+#else
+    commands_tixclock();
+#endif
 
     /* Prompt to be printed before each line.
      * This can be customized, made dynamic, etc.

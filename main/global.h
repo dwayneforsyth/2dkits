@@ -29,19 +29,43 @@ typedef struct wifiData_t {
    char passwd[128];
 } wifiData_t;
 
-#define WIFI_TABLE_SIZE 3
+#define WIFI_TABLE_SIZE 10
+#define MAX_SSID_LENGTH 64
+#define MAX_PASSWD_LENGTH 128
 
 typedef struct blinkieAppData_t {
    char *ipName;
-   char apSsid[64];
-   char apPasswd[128];
+   char apSsid[MAX_SSID_LENGTH+1];
+   char apPasswd[MAX_PASSWD_LENGTH+1];
    uint8_t apChan;
+   uint8_t wifiCount;
    wifiData_t wifi[WIFI_TABLE_SIZE];
    uint8_t apMac[6];
    uint8_t staMac[6];
 } blinkieAppData_t;
 
 void loadSettings();
+void initSettings();
 void storeSettings();
+
+extern blinkieAppData_t xAppData;
+
+void addWifiGateway( char * ssid, char * password);
+
+char * getWifiSsid( uint8_t index);
+char * getWifiPasswd( uint8_t index);
+char * getHSSsid( void);
+char * getHSPasswd( void);
+uint8_t getHSChan( void);
+
+void setHSSsid( char * hssid);
+void setHSPasswd( char * hpasswd);
+void setHSChan( uint8_t hchan);
+void setTZ( char * wpasswd);
+
+void setWifiSsid( uint8_t index, char * wssid);
+void setWifiPasswd( uint8_t index, char * wpasswd);
+void WifiCleanup( void );
+
 
 #endif

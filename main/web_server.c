@@ -18,7 +18,10 @@
 //      Boston, MA  02110-1301, USA.
 //
 //**********************************************************************
-//   This is the web server, wifi, and internet stuff for an ESP32 based 4x4x8 tower.
+//   This is the web server, wifi, and internet stuff for:
+//    * an ESP32 based 4x4x8 tower.
+//    * an ESP32 based 4x4x4 cube
+//    * an ESP32 based 4x4x8 tixClock
 //   Why does a Blinkie need to talk to the internet? because it can!
 //**********************************************************************
 //   We are running a dual mode, we can connect to a network, and operate
@@ -45,10 +48,13 @@
 
 #include <esp_http_server.h>
 #include <esp_sntp.h>
+#include "mdns.h"
 
 #include "disk_system.h"
 #include "pattern_engine.h"
 #include "global.h"
+#include "version.h"
+
 extern blinkieAppData_t xAppData;
 
 static const char *TAG="WEB";
@@ -62,7 +68,7 @@ static const char *TAG="WEB";
         Token
 
     RETURN CODE:
-        NONE
+        error code
 
     NOTES:
         sends data down the web connection.
@@ -73,30 +79,44 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
     char tBuffer[80];
     time_t now;
     struct tm timeinfo;
+    uint8_t i = 0;
 
 
     if (strcmp("%patternNumber",token)==0) {
+#ifndef TIXCLOCK
 	sprintf(tBuffer, "%d",getPatternNumber());
         httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
     } else if (strcmp("%patternName",token)==0) {
 	sprintf(tBuffer, "%s",getPatternName());
         httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
+#endif
     } else if (strcmp("%timeDate",token)==0) {
         time(&now);
         localtime_r(&now, &timeinfo);
         strftime(tBuffer, 80, "%c", &timeinfo);
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strcmp("%hssid",token)==0) {
-	sprintf(tBuffer, "blinkie"); //DDF hard codded
+	printf(">%s<", getHSSsid());
+	sprintf(tBuffer, "%s", getHSSsid());
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strcmp("%hpasswd",token)==0) {
-	sprintf(tBuffer, "[none]"); //DDF hard codded
+	sprintf(tBuffer,"[None]"); //DDF hard codded
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
-    } else if (strcmp("%wssid",token)==0) {
-	sprintf(tBuffer, "dforsyth.net"); //DDF hard codded
+    } else if (strncmp("%wssid",token,6)==0) {
+	i = token[6] - '0';
+	if (i<10) {
+	    sprintf(tBuffer, "%s",getWifiSsid(i));
+	} else {
+	    sprintf(tBuffer, "[software error]");
+	}
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
-    } else if (strcmp("%wpasswd",token)==0) {
-	sprintf(tBuffer, "[none2]"); //DDF hard codded
+    } else if (strncmp("%wpasswd",token,8)==0) {
+	i = token[8] - '0';
+	if (i<10) {
+	    sprintf(tBuffer, "%s",getWifiPasswd(i));
+	} else {
+	    sprintf(tBuffer, "[software error]");
+	}
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strncmp("%hchsel",token,7)==0) {
 	//DDF send nothing - hard codded
@@ -108,7 +128,7 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
 	if (xAppData.ipName != NULL) {
 	    sprintf(tBuffer, "%s", xAppData.ipName);
 	} else {
-	    sprintf(tBuffer, "[none]");
+	    sprintf(tBuffer, "[None]");
 	}
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strcmp("%apmac",token)==0) {
@@ -243,10 +263,12 @@ void parseUrl(httpd_req_t *req) {
             ESP_LOGI(TAG, "Found URL query => %s", buf);
             char param[32];
             /* Get value of expected key from query string */
+#ifndef TIXCLOCK
             if (httpd_query_key_value(buf, "pattern", param, sizeof(param)) == ESP_OK) {
                 ESP_LOGI(TAG, "Pattern = %d", atoi(param));
 		setPatternNumber(atoi(param));
             }
+#endif
         }
         free(buf);
     }
@@ -258,7 +280,7 @@ void parseUrl(httpd_req_t *req) {
     INPUTS: http request
 
     RETURN CODE:
-        NONE
+        error code
 
     NOTES:
 
@@ -293,34 +315,157 @@ esp_err_t get_file_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
-/* An HTTP POST handler */
+bool isHexDigit( char in ) {
+
+    if (((in >='0') && (in <= '9')) ||
+        ((in >='A') && (in <= 'F')) ||
+        ((in >='a') && (in <= 'f'))) {
+	    return( true );
+    }
+    return( false );
+}
+
+void processString( char * value ) {
+    uint8_t strLength = strlen( value);
+    char hex[3] = "00";
+
+    if (strLength < 3) return;
+
+    printf("in >%s<\n",value);
+
+    for( uint8_t i=0; i< strLength-2; i++) {
+        if (value[i] == '+') {
+	    value[i] = ' ';
+        } else if ((value[i] == '%') &&
+            isHexDigit(value[i+1]) &&
+            isHexDigit(value[i+2]))
+        {
+
+            hex[0] = value[i+1]; hex[1] = value[i+2];
+            value[i] = strtol(hex,NULL,16);
+            strcpy( &value[i+1], &value[i+3]);
+        }
+    }
+    printf("out >%s<\n",value);
+}
+
+/*******************************************************************************
+    PURPOSE: sends a file through the web interface
+
+    INPUTS: http request
+
+    RETURN CODE: NONE
+
+    NOTES:
+
+*******************************************************************************/
+static void processVar( char * name, char * value) {
+    uint8_t i;
+
+    
+    processString( value ); 
+
+    if (strcmp("hssid",name)==0) {
+	setHSSsid(value);
+    } else if (strcmp("hpasswd", name)==0) {
+	if (strcmp(value, "[None]")==0) {
+		value[0] = 0;
+		printf("erase\n");
+	}
+	setHSPasswd(value);
+    } else if (strcmp("hchan", name)==0) {
+	setHSChan( atoi(value));
+    } else if (strncmp("wssid", name, 5)==0) {
+	printf("processVr1 %s\n", value);
+        ESP_LOGI(TAG, "DDF1 >%s< = >%s<", name, value);
+	if (strcmp(value, "[Not+Used]")==0) {
+		value[0] = 0;
+		printf("erase\n");
+	}
+	if (strcmp(value, "[Not Used]")==0) {
+		value[0] = 0;
+		printf("erase\n");
+	}
+        ESP_LOGI(TAG, "DDF2 >%s< = >%s<", name, value);
+	i = name[5] - '0';
+	printf("processVr2 %d %s\n", i, value);
+	setWifiSsid(i,value);
+    } else if (strncmp("wpasswd", name, 7)==0) {
+        ESP_LOGI(TAG, "DDF3 >%s< = >%s<", name, value);
+	if (strcmp(value, "[None]")==0) {value[0] = 0;}
+	if (strcmp(value, "[Not Used]")==0) {value[0] = 0;}
+        ESP_LOGI(TAG, "DDF4 >%s< = >%s<", name, value);
+	i = name[7] - '0';
+	setWifiPasswd(i,value);
+    } else if (strcmp("tz", name)==0) {
+	setTZ(value);
+    } else {
+        ESP_LOGI(TAG, "unknown >%s< = >%s<", name, value);
+    }
+}
+
+/*******************************************************************************
+    PURPOSE:  An HTTP POST handler
+
+    INPUTS: http request
+
+    RETURN CODE:
+        error code
+
+    NOTES:
+
+*******************************************************************************/
 static esp_err_t save_settings_handler(httpd_req_t *req)
 {
-    char buf[100];
-    int ret, remaining = req->content_len;
+    char dataName[100];
+    char dataVar[100];
+    size_t off=0;
+    int ret = 0;
 
-    while (remaining > 0) {
-        /* Read the data for the request */
-        if ((ret = httpd_req_recv(req, buf,
-                        MIN(remaining, sizeof(buf)))) <= 0) {
+    char*  buf = malloc(req->content_len + 1);
+
+    while (off < req->content_len) {
+        /* Read data received in the request */
+        ret = httpd_req_recv(req, buf + off, req->content_len - off);
+        if (ret <= 0) {
             if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
-                /* Retry receiving if timeout occurred */
-                continue;
+                httpd_resp_send_408(req);
             }
+            free (buf);
             return ESP_FAIL;
         }
-
-        /* Send back the same data */
-        httpd_resp_send_chunk(req, buf, ret);
-        remaining -= ret;
-
-        /* Log data received */
-        ESP_LOGI(TAG, "=========== RECEIVED DATA ==========");
-        ESP_LOGI(TAG, "%.*s", ret, buf);
-        ESP_LOGI(TAG, "====================================");
+        off += ret;
+//      ESP_LOGI(TAG, "/echo handler recv length %d", ret);
     }
+    buf[off] = '\0';
+    
+    /* Log data received */
+    ESP_LOGI(TAG, "=========== RECEIVED DATA ==========");
+    uint16_t i = 0;
+    uint16_t b = 0;
+    while ( i < (req->content_len+1)) {
+       if (buf[i] == '=') {
+           strlcpy(&dataName, &buf[b], i-b+1);
+//           ESP_LOGI(TAG, ">%s< %d %d", dataName, b, i);
+           b=i+1;
+       } else if ((buf[i] == '&')||(buf[i] == 0)) {
+	   strlcpy(&dataVar, &buf[b], i-b+1);
+           ESP_LOGI(TAG, ">%s< = >%s<", dataName, dataVar);
+           processVar( dataName, dataVar );
+	   b=i+1;
+       }
+       i++;
+    }
+    ESP_LOGI(TAG, "====================================");
+    WifiCleanup();
 
     // End response
+    /* Send a simple response */
+    file_get_handler(req, "/spiffs/header.html", true);
+//    httpd_resp_send_chunk(req, buf, ret);
+    free(buf);
+    file_get_handler(req, "/spiffs/settings.html", false);
+    file_get_handler(req, "/spiffs/footer.html", false);
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
@@ -349,14 +494,14 @@ httpd_uri_t settings = {
     .handler   = get_file_handler,
     .user_ctx  = "/spiffs/settings.html"
 };
-
+#ifndef TIXCLOCK
 httpd_uri_t patterns = {
     .uri       = "/patterns.html",
     .method    = HTTP_GET,
     .handler   = web_pattern_list,
     .user_ctx  = NULL
 };
-
+#endif
 httpd_uri_t logo = {
     .uri       = "/header-bg.jpg",
     .method    = HTTP_GET,
@@ -402,16 +547,16 @@ httpd_uri_t save = {
 /*******************************************************************************
     PURPOSE: start the web server
 
-    INPUTS:
+    INPUTS: NONE
 
     RETURN CODE:
-        NONE
+        web handle
 
     NOTES:
 
 *******************************************************************************/
-httpd_handle_t start_webserver(void)
-{
+httpd_handle_t start_webserver(void) {
+
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.max_uri_handlers = 10;
@@ -428,7 +573,9 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &title);
         httpd_register_uri_handler(server, &about);
         httpd_register_uri_handler(server, &settings);
+#ifndef TIXCLOCK
         httpd_register_uri_handler(server, &patterns);
+#endif
         httpd_register_uri_handler(server, &content);
         httpd_register_uri_handler(server, &save);
         return server;
@@ -438,13 +585,30 @@ httpd_handle_t start_webserver(void)
     return NULL;
 }
 
+void start_mdns_service()
+{
+    //initialize mDNS service
+    esp_err_t err = mdns_init();
+    if (err) {
+        printf("MDNS Init failed: %d\n", err);
+        return;
+    }
+
+    //set hostname
+    mdns_hostname_set(getHSSsid());
+    //set default instance
+    mdns_instance_name_set("2DKits Blinkie");
+}
+
 /*******************************************************************************
     PURPOSE: event handler for wifi
 
     INPUTS:
+        handle
+	event
 
     RETURN CODE:
-        NONE
+        error code
 
     NOTES:
 
@@ -465,7 +629,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
     switch(event->event_id) {
     case SYSTEM_EVENT_STA_START:
         ESP_LOGI(TAG, "SYSTEM_EVENT_STA_START");
-        ESP_ERROR_CHECK(esp_wifi_connect());
+        if (xAppData.wifiCount != 0) ESP_ERROR_CHECK(esp_wifi_connect());
         break;
     case SYSTEM_EVENT_STA_GOT_IP:
         xAppData.ipName = ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip);
@@ -476,6 +640,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         /* Start the web server */
 	if (serverInit == false) {
 	   start_webserver();
+	   start_mdns_service();
 	   serverInit = true;
 	}
 
@@ -494,7 +659,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
 
         ESP_LOGI(TAG, "Trying WiFi STA: SSID >%s< PASSWD >%s<", wifi_config_sta.sta.ssid, wifi_config_sta.sta.password);
-        ESP_ERROR_CHECK(esp_wifi_connect());
+        esp_wifi_connect();
         break;
     case SYSTEM_EVENT_AP_STAIPASSIGNED:
         ESP_LOGI(TAG,"station connected to access point.");
@@ -521,23 +686,37 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
 }
 
 /*******************************************************************************
-    PURPOSE:  start the wifi interface
+    PURPOSE:  start the wifi interface part 1
 
     INPUTS: arg per task, not used
 
-    RETURN CODE:
-        NONE
+    RETURN CODE: NONE
 
-    NOTES:
+    NOTES: clasic chicken / egg. We need the wifi running to get the mac. We
+    need the mac to init the global settings. We need the global settings to
+    init the wifi.
 
 *******************************************************************************/
-void initialise_wifi(void *arg)
+void initialise_wifi_p1(void *arg)
 {
     tcpip_adapter_init();
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, arg));
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+}
+
+/*******************************************************************************
+    PURPOSE:  start the wifi interface part 2
+
+    INPUTS: arg per task, not used
+
+    RETURN CODE: NONE
+
+    NOTES:
+
+*******************************************************************************/
+void initialise_wifi_p2(void *arg) {
     wifi_config_t wifi_config_sta = {
         .sta = {
             .ssid = "",
@@ -578,5 +757,6 @@ void initialise_wifi(void *arg)
     ESP_ERROR_CHECK(esp_wifi_get_mac(WIFI_IF_AP, xAppData.apMac) );
     ESP_ERROR_CHECK(esp_wifi_get_mac(ESP_IF_WIFI_STA, xAppData.staMac));
     ESP_ERROR_CHECK(esp_wifi_start());
+
 //    start_webserver();
 }

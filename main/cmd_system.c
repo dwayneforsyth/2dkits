@@ -19,6 +19,7 @@
 #include "version.h"
 #include "disk_system.h"
 #include "pattern_engine.h"
+#include "global.h"
 
 #define WITH_TASKS_INFO 1
 
@@ -27,6 +28,7 @@ static const char *TAG = "cmd_system";
 static void register_heap(void);
 static void register_version(void);
 static void register_restart(void);
+static void register_factoryrestart(void);
 static void register_tasks(void);
 static void register_time(void);
 static void register_dir(void);
@@ -46,6 +48,7 @@ void register_system(void)
     register_heap();
     register_version();
     register_restart();
+    register_factoryrestart();
     register_tasks();
     register_time();
     register_dir();
@@ -141,6 +144,43 @@ static void register_time(void)
     ESP_ERROR_CHECK( esp_console_cmd_register(&cmd) );
 }
 
+/*******************************************************************************
+
+    PURPOSE: 'restart' command
+
+    INPUTS: None
+
+    RETURN CODE: None
+
+*******************************************************************************/
+
+static int factoryrestart(int argc, char **argv)
+{
+    ESP_LOGW(TAG, "factory Restarting");
+    initSettings();
+    storeSettings();
+    return(0);
+}
+
+/*******************************************************************************
+
+    PURPOSE: register 'restart' command
+
+    INPUTS: None
+
+    RETURN CODE: None
+
+*******************************************************************************/
+static void register_factoryrestart(void)
+{
+    const esp_console_cmd_t cmd = {
+        .command = "factoryreset",
+        .help = "factory reset of blinkie, deletes all settings",
+        .hint = NULL,
+        .func = &factoryrestart,
+    };
+    ESP_ERROR_CHECK( esp_console_cmd_register(&cmd) );
+}
 /*******************************************************************************
 
     PURPOSE: 'restart' command

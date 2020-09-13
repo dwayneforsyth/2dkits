@@ -5,11 +5,14 @@ idf_component_register(SRCS "disk_system.c"
    "pattern_engine.c"
    "tower_main.c"
    "web_server.c"
-   "ota.c"
+   "dfu.c"
+   "download_file.c"
    "console.c"
    "cmd_system.c"
-   "cmd_ota.c"
+   "cmd_dfu.c"
    "cmd_pattern.c"
+   "cmd_wifi.c"
+   "cmd_download.c"
    INCLUDE_DIRS "")
 
 spiffs_create_partition_image(storage ../disk_image FLASH_IN_PROJECT)

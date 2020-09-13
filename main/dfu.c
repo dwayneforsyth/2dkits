@@ -1,3 +1,32 @@
+//   Copyright (C) 2020 Dwayne Forsyth
+//                                 
+//   This program is free software; you can redistribute it and/or
+//   modify it under the terms of the GNU General Public License
+//   as published 0by the Free Software Foundation; either version 2
+//   of the License, or (at your option) any later version.
+// 
+//   This program is distributed in the hope that it will 0be useful,
+//   0but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with this program; if not, write to the
+// 
+//      Free Software Foundation, Inc.
+//      51 Franklin Street, Fifth Floor
+//      Boston, MA  02110-1301, USA.
+//
+//**********************************************************************
+//   This is the web server, wifi, and internet stuff for:
+//    * an ESP32 based 4x4x8 tower.
+//    * an ESP32 based 4x4x4 cube
+//    * an ESP32 based 4x4x8 tixClock
+//   Why does a Blinkie need to talk to the internet? because it can!
+//**********************************************************************
+//   We are running a dual mode, we can connect to a network, and operate
+//   as a hotspot too. 
+//**********************************************************************
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -9,26 +38,23 @@
 #include "esp_https_ota.h"
 #include "string.h"
 
-#include "ota.h"
+#include "dfu.h"
 #include "version.h"
 #include "pattern_engine.h"
+#include "global.h"
 
-static const char *TAG = "ota";
+static const char *TAG = "dfu";
 
 #define MAX_FILE_NAME_LEN 54
-#define MAX_OTA_CONTROL_LEN 80
-char otaBuffer[MAX_OTA_CONTROL_LEN];
-
-#define CONFIG_FIRMWARE_STATUS_URL "http://www.2dkits.com/kits/kit25/current_firmware.txt"
-#define CONFIG_TEST_FIRMWARE_STATUS_URL "http://www.2dkits.com/kits/kit25/current_test_firmware.txt"
-#define CONFIG_BASE_FIRMWARE_URL "http://www.2dkits.com/"
+#define MAX_DFU_CONTROL_LEN 80
+char dfuBuffer[MAX_DFU_CONTROL_LEN];
 
 extern const uint8_t server_cert_pem_start[] asm("_binary_trustid_x3_root_pem_start");
 
 /*******************************************************************************
 
-    PURPOSE: http event handler used when downloading the ota control file.
-             on "data" events we store the data in a otaBuffer.
+    PURPOSE: http event handler used when downloading the dfu control file.
+             on "data" events we store the data in a dfuBuffer.
 
     INPUTS: event struct
 
@@ -44,8 +70,8 @@ esp_err_t _http_event_handler2(esp_http_client_event_t *evt)
         //DDF we could get this in parts?
 //        ESP_LOGW(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
 //        printf("%.*s", evt->data_len, (char*)evt->data);
-        length = (evt->data_len < MAX_OTA_CONTROL_LEN)? evt->data_len : MAX_OTA_CONTROL_LEN;
-        memcpy( otaBuffer, evt->data, length);
+        length = (evt->data_len < MAX_DFU_CONTROL_LEN)? evt->data_len : MAX_DFU_CONTROL_LEN;
+        memcpy( dfuBuffer, evt->data, length);
         break;
     default:
         break;
@@ -56,37 +82,37 @@ esp_err_t _http_event_handler2(esp_http_client_event_t *evt)
 /*******************************************************************************
 
     PURPOSE: Checks server if download is needed, if so it returns true, and
-             a URL to the OTA bin file.
+             a URL to the DFU bin file.
 
     INPUTS: pointer to store the firmware url
 
-    RETURN CODE: bool - is the ota needed
+    RETURN CODE: bool - is the dfu needed
 
 *******************************************************************************/
 
-bool check_ota(char * firmware_file, char * url) {
+bool check_dfu(char * firmware_file, char * url) {
     uint8_t major, minor, build;
     char file[MAX_FILE_NAME_LEN+1];
     bool update = false;
 
-    esp_http_client_config_t configOTAStatus = {
+    esp_http_client_config_t configDFUStatus = {
         .url = url,
 	.cert_pem = (char *)server_cert_pem_start,
 //        .auth_type = HTTP_AUTH_TYPE_NONE,
         .event_handler = _http_event_handler2,
     };
 
-    otaBuffer[0] = '\0';
-    esp_http_client_handle_t client = esp_http_client_init(&configOTAStatus);
+    dfuBuffer[0] = '\0';
+    esp_http_client_handle_t client = esp_http_client_init(&configDFUStatus);
     esp_err_t err = esp_http_client_perform(client);
     if ((err == ESP_OK) && (esp_http_client_get_status_code(client) == 200)) {
-        if ( 4 != sscanf(otaBuffer,"%hhd.%hhd.%hhd %54s", &major, &minor, &build, file)) {
+        if ( 4 != sscanf(dfuBuffer,"%hhd.%hhd.%hhd %54s", &major, &minor, &build, file)) {
             ESP_LOGW(TAG, "parsing of control fail failed");
             major=minor=build=0;
             file[0]='\0';
         }
 
-        snprintf(firmware_file,MAX_OTA_CONTROL_LEN,"%s%s",CONFIG_BASE_FIRMWARE_URL,file);
+        snprintf(firmware_file,MAX_DFU_CONTROL_LEN,"%s%s",CONFIG_BASE_FIRMWARE_URL,file);
 //        ESP_LOGW(TAG, ">%d.%d.%d %s<", major, minor, build, firmware_file);
 
         if (major > MAJOR) {
@@ -107,7 +133,7 @@ bool check_ota(char * firmware_file, char * url) {
 
 /*******************************************************************************
 
-    PURPOSE: calls routine to see if download is needed, performs the OTA if needed.
+    PURPOSE: calls routine to see if download is needed, performs the DFU if needed.
 
     INPUTS: none
 
@@ -115,24 +141,23 @@ bool check_ota(char * firmware_file, char * url) {
 
 *******************************************************************************/
 
-#define OTA_TRIES 3
+#define DFU_TRIES 3
 
-void ota_task(void *pvParameter)
+void dfu_task(void *pvParameter)
 {
     uint8_t flags = (uint32_t) pvParameter;
-    uint8_t tries = OTA_TRIES;
+    uint8_t tries = DFU_TRIES;
 
 
-    char firmware_file[MAX_OTA_CONTROL_LEN];
+    char firmware_file[MAX_DFU_CONTROL_LEN];
 
     // this call returns the file name.
-    bool needed = check_ota( firmware_file, (flags==2)? CONFIG_TEST_FIRMWARE_STATUS_URL :  CONFIG_FIRMWARE_STATUS_URL);
-    ESP_LOGW(TAG, "%s %s",(needed)?"Downloading":"No update Needed", (flags!=0)?"Forced":"");
+    bool needed = check_dfu( firmware_file, (flags==2)? CONFIG_TEST_FIRMWARE_STATUS_URL :  CONFIG_FIRMWARE_STATUS_URL);
 
     if ((strlen(firmware_file) != 0) && (needed || (flags != 0))) {
 
-        // do the ota
-        esp_http_client_config_t configOTA = {
+        // do the dfu
+        esp_http_client_config_t configDFU = {
             .url = firmware_file,
 	    .cert_pem = (char *)server_cert_pem_start,
 //            .auth_type = HTTP_AUTH_TYPE_NONE,
@@ -140,12 +165,16 @@ void ota_task(void *pvParameter)
         };
 
         while (tries != 0) {
+#ifndef TIXCLOCK
 	    setPatternNumber(0); // give visual feedback we are downloading
+#endif
             ESP_LOGW(TAG, "Downloading >%s<",firmware_file);
-            esp_err_t ret = esp_https_ota(&configOTA);
+            esp_err_t ret = esp_https_ota(&configDFU);
             if (ret == ESP_OK) {
-                ESP_LOGW(TAG, "OTA Done");
+                ESP_LOGW(TAG, "DFU Done");
+#ifndef TIXCLOCK
 		patternEngineOff();
+#endif
                 esp_restart();
             } else {
                 ESP_LOGE(TAG, "Firmware upgrade failed, retry left=%d",tries);
@@ -153,15 +182,17 @@ void ota_task(void *pvParameter)
                 vTaskDelay(500 / portTICK_PERIOD_MS); // wait 1/2 a second
             }
         }
+        ESP_LOGE(TAG, "DFU Failed");
+    } else {
+        ESP_LOGE(TAG, "No update needed");
     }
 
-    ESP_LOGE(TAG, "OTA Failed");
     vTaskDelete(NULL);
 }
 
 /*******************************************************************************
 
-    PURPOSE: creates the ota task
+    PURPOSE: creates the dfu task
 
     INPUTS: none
 
@@ -169,7 +200,11 @@ void ota_task(void *pvParameter)
 
 *******************************************************************************/
 
-void perform_ota(uint8_t flags) {
-    ESP_LOGW(TAG, "Starting OTA flags=%d", flags);
-    xTaskCreate(ota_task, "ota_task", OTA_TASK_STACK_SIZE, (void *) flags, OTA_TASK_PRIORITY, NULL);
+void perform_dfu(uint8_t flags) {
+    if (xAppData.ipName == NULL) {
+        ESP_LOGW(TAG, "DFU aborted no internet");
+        return;
+    }
+    ESP_LOGW(TAG, "Starting DFU flags=%d", flags);
+    xTaskCreate(dfu_task, "dfu_task", DFU_TASK_STACK_SIZE, (void *) flags, DFU_TASK_PRIORITY, NULL);
 }
