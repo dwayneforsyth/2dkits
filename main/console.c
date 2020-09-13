@@ -38,7 +38,8 @@ static void initialize_console(void)
             .data_bits = UART_DATA_8_BITS,
             .parity = UART_PARITY_DISABLE,
             .stop_bits = UART_STOP_BITS_1,
-            .source_clk = UART_SCLK_REF_TICK,
+            .use_ref_tick = true
+
     };
     /* Install UART driver for interrupt-driven reads and writes */
     ESP_ERROR_CHECK( uart_driver_install(CONFIG_ESP_CONSOLE_UART_NUM,
@@ -125,13 +126,13 @@ void consoleInit( void ) {
     esp_console_register_help_command();
     register_system();
     commands_ota();
+    commands_pattern();
 
     /* Prompt to be printed before each line.
      * This can be customized, made dynamic, etc.
      */
 
     printf("\n2DKits blinkie console ready\n");
-//    xTaskCreate(&consoleTask, "console_task", CONSOLE_TASK_STACK_SIZE, NULL, CONSOLE_TASK_PRIORITY, NULL);
     consoleTask();
 }
 

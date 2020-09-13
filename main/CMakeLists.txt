@@ -9,6 +9,7 @@ idf_component_register(SRCS "disk_system.c"
    "console.c"
    "cmd_system.c"
    "cmd_ota.c"
+   "cmd_pattern.c"
    INCLUDE_DIRS "")
 
 spiffs_create_partition_image(storage ../disk_image FLASH_IN_PROJECT)

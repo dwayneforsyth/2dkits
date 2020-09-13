@@ -22,13 +22,26 @@
 #ifndef PATTERN_ENGINE_H
 #define PATTERN_ENGINE_H
 
+#include <esp_http_server.h>
+
+
 void updatePatternsTask( void );
 void addPattern( char * );
 
 uint8_t getPatternNumber();
-char * getPatternName();
 void setPatternNumber(uint8_t newStep);
+char * getPatternName();
+void setPatternPlus();
+void setPatternMinus();
+
 esp_err_t web_pattern_list( httpd_req_t *req);
 
+void setPrintPattern( bool onOff );
+bool getPrintPattern( void );
+
+void setDemoMode( bool onOff );
+bool getDemoMode( void );
+
+void patternEngineOff( void );
 #endif
 

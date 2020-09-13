@@ -53,7 +53,7 @@ void app_main()
  
     printf("Hello from Tower\n");
     init_LED_driver();
-//    allLedsColor(0,15,0);
+    allLedsColor(0,15,0);
 
 
     static httpd_handle_t server = NULL;
@@ -61,11 +61,12 @@ void app_main()
     initialise_wifi(&server);
 
     initialise_disk();
-//    disk_dir_list("/spiffs",NULL);
+    disk_dir_list("/spiffs",NULL); // this has a side effect of loading the patterns
     loadSettings();
     vTaskDelay(1000 / portTICK_PERIOD_MS);
     xTaskCreate(updatePatternsTask, "updatePatternsTask", 4*1024, NULL, 23, NULL);
 
+#if (0)
 #define GPIO_INPUT_IO_0     34
 #define GPIO_INPUT_IO_1     39
 #define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_0) | (1ULL<<GPIO_INPUT_IO_1))
@@ -83,6 +84,7 @@ void app_main()
     io_conf.pull_up_en = 0;
     //configure GPIO with the given settings
     gpio_config(&io_conf);
+#endif
 
     consoleInit();
 

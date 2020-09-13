@@ -58,8 +58,43 @@ typedef struct pattern_entry_t {
     bool enabled;
 } pattern_entry_t;
 
-uint8_t step = 0;
 uint8_t pendingExit = false;
+
+uint8_t step = 0;
+
+
+bool printPattern = false;
+
+void setPrintPattern( bool onOff ) {
+    printPattern = onOff;
+}
+
+bool getPrintPattern( void ) {
+    return(printPattern);
+}
+
+void setPatternPlus() {
+    step = ((step+1) % MAX_PATTERN_ENTRY);
+}
+
+void setPatternMinus() {
+    step = ((step-1) % MAX_PATTERN_ENTRY);
+}
+
+bool demoMode = true;
+bool getDemoMode() {
+    return(demoMode);
+}
+
+void setDemoMode(bool onOff) {
+    demoMode = onOff;
+}
+
+void patternEngineOff(void) {
+    changeBank(1);
+    allLedsOff();
+}
+
 
 bool delay_and_buttons(uint16_t delay) {
     bool exit = pendingExit;
@@ -76,7 +111,7 @@ bool delay_and_buttons(uint16_t delay) {
 	     delayCount++;
 	     if (delayCount > 500) {
 		     delayCount = 0;
-                     step = ((step+1) % MAX_PATTERN_ENTRY);
+                     setPatternPlus();
 		     displayNumber(step);
 		     exit = true;
 	     }
@@ -94,7 +129,7 @@ bool delay_and_buttons(uint16_t delay) {
 	     delayCount++;
 	     if (delayCount > 500) {
 		     delayCount = 0;
-                     step = ((step-1) % MAX_PATTERN_ENTRY);
+                     setPatternMinus();
 		     displayNumber(step);
 		     exit = true;
 	     }
@@ -446,7 +481,7 @@ void updatePatternsTask(void *param) {
     allLedsOff();
 
     while (1) {
-	printf("running pattern %d %s\n", step, patternTable[step].patternName);
+	if (printPattern) {printf("running pattern %d %s\n", step, patternTable[step].patternName);}
         switch (patternTable[step].patternType) {
             case PATTERN_BUILT_IN:
                 (patternTable[step].runMe)(patternTable[step].cycles, patternTable[step].delay);
@@ -458,7 +493,7 @@ void updatePatternsTask(void *param) {
             default:
                 break;
         }
-        step = ((step+1) % MAX_PATTERN_ENTRY);
+        if (demoMode) {setPatternPlus();}
     }
 }
 

@@ -18,6 +18,7 @@
 #include "cmd_system.h"
 #include "version.h"
 #include "disk_system.h"
+#include "pattern_engine.h"
 
 #define WITH_TASKS_INFO 1
 

@@ -1,5 +1,4 @@
-#ifndef CONSOLE_H
-#define CONSOLE_H
+#pragma once
 
 #include "esp_task.h"
 
@@ -10,4 +9,4 @@ void consoleInit(void);
 void process_command( char * line );
 
 void commands_ota( void );
-#endif
+void commands_pattern( void );

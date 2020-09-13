@@ -11,6 +11,7 @@
 
 #include "ota.h"
 #include "version.h"
+#include "pattern_engine.h"
 
 static const char *TAG = "ota";
 
@@ -86,7 +87,7 @@ bool check_ota(char * firmware_file, char * url) {
         }
 
         snprintf(firmware_file,MAX_OTA_CONTROL_LEN,"%s%s",CONFIG_BASE_FIRMWARE_URL,file);
-        ESP_LOGW(TAG, ">%d.%d.%d %s<", major, minor, build, firmware_file);
+//        ESP_LOGW(TAG, ">%d.%d.%d %s<", major, minor, build, firmware_file);
 
         if (major > MAJOR) {
             update = true;
@@ -126,7 +127,7 @@ void ota_task(void *pvParameter)
 
     // this call returns the file name.
     bool needed = check_ota( firmware_file, (flags==2)? CONFIG_TEST_FIRMWARE_STATUS_URL :  CONFIG_FIRMWARE_STATUS_URL);
-    ESP_LOGW(TAG, "need=%s force=%s",(needed)?"Yes":"No", (flags!=0)?"Yes":"No");
+    ESP_LOGW(TAG, "%s %s",(needed)?"Downloading":"No update Needed", (flags!=0)?"Forced":"");
 
     if ((strlen(firmware_file) != 0) && (needed || (flags != 0))) {
 
@@ -139,10 +140,12 @@ void ota_task(void *pvParameter)
         };
 
         while (tries != 0) {
+	    setPatternNumber(0); // give visual feedback we are downloading
             ESP_LOGW(TAG, "Downloading >%s<",firmware_file);
             esp_err_t ret = esp_https_ota(&configOTA);
             if (ret == ESP_OK) {
                 ESP_LOGW(TAG, "OTA Done");
+		patternEngineOff();
                 esp_restart();
             } else {
                 ESP_LOGE(TAG, "Firmware upgrade failed, retry left=%d",tries);

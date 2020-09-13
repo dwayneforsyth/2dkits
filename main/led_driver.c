@@ -49,21 +49,21 @@
 
 #define PROTO1
 
-#define BLINK_GPIO   02
+#define BLINK_GPIO   2
 #define PIN_NUM_MISO 12 //12
 #define PIN_NUM_MOSI 14 //13
 #define PIN_NUM_CLK  13 //14
-#define PIN_NUM_CS   18 //04?
+#define PIN_ENABLE   18 //04?
 
-#define LATCH        04 // 18
-#define COMSIG0      15 // 15
-#define COMSIG1      23 // 22
-#define COMSIG2      22 // 23
-#define COMSIG3      19 // 19
-#define COMSIG4      17 // 21
-#define COMSIG5      21 // 05
-#define COMSIG6      05 // 17
-#define COMSIG7      16 // 16
+#define PIN_LATCH    4
+#define COMSIG0      15
+#define COMSIG1      23
+#define COMSIG2      22
+#define COMSIG3      19
+#define COMSIG4      10
+#define COMSIG5      21
+#define COMSIG6      5
+#define COMSIG7      9
 
 
 #define NUMBER_OF_LEDS 6
@@ -450,9 +450,9 @@ void IRAM_ATTR spi_post_transfer_callback(spi_transaction_t *curTrans) {
     } 
     oldStrobe = strobe;
 #endif
-    gpio_set_level(LATCH, 1); //clear latch;
+    gpio_set_level(PIN_LATCH, 1); //clear latch;
     asm volatile ("nop");
-    gpio_set_level(LATCH, 0); //Latch in col
+    gpio_set_level(PIN_LATCH, 0); //Latch in col
 
     if (strobe < 8) {
         gpio_set_level(strobeGPIO[strobe], 1); // row on
@@ -613,13 +613,13 @@ void init_LED_driver() {
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
     gpio_set_level(BLINK_GPIO, 0);
 
-    gpio_pad_select_gpio(PIN_NUM_CS);
-    gpio_set_direction(PIN_NUM_CS, GPIO_MODE_OUTPUT);
-    gpio_set_level(PIN_NUM_CS, 0);
+    gpio_pad_select_gpio(PIN_ENABLE);
+    gpio_set_direction(PIN_ENABLE, GPIO_MODE_OUTPUT);
+    gpio_set_level(PIN_ENABLE, 0);
 
-    gpio_pad_select_gpio(LATCH);
-    gpio_set_direction(LATCH , GPIO_MODE_OUTPUT);
-    gpio_set_level(LATCH, 0);
+    gpio_pad_select_gpio(PIN_LATCH);
+    gpio_set_direction(PIN_LATCH , GPIO_MODE_OUTPUT);
+    gpio_set_level(PIN_LATCH, 0);
 
     for (i=0;i<8;i++) {
         gpio_pad_select_gpio(strobeGPIO[i]);

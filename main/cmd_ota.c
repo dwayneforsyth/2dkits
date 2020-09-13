@@ -56,7 +56,7 @@ static int command_ota(int argc, char **argv) {
     if (ota_args.test->count) {
         test = true;
     }
-    
+  
     perform_ota(forced+test*2);
     return 0;
 }
