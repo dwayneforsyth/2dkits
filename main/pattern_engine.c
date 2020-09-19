@@ -40,6 +40,9 @@
 #include "disk_system.h"
 #include "numbers_led.h"
 
+#define BUTTON1 34
+#define BUTTON2 35
+
 #define MAX_PATTERN_ENTRY 50
 
 typedef enum patternType_t {
@@ -102,11 +105,12 @@ bool delay_and_buttons(uint16_t delay) {
 
     pendingExit = false;
     vTaskDelay(delay / portTICK_PERIOD_MS);
-    if (gpio_get_level(39) == 0) {
-        printf("Button 39\n");
+    return(exit); //DDF
+    if (gpio_get_level(BUTTON1) == 0) {
+        printf("Button 1\n");
 	changeBank( 1 );
 	displayNumber(step);
-	while (gpio_get_level(39) == 0) {
+	while (gpio_get_level(BUTTON1) == 0) {
 	     vTaskDelay(1);
 	     delayCount++;
 	     if (delayCount > 500) {
@@ -120,11 +124,11 @@ bool delay_and_buttons(uint16_t delay) {
         return(exit);
     }
 
-    if (gpio_get_level(34) == 0) {
-        printf("Button 34\n");
+    if (gpio_get_level(BUTTON2) == 0) {
+        printf("Button 2\n");
 	changeBank( 1 );
 	displayNumber(step);
-	while (gpio_get_level(34) == 0) {
+	while (gpio_get_level(BUTTON2) == 0) {
 	     vTaskDelay(1);
 	     delayCount++;
 	     if (delayCount > 500) {
