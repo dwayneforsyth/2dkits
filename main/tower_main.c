@@ -68,26 +68,6 @@ void app_main()
     vTaskDelay(1000 / portTICK_PERIOD_MS);
     xTaskCreate(updatePatternsTask, "updatePatternsTask", 4*1024, NULL, 23, NULL);
 
-#if (0)
-#define GPIO_INPUT_IO_0     34
-#define GPIO_INPUT_IO_1     39
-#define GPIO_INPUT_PIN_SEL  ((1ULL<<GPIO_INPUT_IO_0) | (1ULL<<GPIO_INPUT_IO_1))
-
-    gpio_config_t io_conf;
-    //disable interrupt
-    io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
-    //set as output mode
-    io_conf.mode = GPIO_MODE_INPUT;
-    //bit mask of the pins that you want to set,e.g.GPIO18/19
-    io_conf.pin_bit_mask = GPIO_INPUT_PIN_SEL;
-    //disable pull-down mode
-    io_conf.pull_down_en = 0;
-    //disable pull-up mode
-    io_conf.pull_up_en = 0;
-    //configure GPIO with the given settings
-    gpio_config(&io_conf);
-#endif
-
     consoleInit();
 
 
