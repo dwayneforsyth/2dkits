@@ -105,7 +105,7 @@ bool delay_and_buttons(uint16_t delay) {
 
     pendingExit = false;
     vTaskDelay(delay / portTICK_PERIOD_MS);
-    return(exit); //DDF
+
     if (gpio_get_level(BUTTON1) == 0) {
         printf("Button 1\n");
 	changeBank( 1 );
@@ -481,8 +481,12 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
 void updatePatternsTask(void *param) {
 
     allLedsOff();
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-    allLedsOff();
+
+    gpio_pad_select_gpio(BUTTON1);
+    gpio_set_direction(BUTTON1 , GPIO_MODE_INPUT);
+
+    gpio_pad_select_gpio(BUTTON2);
+    gpio_set_direction(BUTTON2 , GPIO_MODE_INPUT);
 
     while (1) {
 	if (printPattern) {printf("running pattern %d %s\n", step, patternTable[step].patternName);}
