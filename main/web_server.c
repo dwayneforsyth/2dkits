@@ -559,6 +559,8 @@ httpd_handle_t start_webserver(void) {
 
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.stack_size = 5 *1024;
+
     config.max_uri_handlers = 10;
 
     // Start the httpd server

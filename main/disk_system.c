@@ -220,6 +220,113 @@ static int fnmatch(const char *pattern, const char *string, int flags)
 }
 
 // ============================================================================
+/*******************************************************************************
+    PURPOSE: get a disk dir in ascii
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES: should make printer cb to support ascii and html in one function
+
+*******************************************************************************/
+
+void asciiHead_cb( char *path, void *data) {
+    printf("\nList of Directory [%s]\n", path);
+    printf("-----------------------------------\n");
+    printf("T  Size      Date/Time         Name\n");
+    printf("-----------------------------------\n");
+}
+
+void asciiLine_cb( char type, char * size, char * tbuffer, char *name, void *data) {
+    printf( "%c  %s  %s  %s\r\n", type, size, tbuffer, name);
+}
+
+void asciiFooter_cb(uint64_t total, int nfiles, uint32_t tot, uint32_t used, void *data) {
+    if (total) {
+        printf("-----------------------------------\n");
+        if (total < (1024*1024)) printf("   %8d", (int)total);
+        else if ((total/1024) < (1024*1024)) printf("   %6dKB", (int)(total / 1024));
+        else printf("   %6dMB", (int)(total / (1024 * 1024)));
+        printf(" in %d file(s)\n", nfiles);
+    }
+    printf("-----------------------------------\n");
+    printf("SPIFFS: free %d KB of %d KB\n", (tot-used) / 1024, tot / 1024);
+    printf("-----------------------------------\n\n");
+}
+
+//-----------------------------------------
+void disk_dir(char *path, void *head(), void *line(), void *footer(), void *data ) {
+
+    DIR *dir = NULL;
+    struct dirent *ent;
+    char type;
+    char size[12];
+    char tpath[255];
+    char tbuffer[80];
+    struct stat sb;
+    struct tm *tm_info;
+    int statok;
+
+    // Open directory
+    dir = opendir(path);
+    if (!dir) {
+        printf("Error opening directory\n");
+        return;
+    }
+
+    // Read directory entries
+    uint64_t total = 0;
+    int nfiles = 0;
+
+    head(path, data);
+
+    while ((ent = readdir(dir)) != NULL) {
+        sprintf(tpath, path);
+        if (path[strlen(path)-1] != '/') strcat(tpath,"/");
+        strcat(tpath,ent->d_name);
+        tbuffer[0] = '\0';
+
+        // Get file stat
+        statok = stat(tpath, &sb);
+
+        if (statok == 0) {
+            tm_info = localtime(&sb.st_mtime);
+            strftime(tbuffer, 80, "%d/%m/%Y %R", tm_info);
+        } else sprintf(tbuffer, "                ");
+
+        if (ent->d_type == DT_REG) {
+            type = 'f';
+            nfiles++;
+            if (statok) strcpy(size, "       ?");
+            else {
+                total += sb.st_size;
+                if (sb.st_size < (1024*1024)) snprintf(size, sizeof(size), "%8d", (int)sb.st_size);
+                else if ((sb.st_size/1024) < (1024*1024)) snprintf(size, sizeof(size), "%6dKB", (int)(sb.st_size / 1024));
+                else snprintf(size, sizeof(size), "%6dMB", (int)(sb.st_size / (1024 * 1024)));
+            }
+        } else {
+            type = 'd';
+            strcpy(size, "       -");
+        }
+        line(type, size, tbuffer, ent->d_name, data);
+
+	// This is a kludge, we are going to check for files thatend with a ".pat" and when
+	// we find one, we added it to the pattern engine. If will ignore files it has in
+	// its database.
+	if (strcmp(".pat",&(ent->d_name[strlen(ent->d_name)-4])) == 0) {
+            addPattern(ent->d_name);
+	}
+    }
+
+    uint32_t tot=0, used=0;
+    esp_spiffs_info(NULL, &tot, &used);
+
+    footer(total, nfiles, tot, used, data);
+
+    closedir(dir);
+}
 
 
 /*******************************************************************************
@@ -234,96 +341,9 @@ static int fnmatch(const char *pattern, const char *string, int flags)
 
 *******************************************************************************/
 //-----------------------------------------
-void disk_dir_list(char *path, char *match) {
+void disk_dir_list(char *path) {
 
-    DIR *dir = NULL;
-    struct dirent *ent;
-    char type;
-    char size[12];
-    char tpath[255];
-    char tbuffer[80];
-    struct stat sb;
-    struct tm *tm_info;
-    char *lpath = NULL;
-    int statok;
-
-    printf("\nList of Directory [%s]\n", path);
-    printf("-----------------------------------\n");
-    // Open directory
-    dir = opendir(path);
-    if (!dir) {
-        printf("Error opening directory\n");
-        return;
-    }
-
-    // Read directory entries
-    uint64_t total = 0;
-    int nfiles = 0;
-    printf("T  Size      Date/Time         Name\n");
-    printf("-----------------------------------\n");
-    while ((ent = readdir(dir)) != NULL) {
-        sprintf(tpath, path);
-        if (path[strlen(path)-1] != '/') strcat(tpath,"/");
-        strcat(tpath,ent->d_name);
-        tbuffer[0] = '\0';
-
-        if ((match == NULL) || (fnmatch(match, tpath, (FNM_PERIOD)) == 0)) {
-            // Get file stat
-            statok = stat(tpath, &sb);
-
-            if (statok == 0) {
-                tm_info = localtime(&sb.st_mtime);
-                strftime(tbuffer, 80, "%d/%m/%Y %R", tm_info);
-            }
-            else sprintf(tbuffer, "                ");
-
-            if (ent->d_type == DT_REG) {
-                type = 'f';
-                nfiles++;
-                if (statok) strcpy(size, "       ?");
-                else {
-                    total += sb.st_size;
-                    if (sb.st_size < (1024*1024)) snprintf(size, sizeof(size), "%8d", (int)sb.st_size);
-                    else if ((sb.st_size/1024) < (1024*1024)) snprintf(size, sizeof(size), "%6dKB", (int)(sb.st_size / 1024));
-                    else snprintf(size, sizeof(size), "%6dMB", (int)(sb.st_size / (1024 * 1024)));
-                }
-            }
-            else {
-                type = 'd';
-                strcpy(size, "       -");
-            }
-
-            printf("%c  %s  %s  %s\r\n",
-                type,
-                size,
-                tbuffer,
-                ent->d_name
-            );
-	    // This is a kludge, we are going to check for files thatend with a ".pat" and when
-	    // we find one, we added it to the pattern engine. If will ignore files it has in
-	    // its database.
-	    if (strcmp(".pat",&(ent->d_name[strlen(ent->d_name)-4])) == 0) {
-		addPattern(ent->d_name);
-	    }
-        }
-    }
-    if (total) {
-        printf("-----------------------------------\n");
-    	if (total < (1024*1024)) printf("   %8d", (int)total);
-    	else if ((total/1024) < (1024*1024)) printf("   %6dKB", (int)(total / 1024));
-    	else printf("   %6dMB", (int)(total / (1024 * 1024)));
-    	printf(" in %d file(s)\n", nfiles);
-    }
-    printf("-----------------------------------\n");
-
-    closedir(dir);
-
-    free(lpath);
-
-	uint32_t tot=0, used=0;
-    esp_spiffs_info(NULL, &tot, &used);
-    printf("SPIFFS: free %d KB of %d KB\n", (tot-used) / 1024, tot / 1024);
-    printf("-----------------------------------\n\n");
+    disk_dir(path, asciiHead_cb, asciiLine_cb, asciiFooter_cb, NULL);
 }
 
 /*******************************************************************************
@@ -337,26 +357,10 @@ void disk_dir_list(char *path, char *match) {
     NOTES:
 
 *******************************************************************************/
-//-----------------------------------------
-esp_err_t web_disk_dir_list(httpd_req_t *req) {
-
-    char *path = "/spiffs";
-    char *match = NULL;
-    DIR *dir = NULL;
-    struct dirent *ent;
-    char type;
-    char size[12];
-    char tpath[255];
+void htmlHead_cb( char *path, httpd_req_t *req) {
     char tbuffer[123];
-    char tbuffer2[129];
-    struct stat sb;
-    struct tm *tm_info;
-    char *lpath = NULL;
-    int statok;
-    const char *error_open = "Error opening directory\n";
-    const char *dir_header = "<table><tr><th>T<th>Size<th>Date/Time<th>Name\n";
-    const char *dir_footer = "</table></body></html>\n";
     const char *dir_heading = "</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Disk Dir</div><div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n";
+    const char *dir_header = "<table><tr><th>T<th>Size<th>Date/Time<th>Name\n";
 
     httpd_resp_set_hdr(req, "Content-type", "text/html");
     file_get_handler(req, "/spiffs/header.html",true);
@@ -364,60 +368,22 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
     httpd_resp_send_chunk(req, dir_heading, strlen(dir_heading));
     snprintf(tbuffer,sizeof(tbuffer),"List of Directory [%s]\n", path);
     httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
-
-    // Open directory
-    dir = opendir(path);
-    if (!dir) {
-        printf("Error opening directory\n");
-        httpd_resp_send_chunk(req, error_open, strlen(error_open));
-        return ESP_FAIL;
-    }
-    // Read directory entries
-    uint64_t total = 0;
     int nfiles = 0;
     httpd_resp_send_chunk(req, dir_header, strlen(dir_header));
+}
 
-    while ((ent = readdir(dir)) != NULL) {
-        sprintf(tpath, path);
-        if (path[strlen(path)-1] != '/') strcat(tpath,"/");
-        strcat(tpath,ent->d_name);
-        tbuffer[0] = '\0';
+void htmlLine_cb( char type, char * size, char * tbuffer, char *name, httpd_req_t *req) {
+    char tbuffer2[157];
+    snprintf(tbuffer2, sizeof(tbuffer2),
+        "<tr><td>%c<td align=\"right\">%.40s<td>%.40s<td>%.40s\n", type, size, tbuffer, name);
+    httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
+}
 
-        if ((match == NULL) || (fnmatch(match, tpath, (FNM_PERIOD)) == 0)) {
-            // Get file stat
-            statok = stat(tpath, &sb);
-
-            if (statok == 0) {
-                tm_info = localtime(&sb.st_mtime);
-                strftime(tbuffer, 80, "%d/%m/%Y %R", tm_info);
-            }
-            else sprintf(tbuffer, "                ");
-
-            if (ent->d_type == DT_REG) {
-                type = 'f';
-                nfiles++;
-                if (statok) strcpy(size, "       ?");
-                else {
-                    total += sb.st_size;
-                    if (sb.st_size < (1024*1024)) sprintf(size,"%8d", (int)sb.st_size);
-                    else if ((sb.st_size/1024) < (1024*1024)) sprintf(size,"%6dKB", (int)(sb.st_size / 1024));
-                    else sprintf(size,"%6dMB", (int)(sb.st_size / (1024 * 1024)));
-                }
-            }
-            else {
-                type = 'd';
-                strcpy(size, "       -");
-            }
-
-            snprintf(tbuffer2, sizeof(tbuffer2), "<tr><td>%c<td align=\"right\">%.40s<td>%.40s<td>%.40s\n",
-                type,
-                size,
-                tbuffer,
-                ent->d_name
-            );
-            httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
-	}
-    }
+void htmlFooter_cb(uint64_t total, int nfiles, uint32_t tot, uint32_t used, httpd_req_t *req) {
+    const char *dir_footer = "</table></body></html>\n";
+    char tbuffer[123];
+    char tbuffer2[129];
+ 
     if (total) {
     	if (total < (1024*1024)) snprintf(tbuffer, sizeof(tbuffer), "   %8d", (int)total);
     	else if ((total/1024) < (1024*1024)) snprintf(tbuffer, sizeof(tbuffer), "   %6dKB", (int)(total / 1024));
@@ -426,16 +392,19 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
         httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
     }
 
-    closedir(dir);
-
-    free(lpath);
-
-	uint32_t tot=0, used=0;
-    esp_spiffs_info(NULL, &tot, &used);
     sprintf(tbuffer, "<tr><td colspan=4>SPIFFS: free %d KB of %d KB\n", (tot-used) / 1024, tot / 1024);
     httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
     httpd_resp_send_chunk(req, dir_footer, strlen(dir_footer));
     file_get_handler(req, "/spiffs/footer.html",false);
     httpd_resp_send_chunk(req, NULL, 0);
+}
+
+//-----------------------------------------
+esp_err_t web_disk_dir_list(httpd_req_t *req) {
+
+    char *path = "/spiffs";
+
+    disk_dir(path, htmlHead_cb, htmlLine_cb, htmlFooter_cb, req);
+
     return ESP_OK;
 }
