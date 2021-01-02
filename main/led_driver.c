@@ -47,7 +47,7 @@
    This code drive the 2DKits.com 4x4x8 tower
 */
 
-#define PROTO1
+// #define PROTO1
 
 #define BLINK_GPIO   2
 #define PIN_NUM_MISO 12 //12
