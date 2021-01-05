@@ -1,4 +1,6 @@
-idf_component_register(SRCS "disk_system.c"
+idf_component_register(SRCS
+   "disk_system.c"
+   "sha_file.c"
    "global.c"
    "led_driver.c"
    "numbers_led.c"
