@@ -23,4 +23,4 @@
 
 #include <esp_system.h>
 
-esp_err_t fileSha(char * filename);
+esp_err_t fileSha(char * filename, char * hash);

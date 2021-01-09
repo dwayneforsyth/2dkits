@@ -471,6 +471,114 @@ static esp_err_t save_settings_handler(httpd_req_t *req)
 }
 
 /*******************************************************************************
+    PURPOSE: dir html header callback
+
+    INPUTS: path - dir path
+            req - httpd connection
+
+    RETURN CODE: NONE
+
+*******************************************************************************/
+void htmlHeader_cb( char *path, void * data) {
+    httpd_req_t *req = (httpd_req_t *) data;
+    char tbuffer[123];
+    const char *dir_heading = "</div></td> <td valign=\"top\">"
+	           "<div id=\"navBreadCrumb\">Disk Dir</div>"
+		   "<div class=\"centerColumn\" id=\"indexDefault\">"
+		   "<h1 id=\"indexDefaultHeading\"></h1>\n";
+    const char *dir_header = "<table><tr><th>T<th>Name<th>Size<th>Sha1 hash\n";
+
+    httpd_resp_set_hdr(req, "Content-type", "text/html");
+    file_get_handler(req, "/spiffs/header.html",true);
+
+    httpd_resp_send_chunk(req, dir_heading, strlen(dir_heading));
+    snprintf(tbuffer,sizeof(tbuffer),"List of Directory [%s]\n", path);
+    httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
+    httpd_resp_send_chunk(req, dir_header, strlen(dir_header));
+}
+
+/*******************************************************************************
+    PURPOSE: dir html line callback. called for each file in dir.
+
+    INPUTS: type - dir entry type (always 'f'?)
+            size - size in bytes
+	    tbuffer - time file was created (not used?)
+	    name - file name
+            req - httpd connection
+
+    RETURN CODE: NONE
+
+*******************************************************************************/
+void htmlLine_cb( char type, char * size, char * tbuffer, char *name, void * data) {
+    httpd_req_t *req = (httpd_req_t *) data;
+    char tbuffer2[157];
+    snprintf(tbuffer2, sizeof(tbuffer2),
+        "<tr><td>%c<td align=\"right\">%.40s<td>%.40s<td>%.40s\n", type, name, size, tbuffer);
+    httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
+}
+
+/*******************************************************************************
+    PURPOSE: dir html footer callback
+
+    INPUTS: total - bytes in files (without blocking loss)
+            nfile - number of files
+	    tot - total disk space
+	    used - total used disk space
+            req - httpd connection
+
+    RETURN CODE: NONE
+
+*******************************************************************************/
+void htmlFooter_cb(uint64_t total, int nfiles, uint32_t tot, uint32_t used, void *data) {
+    httpd_req_t *req = (httpd_req_t *) data;
+    const char *dir_footer = "</table></body></html>\n";
+    char tbuffer[123];
+    char tbuffer2[129];
+
+    if (total) {
+        if (total < (1024*1024)) {
+            snprintf(tbuffer, sizeof(tbuffer), "   %8d", (int)total);
+        } else if ((total/1024) < (1024*1024)) {
+            snprintf(tbuffer, sizeof(tbuffer), "   %6dKB", (int)(total / 1024));
+        } else {
+            snprintf(tbuffer, sizeof(tbuffer), "   %6dMB", (int)(total / (1024 * 1024)));
+            snprintf(tbuffer2, sizeof(tbuffer2), "<tr><td colspan=4>%.40s in %d file(s)\n", tbuffer, nfiles);
+            httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
+        }
+    }
+
+    sprintf(tbuffer, "<tr><td colspan=4>SPIFFS: free %d KB of %d KB\n", (tot-used) / 1024, tot / 1024);
+    httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
+    httpd_resp_send_chunk(req, dir_footer, strlen(dir_footer));
+    file_get_handler(req, "/spiffs/footer.html",false);
+    httpd_resp_send_chunk(req, NULL, 0);
+}
+
+/*******************************************************************************
+    PURPOSE: get disk drive output in html format
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
+esp_err_t web_disk_dir_list(httpd_req_t *req) {
+
+    diskDirCfg_t dReq = {
+	    .path = "/spiffs",
+	    .header_cb = htmlHeader_cb,
+	    .line_cb = htmlLine_cb,
+	    .footer_cb = htmlFooter_cb,
+            .data = req };
+
+    disk_dir(dReq);
+    return(ESP_OK);
+}
+
+/*******************************************************************************
     PURPOSE: mapping of web path to function to call
 
 *******************************************************************************/

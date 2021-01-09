@@ -36,6 +36,7 @@
 #include "esp_http_server.h"
 #include "esp_wifi.h"
 #include "driver/gpio.h"
+#include "esp_log.h"
 
 #include "led_driver.h"
 #include "web_server.h"
@@ -44,9 +45,33 @@
 #include "console.h"
 #include "global.h"
 
+static const char *TAG = "MAIN";
+
+
 /*
    This code drive the 2DKits.com 4x4x8 tower
 */
+
+/*******************************************************************************
+    PURPOSE: check each file found
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
+void checkFileLine_cb( char type, char * size, char * tbuffer, char *name, void *data) {
+
+    if (strcmp(".pat",&(name[strlen(name)-4])) == 0) {
+        addPattern(name);
+    }
+    if (strcmp(".html",&(name[strlen(name)-5])) == 0) {
+        ESP_LOGI(TAG, "file %-20s hash=>%s<", name, tbuffer );
+    }
+}
 
 void app_main()
 {
@@ -61,7 +86,16 @@ void app_main()
 
     initialise_wifi_p1(&server);
     initialise_disk();
-    disk_dir_list("/spiffs",NULL); // this has a side effect of loading the patterns
+
+    diskDirCfg_t req = {
+        .path = "/spiffs",
+        .line_cb = checkFileLine_cb
+    };
+
+    disk_dir(req);
+
+
+
     loadSettings();
 
     initialise_wifi_p2(&server);

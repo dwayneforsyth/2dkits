@@ -20,6 +20,7 @@
 #include "disk_system.h"
 #include "pattern_engine.h"
 #include "global.h"
+#include "sha_file.h"
 
 #define WITH_TASKS_INFO 1
 
@@ -301,6 +302,63 @@ static void register_tasks(void)
     ESP_ERROR_CHECK( esp_console_cmd_register(&cmd) );
 }
 
+/*******************************************************************************
+    PURPOSE: dir ascii header callback
+
+    INPUTS: path - dir path
+            req - httpd connection
+
+    RETURN CODE: NONE
+
+*******************************************************************************/
+void asciiHeader_cb( char *path, void *data) {
+    printf("\nList of Directory [%s]\n", path);
+    printf("--------------------------------------------------------------------------\n");
+    printf("T  Name                     Size  Sha1 Hash\n");
+    printf("--------------------------------------------------------------------------\n");
+}
+
+/*******************************************************************************
+    PURPOSE: dir ascii line callback. called for each file in dir.
+
+    INPUTS: type - dir entry type (always 'f'?)
+            size - size in bytes
+	    tbuffer - time file was created (not used?)
+	    name - file name
+            data - not used
+
+    RETURN CODE: NONE
+
+*******************************************************************************/
+void asciiLine_cb( char type, char * size, char * tbuffer, char *name, void *data) {
+    printf( "%c  %-20s %s  %s\r\n", type, name, size, tbuffer);
+}
+
+/*******************************************************************************
+    PURPOSE: dir ascii footer callback
+
+    INPUTS: total - bytes in files (without blocking loss)
+            nfile - number of files
+	    tot - total disk space
+	    used - total used disk space
+            data - not used
+
+    RETURN CODE: NONE
+
+*******************************************************************************/
+void asciiFooter_cb(uint64_t total, int nfiles, uint32_t tot, uint32_t used, void *data) {
+    if (total) {
+        printf("-----------------------------------\n");
+        if (total < (1024*1024)) printf("   %8d", (int)total);
+        else if ((total/1024) < (1024*1024)) printf("   %6dKB", (int)(total / 1024));
+        else printf("   %6dMB", (int)(total / (1024 * 1024)));
+        printf(" in %d file(s)\n", nfiles);
+    }
+    printf("-----------------------------------\n");
+    printf("SPIFFS: free %d KB of %d KB\n", (tot-used) / 1024, tot / 1024);
+    printf("-----------------------------------\n\n");
+}
+
 
 /*******************************************************************************
 
@@ -314,7 +372,14 @@ static void register_tasks(void)
 
 static int dir(int argc, char **argv)
 {
-    disk_dir_list("/spiffs",NULL);
+    diskDirCfg_t req = {
+	    .path = "/spiffs",
+	    .header_cb = asciiHeader_cb,
+	    .line_cb = asciiLine_cb,
+	    .footer_cb = asciiFooter_cb };
+
+    disk_dir(req);
+
     return 0;
 }
 

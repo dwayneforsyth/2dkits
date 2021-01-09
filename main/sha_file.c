@@ -34,7 +34,7 @@
 
 #include <esp_system.h>
  
-esp_err_t fileSha( char *filename ){
+esp_err_t fileSha( char *filename, char *hash ){
   char   chunk[1024];
   uint16_t chunkSize = 0;
   uint8_t shaResult[20];
@@ -62,10 +62,8 @@ esp_err_t fileSha( char *filename ){
   mbedtls_md_free(&ctx);
   fclose(f);
 
-  printf("Hash: ");
     for(int i= 0; i< sizeof(shaResult); i++){
-      printf("%02x", (int)shaResult[i]);
+      snprintf(&hash[i*2],3,"%02x", (int)shaResult[i]);
     }
-  printf("\n");
   return(ESP_OK);
 }

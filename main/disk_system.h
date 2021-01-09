@@ -23,6 +23,14 @@
 
 #include "esp_http_server.h"
 
+typedef struct {
+   char *path;
+   void (*header_cb)(char *, void *);
+   void (*line_cb)(char, char *, char *, char *, void *);
+   void (*footer_cb)(uint64_t, int, uint32_t, uint32_t, void *);
+   void *data;
+} diskDirCfg_t;
+
+
 void initialise_disk(void);
-void disk_dir_list(char *path, char *match);
-esp_err_t web_disk_dir_list(httpd_req_t *req);
+void disk_dir( diskDirCfg_t req);
