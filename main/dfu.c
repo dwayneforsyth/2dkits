@@ -171,18 +171,20 @@ void dfu_task(void *pvParameter)
             ESP_LOGW(TAG, "Downloading >%s<",firmware_file);
             esp_err_t ret = esp_https_ota(&configDFU);
             if (ret == ESP_OK) {
-                ESP_LOGW(TAG, "DFU Done");
+		setSystemType( (flags==2)? true : false);
+                ESP_LOGW(TAG, "Downloadable Firmware Upgrade Done");
 #ifndef TIXCLOCK
 		patternEngineOff();
 #endif
+                vTaskDelay(1000 / portTICK_PERIOD_MS); // wait 1 second
                 esp_restart();
             } else {
-                ESP_LOGE(TAG, "Firmware upgrade failed, retry left=%d",tries);
+                ESP_LOGE(TAG, "Downloadable Firmware upgrade failed, retry left=%d",tries);
                 tries--;
                 vTaskDelay(500 / portTICK_PERIOD_MS); // wait 1/2 a second
             }
         }
-        ESP_LOGE(TAG, "DFU Failed");
+        ESP_LOGE(TAG, "Downloadable Firmware Upgrade Failed");
     } else {
         ESP_LOGE(TAG, "No update needed");
     }
@@ -205,6 +207,6 @@ void perform_dfu(uint8_t flags) {
         ESP_LOGW(TAG, "DFU aborted no internet");
         return;
     }
-    ESP_LOGW(TAG, "Starting DFU flags=%d", flags);
+    //ESP_LOGW(TAG, "Starting DFU flags=%d", flags);
     xTaskCreate(dfu_task, "dfu_task", DFU_TASK_STACK_SIZE, (void *) flags, DFU_TASK_PRIORITY, NULL);
 }

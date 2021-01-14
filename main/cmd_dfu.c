@@ -6,8 +6,10 @@
 static const char *TAG = "cmd_dfu";
 
 #include "dfu.h"
+#include "upgrade_disk.h"
 
 static void register_dfu(void);
+static void register_checkdisk(void);
 
 /*******************************************************************************
 
@@ -22,6 +24,7 @@ static void register_dfu(void);
 void commands_dfu(void)
 {
     register_dfu();
+    register_checkdisk();
 }
 
 /*******************************************************************************
@@ -75,7 +78,7 @@ static void register_dfu(void) {
 
     const esp_console_cmd_t dfu_cmd = {
         .command = "dfu",
-        .help = "check for dfu and perform if needed",
+        .help = "check for \'Downloadable Firmware Upgrade\' and perform if needed",
         .hint = NULL,
         .func = &command_dfu,
         .argtable = &dfu_args,
@@ -86,4 +89,41 @@ static void register_dfu(void) {
     dfu_args.end    = arg_end(2);
 
     ESP_ERROR_CHECK( esp_console_cmd_register(&dfu_cmd) );
+}
+
+/*******************************************************************************
+
+    PURPOSE: check disk hook
+
+    INPUTS: none
+
+    RETURN CODE: none
+
+*******************************************************************************/
+static int command_checkdisk(int argc, char **argv) {
+    auditDiskFiles();
+
+    return 0;
+}
+
+/*******************************************************************************
+
+    PURPOSE: register the 'dfu' command - firmware download
+
+    INPUTS: none
+
+    RETURN CODE: none
+
+*******************************************************************************/
+
+static void register_checkdisk(void) {
+
+    const esp_console_cmd_t checkdisk_cmd = {
+        .command = "chkdsk",
+        .help = "check to see if we have the files needed on disk",
+        .hint = NULL,
+        .func = &command_checkdisk,
+    };
+
+    ESP_ERROR_CHECK( esp_console_cmd_register(&checkdisk_cmd) );
 }

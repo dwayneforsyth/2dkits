@@ -1,13 +1,20 @@
 #!/bin/bash
 
-RELEASE="00.00.01"
+RELEASE="00.00.02"
 
 TXT_FILE="current_firmware.txt"
 BIN_FILE_PATH="build/tower.bin"
+SERVER="forsyth@www.dforsyth.net"
+BASE_PATH="/home/httpd/html_2dkits/kits/kit25"
 
 echo "$RELEASE kits/kit25/tower_$RELEASE.bin" > $TXT_FILE
 echo "$RELEASE"
 
-scp $TXT_FILE      forsyth@www.dforsyth.net:/home/httpd/html_2dkits/kits/kit25/$TXT_FILE
-scp $BIN_FILE_PATH forsyth@www.dforsyth.net:/home/httpd/html_2dkits/kits/kit25/tower_$RELEASE.bin
+scp $TXT_FILE      $SERVER:$BASE_PATH/$TXT_FILE
+scp $BIN_FILE_PATH $SERVER:$BASE_PATH/tower_$RELEASE.bin
 
+ssh $SERVER "mkdir -p $BASE_PATH/${RELEASE}"
+for FILE_NAME in index.html header.html footer.html about.html settings.html patterns.html
+do
+    scp -pr disk_image/$FILE_NAME $SERVER:$BASE_PATH/${RELEASE}/$FILE_NAME
+done

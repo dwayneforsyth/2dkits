@@ -23,6 +23,7 @@
 #define GLOBAL_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct wifiData_t {
    char ssid[64];
@@ -42,6 +43,7 @@ typedef struct blinkieAppData_t {
    wifiData_t wifi[WIFI_TABLE_SIZE];
    uint8_t apMac[6];
    uint8_t staMac[6];
+   bool testRelease;
 } blinkieAppData_t;
 
 void loadSettings();
@@ -57,11 +59,13 @@ char * getWifiPasswd( uint8_t index);
 char * getHSSsid( void);
 char * getHSPasswd( void);
 uint8_t getHSChan( void);
+bool getSystemType( void);
 
 void setHSSsid( char * hssid);
 void setHSPasswd( char * hpasswd);
 void setHSChan( uint8_t hchan);
 void setTZ( char * wpasswd);
+void setSystemType( bool);
 
 void setWifiSsid( uint8_t index, char * wssid);
 void setWifiPasswd( uint8_t index, char * wpasswd);

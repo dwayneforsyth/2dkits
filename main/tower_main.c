@@ -47,7 +47,6 @@
 
 static const char *TAG = "MAIN";
 
-
 /*
    This code drive the 2DKits.com 4x4x8 tower
 */
@@ -63,13 +62,10 @@ static const char *TAG = "MAIN";
     NOTES:
 
 *******************************************************************************/
-void checkFileLine_cb( char type, char * size, char * tbuffer, char *name, void *data) {
+void addPattern_cb( char type, char * size, char * sha, char *name, void *data) {
 
     if (strcmp(".pat",&(name[strlen(name)-4])) == 0) {
         addPattern(name);
-    }
-    if (strcmp(".html",&(name[strlen(name)-5])) == 0) {
-        ESP_LOGI(TAG, "file %-20s hash=>%s<", name, tbuffer );
     }
 }
 
@@ -86,20 +82,24 @@ void app_main()
 
     initialise_wifi_p1(&server);
     initialise_disk();
+    loadSettings();
+
+    if (getSystemType()) { 
+        printf("***\n* Test Image\n***\n");
+    } else {
+        printf("***\n* Production Image\n***\n");
+    }
 
     diskDirCfg_t req = {
         .path = "/spiffs",
-        .line_cb = checkFileLine_cb
+        .line_cb = addPattern_cb
     };
 
     disk_dir(req);
 
-
-
-    loadSettings();
-
     initialise_wifi_p2(&server);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
+
     xTaskCreate(updatePatternsTask, "updatePatternsTask", 4*1024, NULL, 23, NULL);
 
     consoleInit();

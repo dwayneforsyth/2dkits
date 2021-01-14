@@ -93,6 +93,7 @@ void download_file( char * diskname, char * url) {
         .cert_pem = (char *)server_cert_pem_start,
         .event_handler = _http_event_handle3,
     };
+    ESP_LOGW(TAG, "download name=%s url=%s", diskname, url);
 
     pDownloadFile = fopen( diskname,"wb");
     esp_http_client_handle_t client = esp_http_client_init(&configDFUStatus);

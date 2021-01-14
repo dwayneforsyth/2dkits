@@ -124,6 +124,15 @@ void setHSChan( uint8_t hchan) {
    storeSettings();
 }
 
+void setSystemType( bool type) {
+   xAppData.testRelease = type;
+   storeSettings();
+}
+
+bool getSystemType( void ) {
+   return(xAppData.testRelease);
+}
+
 void setWifiSsid( uint8_t index, char * wssid) {
     if (index > 10) {
         ESP_LOGE(TAG, "wifi index out of range i=%d", index);

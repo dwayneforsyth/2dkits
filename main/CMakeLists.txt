@@ -9,6 +9,7 @@ idf_component_register(SRCS
    "web_server.c"
    "dfu.c"
    "download_file.c"
+   "upgrade_disk.c"
    "console.c"
    "cmd_system.c"
    "cmd_dfu.c"
