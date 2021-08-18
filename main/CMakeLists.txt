@@ -3,6 +3,7 @@ idf_component_register(SRCS
    "sha_file.c"
    "global.c"
    "led_driver.c"
+   "queued_i2s_parallel.c"
    "numbers_led.c"
    "pattern_engine.c"
    "tower_main.c"
