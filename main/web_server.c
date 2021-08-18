@@ -1,10 +1,10 @@
 //   Copyright (C) 2019 Dwayne Forsyth
-//                                 
+//
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License
 //   as published 0by the Free Software Foundation; either version 2
 //   of the License, or (at your option) any later version.
-// 
+//
 //   This program is distributed in the hope that it will 0be useful,
 //   0but WITHOUT ANY WARRANTY; without even the implied warranty of
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -12,7 +12,7 @@
 //
 //   You should have received a copy of the GNU General Public License
 //   along with this program; if not, write to the
-// 
+//
 //      Free Software Foundation, Inc.
 //      51 Franklin Street, Fifth Floor
 //      Boston, MA  02110-1301, USA.
@@ -25,7 +25,7 @@
 //   Why does a Blinkie need to talk to the internet? because it can!
 //**********************************************************************
 //   We are running a dual mode, we can connect to a network, and operate
-//   as a hotspot too. 
+//   as a hotspot too.
 //**********************************************************************
 
 
@@ -84,10 +84,10 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
 
     if (strcmp("%patternNumber",token)==0) {
 #ifndef TIXCLOCK
-	sprintf(tBuffer, "%d",getPatternNumber());
+        sprintf(tBuffer, "%d",getPatternNumber());
         httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
     } else if (strcmp("%patternName",token)==0) {
-	sprintf(tBuffer, "%s",getPatternName());
+        sprintf(tBuffer, "%s",getPatternName());
         httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
 #endif
     } else if (strcmp("%timeDate",token)==0) {
@@ -96,53 +96,53 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
         strftime(tBuffer, 80, "%c", &timeinfo);
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strcmp("%hssid",token)==0) {
-	printf(">%s<", getHSSsid());
-	sprintf(tBuffer, "%s", getHSSsid());
+        printf(">%s<", getHSSsid());
+        sprintf(tBuffer, "%s", getHSSsid());
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strcmp("%hpasswd",token)==0) {
-	sprintf(tBuffer,"[None]"); //DDF hard codded
+        sprintf(tBuffer,"[None]"); //DDF hard codded
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strncmp("%wssid",token,6)==0) {
-	i = token[6] - '0';
-	if (i<10) {
-	    sprintf(tBuffer, "%s",getWifiSsid(i));
-	} else {
-	    sprintf(tBuffer, "[software error]");
-	}
+        i = token[6] - '0';
+        if (i<10) {
+            sprintf(tBuffer, "%s",getWifiSsid(i));
+        } else {
+            sprintf(tBuffer, "[software error]");
+        }
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strncmp("%wpasswd",token,8)==0) {
-	i = token[8] - '0';
-	if (i<10) {
-	    sprintf(tBuffer, "%s",getWifiPasswd(i));
-	} else {
-	    sprintf(tBuffer, "[software error]");
-	}
+        i = token[8] - '0';
+        if (i<10) {
+            sprintf(tBuffer, "%s",getWifiPasswd(i));
+        } else {
+            sprintf(tBuffer, "[software error]");
+        }
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strncmp("%hchsel",token,7)==0) {
-	//DDF send nothing - hard codded
+        //DDF send nothing - hard codded
     } else if (strncmp("%rgb",token,4)==0) {
-	//DDF send nothing - hard codded
+        //DDF send nothing - hard codded
     } else if (strncmp("%tz",token,3)==0) {
-	//DDF send nothing - hard codded
+        //DDF send nothing - hard codded
     } else if (strcmp("%sasip",token)==0) {
-	if (xAppData.ipName != NULL) {
-	    sprintf(tBuffer, "%s", xAppData.ipName);
-	} else {
-	    sprintf(tBuffer, "[None]");
-	}
+        if (xAppData.ipName != NULL) {
+            sprintf(tBuffer, "%s", xAppData.ipName);
+        } else {
+            sprintf(tBuffer, "[None]");
+        }
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strcmp("%apmac",token)==0) {
-	sprintf(tBuffer, "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
-           xAppData.apMac[0], xAppData.apMac[1], xAppData.apMac[2],
-           xAppData.apMac[3], xAppData.apMac[4], xAppData.apMac[5]);
+        sprintf(tBuffer, "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
+                xAppData.apMac[0], xAppData.apMac[1], xAppData.apMac[2],
+                xAppData.apMac[3], xAppData.apMac[4], xAppData.apMac[5]);
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strcmp("%stamac",token)==0) {
-	sprintf(tBuffer, "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
-           xAppData.staMac[0], xAppData.staMac[1], xAppData.staMac[2],
-           xAppData.staMac[3], xAppData.staMac[4], xAppData.staMac[5]);
+        sprintf(tBuffer, "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
+                xAppData.staMac[0], xAppData.staMac[1], xAppData.staMac[2],
+                xAppData.staMac[3], xAppData.staMac[4], xAppData.staMac[5]);
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else {
-	sprintf(tBuffer, "%s%%",token);
+        sprintf(tBuffer, "%s%%",token);
         httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
     }
     return(ESP_OK);
@@ -189,50 +189,50 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
 
     do {
         chunkSize = fread(chunk, 1, sizeof(chunk), f);
-	chunkHead = 0;
-	if (chunkSize != 0) {
-	    for (chunkIndex=0;chunkIndex<chunkSize;chunkIndex++) {
-	        if ((binary == false) && (chunk[chunkIndex] == '%')) {
-		    if (readingToken == true) {
-			readingToken = false;
-			chunkHead = chunkIndex+1;
-		        token[tokenIndex] = 0;
+        chunkHead = 0;
+        if (chunkSize != 0) {
+            for (chunkIndex=0; chunkIndex<chunkSize; chunkIndex++) {
+                if ((binary == false) && (chunk[chunkIndex] == '%')) {
+                    if (readingToken == true) {
+                        readingToken = false;
+                        chunkHead = chunkIndex+1;
+                        token[tokenIndex] = 0;
                         // perform token lookup
                         ESP_LOGI(TAG, "token = %s", token);
-			lookupToken(req, token);
-		    } else {
-			readingToken = true;
-		        token[0] = '%';
-			tokenIndex = 1;
-			// dump current buffer
+                        lookupToken(req, token);
+                    } else {
+                        readingToken = true;
+                        token[0] = '%';
+                        tokenIndex = 1;
+                        // dump current buffer
                         if (httpd_resp_send_chunk(req, &chunk[chunkHead], chunkIndex-chunkHead) != ESP_OK) {
                             fclose(f);
                             return ESP_FAIL;
-			}
+                        }
                     }
-		} else if (readingToken == true) {
-		    token[tokenIndex] = chunk[chunkIndex];
-		    tokenIndex++;
-		    // ok, it was not a token...
-		    if (tokenIndex > 20) {
+                } else if (readingToken == true) {
+                    token[tokenIndex] = chunk[chunkIndex];
+                    tokenIndex++;
+                    // ok, it was not a token...
+                    if (tokenIndex > 20) {
                         if (httpd_resp_send_chunk(req, token, tokenIndex) != ESP_OK) {
                             fclose(f);
                             return ESP_FAIL;
-			}
-			readingToken = false;
-			chunkHead = chunkIndex+1;
-		        token[tokenIndex] = 0;
-		    }
-		}
-	    }
-	    if (readingToken == false) {
-	        // dump the buffer
+                        }
+                        readingToken = false;
+                        chunkHead = chunkIndex+1;
+                        token[tokenIndex] = 0;
+                    }
+                }
+            }
+            if (readingToken == false) {
+                // dump the buffer
                 if (httpd_resp_send_chunk(req, &chunk[chunkHead], chunkIndex-chunkHead) != ESP_OK) {
                     fclose(f);
                     return ESP_FAIL;
-	        }
+                }
             }
-	}
+        }
     } while (chunkSize != 0);
 
     // ok, it was not a token...
@@ -241,7 +241,7 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
         if (httpd_resp_send_chunk(req, token, tokenIndex) != ESP_OK) {
             fclose(f);
             return ESP_FAIL;
-	}
+        }
     }
 
     fclose(f);
@@ -266,7 +266,7 @@ void parseUrl(httpd_req_t *req) {
 #ifndef TIXCLOCK
             if (httpd_query_key_value(buf, "pattern", param, sizeof(param)) == ESP_OK) {
                 ESP_LOGI(TAG, "Pattern = %d", atoi(param));
-		setPatternNumber(atoi(param));
+                setPatternNumber(atoi(param));
             }
 #endif
         }
@@ -318,9 +318,9 @@ esp_err_t get_file_handler(httpd_req_t *req)
 bool isHexDigit( char in ) {
 
     if (((in >='0') && (in <= '9')) ||
-        ((in >='A') && (in <= 'F')) ||
-        ((in >='a') && (in <= 'f'))) {
-	    return( true );
+            ((in >='A') && (in <= 'F')) ||
+            ((in >='a') && (in <= 'f'))) {
+        return( true );
     }
     return( false );
 }
@@ -335,13 +335,14 @@ void processString( char * value ) {
 
     for( uint8_t i=0; i< strLength-2; i++) {
         if (value[i] == '+') {
-	    value[i] = ' ';
+            value[i] = ' ';
         } else if ((value[i] == '%') &&
-            isHexDigit(value[i+1]) &&
-            isHexDigit(value[i+2]))
+                   isHexDigit(value[i+1]) &&
+                   isHexDigit(value[i+2]))
         {
 
-            hex[0] = value[i+1]; hex[1] = value[i+2];
+            hex[0] = value[i+1];
+            hex[1] = value[i+2];
             value[i] = strtol(hex,NULL,16);
             strcpy( &value[i+1], &value[i+3]);
         }
@@ -362,43 +363,47 @@ void processString( char * value ) {
 static void processVar( char * name, char * value) {
     uint8_t i;
 
-    
-    processString( value ); 
+
+    processString( value );
 
     if (strcmp("hssid",name)==0) {
-	setHSSsid(value);
+        setHSSsid(value);
     } else if (strcmp("hpasswd", name)==0) {
-	if (strcmp(value, "[None]")==0) {
-		value[0] = 0;
-		printf("erase\n");
-	}
-	setHSPasswd(value);
+        if (strcmp(value, "[None]")==0) {
+            value[0] = 0;
+            printf("erase\n");
+        }
+        setHSPasswd(value);
     } else if (strcmp("hchan", name)==0) {
-	setHSChan( atoi(value));
+        setHSChan( atoi(value));
     } else if (strncmp("wssid", name, 5)==0) {
-	printf("processVr1 %s\n", value);
+        printf("processVr1 %s\n", value);
         ESP_LOGI(TAG, "DDF1 >%s< = >%s<", name, value);
-	if (strcmp(value, "[Not+Used]")==0) {
-		value[0] = 0;
-		printf("erase\n");
-	}
-	if (strcmp(value, "[Not Used]")==0) {
-		value[0] = 0;
-		printf("erase\n");
-	}
+        if (strcmp(value, "[Not+Used]")==0) {
+            value[0] = 0;
+            printf("erase\n");
+        }
+        if (strcmp(value, "[Not Used]")==0) {
+            value[0] = 0;
+            printf("erase\n");
+        }
         ESP_LOGI(TAG, "DDF2 >%s< = >%s<", name, value);
-	i = name[5] - '0';
-	printf("processVr2 %d %s\n", i, value);
-	setWifiSsid(i,value);
+        i = name[5] - '0';
+        printf("processVr2 %d %s\n", i, value);
+        setWifiSsid(i,value);
     } else if (strncmp("wpasswd", name, 7)==0) {
         ESP_LOGI(TAG, "DDF3 >%s< = >%s<", name, value);
-	if (strcmp(value, "[None]")==0) {value[0] = 0;}
-	if (strcmp(value, "[Not Used]")==0) {value[0] = 0;}
+        if (strcmp(value, "[None]")==0) {
+            value[0] = 0;
+        }
+        if (strcmp(value, "[Not Used]")==0) {
+            value[0] = 0;
+        }
         ESP_LOGI(TAG, "DDF4 >%s< = >%s<", name, value);
-	i = name[7] - '0';
-	setWifiPasswd(i,value);
+        i = name[7] - '0';
+        setWifiPasswd(i,value);
     } else if (strcmp("tz", name)==0) {
-	setTZ(value);
+        setTZ(value);
     } else {
         ESP_LOGI(TAG, "unknown >%s< = >%s<", name, value);
     }
@@ -438,23 +443,23 @@ static esp_err_t save_settings_handler(httpd_req_t *req)
 //      ESP_LOGI(TAG, "/echo handler recv length %d", ret);
     }
     buf[off] = '\0';
-    
+
     /* Log data received */
     ESP_LOGI(TAG, "=========== RECEIVED DATA ==========");
     uint16_t i = 0;
     uint16_t b = 0;
     while ( i < (req->content_len+1)) {
-       if (buf[i] == '=') {
-           strlcpy(&dataName, &buf[b], i-b+1);
+        if (buf[i] == '=') {
+            strlcpy(&dataName, &buf[b], i-b+1);
 //           ESP_LOGI(TAG, ">%s< %d %d", dataName, b, i);
-           b=i+1;
-       } else if ((buf[i] == '&')||(buf[i] == 0)) {
-	   strlcpy(&dataVar, &buf[b], i-b+1);
-           ESP_LOGI(TAG, ">%s< = >%s<", dataName, dataVar);
-           processVar( dataName, dataVar );
-	   b=i+1;
-       }
-       i++;
+            b=i+1;
+        } else if ((buf[i] == '&')||(buf[i] == 0)) {
+            strlcpy(&dataVar, &buf[b], i-b+1);
+            ESP_LOGI(TAG, ">%s< = >%s<", dataName, dataVar);
+            processVar( dataName, dataVar );
+            b=i+1;
+        }
+        i++;
     }
     ESP_LOGI(TAG, "====================================");
     WifiCleanup();
@@ -483,9 +488,9 @@ void htmlHeader_cb( char *path, void * data) {
     httpd_req_t *req = (httpd_req_t *) data;
     char tbuffer[123];
     const char *dir_heading = "</div></td> <td valign=\"top\">"
-	           "<div id=\"navBreadCrumb\">Disk Dir</div>"
-		   "<div class=\"centerColumn\" id=\"indexDefault\">"
-		   "<h1 id=\"indexDefaultHeading\"></h1>\n";
+                              "<div id=\"navBreadCrumb\">Disk Dir</div>"
+                              "<div class=\"centerColumn\" id=\"indexDefault\">"
+                              "<h1 id=\"indexDefaultHeading\"></h1>\n";
     const char *dir_header = "<table><tr><th>T<th>Name<th>Size<th>Sha1 hash\n";
 
     httpd_resp_set_hdr(req, "Content-type", "text/html");
@@ -502,8 +507,8 @@ void htmlHeader_cb( char *path, void * data) {
 
     INPUTS: type - dir entry type (always 'f'?)
             size - size in bytes
-	    tbuffer - time file was created (not used?)
-	    name - file name
+            tbuffer - time file was created (not used?)
+            name - file name
             req - httpd connection
 
     RETURN CODE: NONE
@@ -513,7 +518,7 @@ void htmlLine_cb( char type, char * size, char * tbuffer, char *name, void * dat
     httpd_req_t *req = (httpd_req_t *) data;
     char tbuffer2[157];
     snprintf(tbuffer2, sizeof(tbuffer2),
-        "<tr><td>%c<td align=\"right\">%.40s<td>%.40s<td>%.40s\n", type, name, size, tbuffer);
+             "<tr><td>%c<td align=\"right\">%.40s<td>%.40s<td>%.40s\n", type, name, size, tbuffer);
     httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
 }
 
@@ -522,8 +527,8 @@ void htmlLine_cb( char type, char * size, char * tbuffer, char *name, void * dat
 
     INPUTS: total - bytes in files (without blocking loss)
             nfile - number of files
-	    tot - total disk space
-	    used - total used disk space
+            tot - total disk space
+            used - total used disk space
             req - httpd connection
 
     RETURN CODE: NONE
@@ -568,11 +573,12 @@ void htmlFooter_cb(uint64_t total, int nfiles, uint32_t tot, uint32_t used, void
 esp_err_t web_disk_dir_list(httpd_req_t *req) {
 
     diskDirCfg_t dReq = {
-	    .path = "/spiffs",
-	    .header_cb = htmlHeader_cb,
-	    .line_cb = htmlLine_cb,
-	    .footer_cb = htmlFooter_cb,
-            .data = req };
+        .path = "/spiffs",
+        .header_cb = htmlHeader_cb,
+        .line_cb = htmlLine_cb,
+        .footer_cb = htmlFooter_cb,
+        .data = req
+    };
 
     disk_dir(dReq);
     return(ESP_OK);
@@ -745,19 +751,19 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         xAppData.ipName = ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip);
         ESP_LOGI(TAG, "SYSTEM_EVENT_STA_GOT_IP");
         ESP_LOGI(TAG, "Got IP: %s",
-                ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+                 ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
 
         /* Start the web server */
-	if (serverInit == false) {
-	   start_webserver();
-	   start_mdns_service();
-	   serverInit = true;
-	}
+        if (serverInit == false) {
+            start_webserver();
+            start_mdns_service();
+            serverInit = true;
+        }
 
         ESP_LOGI(TAG, "Initializing SNTP");
         sntp_setoperatingmode(SNTP_OPMODE_POLL);
         sntp_setservername(0, "pool.ntp.org");
-	sntp_init();
+        sntp_init();
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED");
@@ -774,10 +780,10 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
     case SYSTEM_EVENT_AP_STAIPASSIGNED:
         ESP_LOGI(TAG,"station connected to access point.");
         /* Start the web server */
-	if (serverInit == false) {
-	   start_webserver();
-	   serverInit = true;
-	}
+        if (serverInit == false) {
+            start_webserver();
+            serverInit = true;
+        }
         wifi_sta_list_t sta_list;
         ESP_ERROR_CHECK( esp_wifi_ap_get_sta_list(&sta_list));
         for(int i = 0; i < sta_list.num; i++)
@@ -785,11 +791,11 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
             //Print the mac address of the connected station
             sta =  &(sta_list.sta[i]);
             ESP_LOGI(TAG,"Station %d MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", i,
-                sta->mac[0], sta->mac[1], sta->mac[2], sta->mac[3], sta->mac[4], sta->mac[5]);
+                     sta->mac[0], sta->mac[1], sta->mac[2], sta->mac[3], sta->mac[4], sta->mac[5]);
         }
         break;
     default:
-       ESP_LOGI(TAG, "Network event %d",event->event_id);
+        ESP_LOGI(TAG, "Network event %d",event->event_id);
         break;
     }
     return ESP_OK;
@@ -843,15 +849,15 @@ void initialise_wifi_p2(void *arg) {
             .max_connection = 16,
         }
     };
-    
+
     strcpy((char *) wifi_config_ap.ap.ssid, xAppData.apSsid);
     strcpy((char *) wifi_config_ap.ap.password, xAppData.apPasswd);
     // ap will show up to the same network it connects to via sta.
     wifi_config_ap.ap.channel = xAppData.apChan;
     if (xAppData.apPasswd[0] == 0) {
-       wifi_config_ap.ap.authmode = WIFI_AUTH_OPEN;
+        wifi_config_ap.ap.authmode = WIFI_AUTH_OPEN;
     } else {
-       wifi_config_ap.ap.authmode = WIFI_AUTH_WPA2_PSK;
+        wifi_config_ap.ap.authmode = WIFI_AUTH_WPA2_PSK;
     }
 
     strcpy((char *) wifi_config_sta.sta.ssid, xAppData.wifi[0].ssid);
