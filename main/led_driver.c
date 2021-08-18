@@ -1,4 +1,4 @@
-//   Copyright (C) 2019 Dwayne Forsyth
+//   Copyright (C) 2021 Dwayne Forsyth
 //                                 
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License
@@ -19,79 +19,145 @@
 //
 //**********************************************************************
 //   This is the LED driver for an ESP32 based 4x4x8 tower.
-//   It runs the GPIO and SPI bus to drive the physical LEDs.
+//   It runs using the esp32 parallel i2s peripheral
 //**********************************************************************
-//
-//   The 1st version is using a high level spi abstraction layer. I
-//   see too much jitter in the LEDs so a more low level approch will
-//   be required. We need a timer interupt, push 6 bytes down the SPI
-//   then turn the LED bank strobe off, latch the LED driver chips, then
-//   turn on the LED bank strobe.
-//
-//   This is a link to some of the low level spi info.
-//   http://iot-bits.com/esp32/esp32-spi-tutorial-part-1/
-//   https://www.elecrow.com/download/ESP32_technical_reference_manual.pdf
+//   I used https://github.com/willz1200/i2s_parallel_queued for the
+//   starting point of this driver.
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_system.h"
-#include "driver/spi_master.h"
-#include "soc/gpio_struct.h"
-#include "soc/spi_reg.h"
+#include "freertos/semphr.h"
+#include "freertos/queue.h"
+#include <string.h>
+#include "queued_i2s_parallel.h"
 #include "driver/gpio.h"
-#include "led_driver.h"
-/*
-   This code drive the 2DKits.com 4x4x8 tower
-*/
+#include <stdio.h>
 
-// #define PROTO1
+#define BLINK_GPIO     2
+#define PIN_NUM_RED   26
+#define PIN_NUM_GREEN 25
+#define PIN_NUM_BLUE  14
+#define PIN_NUM_CLK   13
+#define PIN_ENABLE    18
 
-#define BLINK_GPIO   2
-#define PIN_NUM_MISO 12 //12
-#define PIN_NUM_MOSI 14 //13
-#define PIN_NUM_CLK  13 //14
-#define PIN_ENABLE   18 //04?
+#define PIN_LATCH      4
+#define COMSIG0       15
+#define COMSIG1       23
+#define COMSIG2       22
+#define COMSIG3       19
+#define COMSIG4       10
+#define COMSIG5       21
+#define COMSIG6        5
+#define COMSIG7        9
 
-#define PIN_LATCH    4
-#define COMSIG0      15
-#define COMSIG1      23
-#define COMSIG2      22
-#define COMSIG3      19
-#define COMSIG4      10
-#define COMSIG5      21
-#define COMSIG6      5
-#define COMSIG7      9
+//Queue for dummy data used to block main loop when all buffers are full
+QueueHandle_t main_data_queue;
 
+#define bufferFrameSize (1024) //Number of 16-bit samples per buffer
+#define bufferMemorySize (bufferFrameSize*2) //Becuase 2 bytes to store each 16-bit sample
 
-#define NUMBER_OF_LEDS 6
+uint16_t *bufferToFill; //Pointer to buffer that is next to be filled
 
-typedef struct {
-   uint8_t red;
-   uint8_t green;
-   uint8_t blue;
-} ledData_t;
+uint8_t ledMap[128] = {
+    2*16+0*4+0, 2*16+0*4+1, 2*16+0*4+2, 2*16+0*4+3,
+    6*16+0*4+0, 6*16+0*4+1, 6*16+0*4+2, 6*16+0*4+3,
+    4*16+0*4+0, 4*16+0*4+1, 4*16+0*4+2, 4*16+0*4+3,
+    0*16+0*4+0, 0*16+0*4+1, 0*16+0*4+2, 0*16+0*4+3,
+    2*16+1*4+0, 2*16+1*4+1, 2*16+1*4+2, 2*16+1*4+3,
+    6*16+1*4+0, 6*16+1*4+1, 6*16+1*4+2, 6*16+1*4+3,
+    4*16+1*4+0, 4*16+1*4+1, 4*16+1*4+2, 4*16+1*4+3,
+    0*16+1*4+0, 0*16+1*4+1, 0*16+1*4+2, 0*16+1*4+3,
+    2*16+2*4+0, 2*16+2*4+1, 2*16+2*4+2, 2*16+2*4+3,
+    6*16+2*4+0, 6*16+2*4+1, 6*16+2*4+2, 6*16+2*4+3,
+    4*16+2*4+0, 4*16+2*4+1, 4*16+2*4+2, 4*16+2*4+3,
+    0*16+2*4+0, 0*16+2*4+1, 0*16+2*4+2, 0*16+2*4+3,
+    2*16+3*4+0, 2*16+3*4+1, 2*16+3*4+2, 2*16+3*4+3,
+    6*16+3*4+0, 6*16+3*4+1, 6*16+3*4+2, 6*16+3*4+3,
+    4*16+3*4+0, 4*16+3*4+1, 4*16+3*4+2, 4*16+3*4+3,
+    0*16+3*4+0, 0*16+3*4+1, 0*16+3*4+2, 0*16+3*4+3,
+    3*16+0*4+0, 3*16+0*4+1, 3*16+0*4+2, 3*16+0*4+3,
+    7*16+0*4+0, 7*16+0*4+1, 7*16+0*4+2, 7*16+0*4+3,
+    5*16+0*4+0, 5*16+0*4+1, 5*16+0*4+2, 5*16+0*4+3,
+    1*16+0*4+0, 1*16+0*4+1, 1*16+0*4+2, 1*16+0*4+3,
+    3*16+1*4+0, 3*16+1*4+1, 3*16+1*4+2, 3*16+1*4+3,
+    7*16+1*4+0, 7*16+1*4+1, 7*16+1*4+2, 7*16+1*4+3,
+    5*16+1*4+0, 5*16+1*4+1, 5*16+1*4+2, 5*16+1*4+3,
+    1*16+1*4+0, 1*16+1*4+1, 1*16+1*4+2, 1*16+1*4+3,
+    3*16+2*4+0, 3*16+2*4+1, 3*16+2*4+2, 3*16+2*4+3,
+    7*16+2*4+0, 7*16+2*4+1, 7*16+2*4+2, 7*16+2*4+3,
+    5*16+2*4+0, 5*16+2*4+1, 5*16+2*4+2, 5*16+2*4+3,
+    1*16+2*4+0, 1*16+2*4+1, 1*16+2*4+2, 1*16+2*4+3,
+    3*16+3*4+0, 3*16+3*4+1, 3*16+3*4+2, 3*16+3*4+3,
+    7*16+3*4+0, 7*16+3*4+1, 7*16+3*4+2, 7*16+3*4+3,
+    5*16+3*4+0, 5*16+3*4+1, 5*16+3*4+2, 5*16+3*4+3,
+    1*16+3*4+0, 1*16+3*4+1, 1*16+3*4+2, 1*16+3*4+3
+};
 
-spi_device_handle_t spi;
+uint8_t RED[128] = {
+    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+    6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+    5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
+    4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+    3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+};
 
-static const uint8_t strobeGPIO[8] = {
-        COMSIG0,
-        COMSIG1,
-        COMSIG2,
-        COMSIG3,
-        COMSIG4,
-        COMSIG5,
-        COMSIG6,
-        COMSIG7,
-    };
+uint8_t GREEN[128] = {
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+    3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+    4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+    5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
+    6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+};
 
+uint8_t BLUE[128] = {
+    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+    6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+    5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
+    4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+    3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+};
 
-// https://github.com/loboris/ESP32_NEW_SPI_MASTER_EXAMPLE/blob/master/main/spi_master_demo.c
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES: This gets called from the I2S interrupt.
+           This only removes dummy data from queue to unblock main loop
+
+*******************************************************************************/
+void IRAM_ATTR buffer_filler_fn(void *buf, int len, void *arg) {
+    QueueHandle_t queueHanle=(QueueHandle_t)arg;
+    portBASE_TYPE high_priority_task_awoken = 0;
+
+    uint8_t dummy[1];
+
+    //Check if theres a dummy byte in the queue, indecating the main loop has updated the buffer, if not set to 0
+    if (xQueueReceiveFromISR(queueHanle, (void*)&dummy, &high_priority_task_awoken)==pdFALSE) {
+        memset(buf, 0, bufferFrameSize*2); //Nothing in queue. Zero out data
+    }
+
+    //Wake thread blocking the queue
+    if (high_priority_task_awoken == pdTRUE) { //Check if a context switch needs to be requested
+        portYIELD_FROM_ISR();
+    }
+}
+
+/*******************************************************************************
+    PURPOSE:
 
     INPUTS:
 
@@ -101,89 +167,55 @@ static const uint8_t strobeGPIO[8] = {
     NOTES:
 
 *******************************************************************************/
-void updateMBI5026Chain(spi_device_handle_t spi, uint16_t red, uint16_t green, uint16_t blue, uint8_t strobe) {
-
-    static uint8_t buffer[129][(NUMBER_OF_LEDS)+1];
-    static uint8_t mark1 = 0xAA;
-    static spi_transaction_t t[129];
-    static uint8_t mark2 = 0xAA;
-    memset(&t[strobe], 0, sizeof(t[0]));       //Zero out the transaction
-
-
-    if ((mark1 != 0xAA)||(mark2 != 0xAA)) {
-	    ESP_ERROR_CHECK(1);
-    }
-
-    if (strobe > 127) strobe = 128;
-
-#if (1)
-    buffer[strobe][0] = red >> 8;
-    buffer[strobe][1] = red & 0xff;
-    buffer[strobe][2] = green >> 8;
-    buffer[strobe][3] = green & 0xff;
-    buffer[strobe][4] = blue >> 8;
-    buffer[strobe][5] = blue & 0xff;
-#else
-    buffer[strobe][0] = 0xff;
-    buffer[strobe][1] = 0xff;
-    buffer[strobe][2] = strobe>>4;
-    buffer[strobe][3] = strobe & 0x0F;
-    buffer[strobe][4] = 0xAA;
-    buffer[strobe][5] = 0xff;
-#endif
-
-    t[strobe].tx_buffer=&buffer[strobe];               //The data is the cmd itself
-    t[strobe].length=6*8; // bits?
-    t[strobe].user = strobe;
-
-    spi_device_queue_trans(spi, &t[strobe], portMAX_DELAY);  //Transmit!
+void writeSample(uint16_t *buf, uint16_t data, uint16_t pos) {
+    buf[pos^1] = data;
 }
 
 /*******************************************************************************
     PURPOSE:
-        the ledDataOut is in the format streamed out the SPI port. We access
-	the data the most to send it out the SPI, so keeping it in this format
-	optimized the data for speed.
 
-	For this description, a single RGB package LED is 3 LEDs, a Red, Green,
-       	and Blue.
+    INPUTS:
 
-	The tower is a 4x4x8x3 (x,y,layer,color) LED structure. The driver is
-       	(3x16)x8 matrix.  The 3x16 is three colors of 16 bits of data. so every
-       	1/8 cycle up to 48 LEDs are light. The SPI buss pumps out 16 copies of
-       	the 48 LEDs per the 1/8 cycle, giving the intensity or brightness.
+    RETURN CODE:
+        NONE
 
-	Cycle 0 - up to 48 LEDs on
-	Cycle 0 - intensity 14 or higher
-	Cycle 0 - bringness 13 or higher
-	  ...
-	Cycle 0
-	Cycle 0 - brightness 1 or higher
-	Cycle 1 - up to 48 LEDs on
-	        Cycle 0 - intensity 14 or higher
-        Cycle 1 - bringness 13 or higher
-          ...
-        Cycle 1
-        Cycle 1 - brightness 1 or higher
-	  ...
-	Cycle 7 - up to 48 LEDs on
-	        Cycle 0 - intensity 14 or higher
-        Cycle 7 - bringness 13 or higher
-          ...
-        Cycle 7
-        Cycle 7 - brightness 1 or higher
-
-	We have two copies of the strobe data. When the user pushes the button
-	a second copy of the LEDs structor is used to display the pattern number
-	once done the data is switched back.
+    NOTES:
 
 *******************************************************************************/
-
-static uint16_t ledDataOut[2][8][16][4];
-static uint8_t bank = 0;
+void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB) {
+    if ((z > 7)||(x>3)||(y>3)) {
+        printf("Error set LED range\n");
+    }
+    uint8_t number = z*16+x*4+y;
+    RED[number] = iR;
+    GREEN[number] = iG;
+    BLUE[number] = iB;
+}
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
+void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *iB) {
+
+    if ((z > 7)||(x>3)||(y>3)) {
+        printf("Error get LED range\n");
+    }
+    uint8_t number = z*16+x*4+y;
+    *iR = RED[number];
+    *iG = GREEN[number];
+    *iB = BLUE[number];
+}
+
+/*******************************************************************************
+    PURPOSE:
 
     INPUTS:
 
@@ -195,14 +227,11 @@ static uint8_t bank = 0;
 *******************************************************************************/
 void changeBank( uint8_t select ) {
 
-    if (select < 2) {
-        bank = select;
-    }
-    printf("running LED strobe bank = %d",bank);
+    printf("need to implement change bank\n");
 }
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE:
 
     INPUTS:
 
@@ -210,329 +239,18 @@ void changeBank( uint8_t select ) {
         NONE
 
     NOTES:
-
-*******************************************************************************/
-void getStrobeOffset(uint8_t z, uint8_t x, uint8_t y, uint8_t *oStrobe, uint16_t *oOffset ) {
-
-    switch(z) {
-	case 0:
-            *oStrobe = x;
-            *oOffset = 1<<y;
-	    break;
-	case 1:
-            *oStrobe = x+4;
-            *oOffset = 1<<(y);
-	    break;
-	case 4:
-            *oStrobe = x;
-            *oOffset = 1<<(y+4);
-	    break;
-	case 5:
-            *oStrobe = x+4;
-            *oOffset = 1<<(y+4);
-	    break;
-	case 6:
-            *oStrobe = x;
-            *oOffset = 1<<(y+8);
-	    break;
-	case 7:
-            *oStrobe = x+4;
-            *oOffset = 1<<(y+8);
-	    break;
-	case 2:
-            *oStrobe = x;
-            *oOffset = 1<<(y+12);
-	    break;
-	case 3:
-            *oStrobe = x+4;
-            *oOffset = 1<<(y+12);
-	    break;
-        default:
-            printf("out of range layer = %d\n",z);
-	    break;
-    }
-
-}
-#define RED 0
-#define GREEN 1
-#define BLUE 2
-/*******************************************************************************
-    PURPOSE: We have different physical LEDs with the pins driving different
-             colors. This maps the RGB values to the correct pins. We are
-             going to assume all the LEDs on a given level have the same
-             pinout.
-
-    INPUTS:
-             level = which layer of the cube/tower 0 .. 7, 0 is base
-             color = 0 .. 2, Red, Green, Blue
-
-    RETURN CODE:
-             which pin is the right one to toggle
-
-    NOTES:
-
-*******************************************************************************/
-uint8_t ledAdjust(uint8_t level, uint8_t color) {
-
-#ifdef PROTO1
-    uint8_t colorMap[8][3] = {
-        {RED, GREEN, BLUE},
-        {BLUE, RED, GREEN},
-        {BLUE, RED, GREEN},
-        {BLUE, RED, GREEN},
-        {BLUE, RED, GREEN},
-        {BLUE, RED, GREEN},
-        {BLUE, RED, GREEN},
-        {BLUE, RED, GREEN},
-    };
-#else 
-    uint8_t colorMap[8][3] = {
-        {RED, GREEN, BLUE},
-        {RED, GREEN, BLUE},
-        {RED, GREEN, BLUE},
-        {RED, GREEN, BLUE},
-        {RED, GREEN, BLUE},
-        {RED, GREEN, BLUE},
-        {RED, GREEN, BLUE},
-        {RED, GREEN, BLUE},
-    };
-#endif
-
-    return(colorMap[level][color]);
-}
-
-/*******************************************************************************
-    PURPOSE: 
-
-    INPUTS:
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
-
-*******************************************************************************/
-void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *iB) {
-    uint8_t oStrobe = 0;
-    uint16_t oOffset = 0;
-    uint8_t ti = 0;
-
-    *iR=*iG=*iB=0;
-
-    getStrobeOffset( z, x, y, &oStrobe, &oOffset );
-
-    for (ti=0;ti<15;ti++) {
-	if (ledDataOut[bank][oStrobe][ti][ledAdjust(z,RED)] & oOffset) *iR+=1;
-	if (ledDataOut[bank][oStrobe][ti][ledAdjust(z,GREEN)] & oOffset) *iG+=1;
-	if (ledDataOut[bank][oStrobe][ti][ledAdjust(z,BLUE)] & oOffset) *iB+=1;
-    }
-}
-
-/*******************************************************************************
-    PURPOSE: 
-
-    INPUTS:
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
-
-*******************************************************************************/
-void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB) {
-    uint8_t oStrobe = 0;
-    uint16_t oOffset = 0;
-    uint8_t ti = 0;
-    uint8_t tR, tG, tB;
-
-    getLed(z,x,y, &tR, &tG, &tB);
-
-    if (iR == LED_PLUS) { iR = (tR==15)? 15: tR+1; }
-    if (iG == LED_PLUS) { iG = (tG==15)? 15: tG+1; }
-    if (iB == LED_PLUS) { iB = (tB==15)? 15: tB+1; }
-
-    if (iR == LED_MINUS) { iR = (tR==0)? 0: tR-1; }
-    if (iG == LED_MINUS) { iG = (tG==0)? 0: tG-1; }
-    if (iB == LED_MINUS) { iB = (tB==0)? 0: tB-1; }
-
-    if (iR == LED_NOOP) { iR = tR; }
-    if (iG == LED_NOOP) { iG = tG; }
-    if (iB == LED_NOOP) { iB = tB; }
-
-    // save some time if no change
-    if ((tR == iR)&&(tG == iG)&&(tB == iB)) return;
-
-    getStrobeOffset( z, x, y, &oStrobe, &oOffset );
-
-    for (ti=0;ti<15;ti++) {
-	if (ti < iR) {
-	    ledDataOut[bank][oStrobe][ti][ledAdjust(z,RED)] |= oOffset;
-	} else {
-	    ledDataOut[bank][oStrobe][ti][ledAdjust(z,RED)] &= ~oOffset;
-	}
-	if (ti < iG) {
-	    ledDataOut[bank][oStrobe][ti][ledAdjust(z,GREEN)] |= oOffset;
-	} else {
-	    ledDataOut[bank][oStrobe][ti][ledAdjust(z,GREEN)] &= ~oOffset;
-	}
-	if (ti < iB) {
-	    ledDataOut[bank][oStrobe][ti][ledAdjust(z,BLUE)] |= oOffset;
-	} else {
-	    ledDataOut[bank][oStrobe][ti][ledAdjust(z,BLUE)] &= ~oOffset;
-	}
-    }
-}
-
-/*******************************************************************************
-    PURPOSE: 
-        Hope was to turn off the TD62783APG "old" row line earlier (72us) to
-	reduce the ghosting. It should shut off in 1.8us, do not think this is
-        a cause of GHosting. The Saleae analysis shows the output of the TD62783APG
-        longer then it should be (and does not reflect when the LEDs are going. I
-        think nothing drains the power level after the LEDs cut out.
-       
-	I found the cause of most of the ghosting so and do not think the early
-        row cutoff is adding value.
-
-    INPUTS:
-        SPI transaction about to start. THe user file has the strobe and intensity
-	setting stored in it. (It is not a pointer to user data)
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
-        This is running under the interupt context, keep is short and sweet.        
-
-*******************************************************************************/
-#ifdef ROW_GAP
-void IRAM_ATTR spi_pre_transfer_callback(spi_transaction_t *curTrans) {
-
-    uint8_t strobe = ((uint8_t) curTrans->user) >>4;
-
-    static uint8_t oldStrobe = 0;
-    if (oldStrobe != strobe) {
-	if (oldStrobe <8) {
-	    gpio_set_level(strobeGPIO[oldStrobe], 0); // row off
-	} 
-	oldStrobe = strobe;
-    }
-}
-#endif
-
-/*******************************************************************************
-    PURPOSE: 
-        Latches the SPI data just loaded into the driver of the MBI5026 Column
-        Changes the driver line that is activive ont he TD62783 chip. Row	
-
-    INPUTS:
-        SPI transaction just finished. The user file has the strobe and intensity
-	setting stored in it. (It is not a pointer to user data)
-	The strobe is used for the TD62783 line to make active.
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
-        This is running under the interupt context, keep is short and sweet.
-
-        I do not think the "oldStrobe" logic is adding any value.	
-
-*******************************************************************************/
-void IRAM_ATTR spi_post_transfer_callback(spi_transaction_t *curTrans) {
-
-    uint8_t strobe = ((uint8_t) curTrans->user) >>4;
-
-#ifndef ROW_GAP
-    static uint8_t oldStrobe = 0;
-    if (oldStrobe <8) {
-        gpio_set_level(strobeGPIO[oldStrobe], 0); // row off
-    } 
-    oldStrobe = strobe;
-#endif
-    gpio_set_level(PIN_LATCH, 1); //clear latch;
-    asm volatile ("nop");
-    gpio_set_level(PIN_LATCH, 0); //Latch in col
-
-    if (strobe < 8) {
-        gpio_set_level(strobeGPIO[strobe], 1); // row on
-    }
-}
-
-/*******************************************************************************
-    PURPOSE: 
-        This will queue up 129 spi messages, one display cycle, then sleep for
-        8 ms.
-
-        8 cycles (columns) * 16 intensities + 1 all LEDs off.	
-
-    INPUTS:
-        NONE
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
-        this is the highest pri task.
-
-*******************************************************************************/
-
-void IRAM_ATTR updateLedTask(void *param) {
-    uint8_t intensity = 0;
-    uint8_t strobe = 0;
-    spi_transaction_t *lastSpi;
-    static uint8_t queued = 0;
-    uint8_t index;
-
-    while (1) {
-
-	// start loading next frame
-	for (strobe=0;strobe<8; strobe++) {
-            for (intensity=0;intensity<16;intensity++) {
-		queued++;
-                updateMBI5026Chain( spi,
-                    ledDataOut[bank][strobe][intensity][1],
-                    ledDataOut[bank][strobe][intensity][2],
-                    ledDataOut[bank][strobe][intensity][0],(strobe<<4)+intensity);
-	    }
-	    if (queued > 100) {
-	        for (index=0;index<10;index++) {
-	            spi_device_get_trans_result(spi, &lastSpi, portMAX_DELAY);
-		    queued--;
-		}
-	    }
-	}
-
-	// this is dumb, need to read the result of each request to see when the
-	// queue is empty. we will get blocked each time a "done" entry is still
-	// in the queue.
-//	for (index=0;index<(8*16);index++) {
-//	     spi_device_get_trans_result(spi, &lastSpi, portMAX_DELAY);
-//	}
-    }
-}
-
-/*******************************************************************************
-    PURPOSE: 
-
-    INPUTS:
-
-    RETURN CODE:
-        NONE
-
-    NOTES: bypass all the math and sets the strob data to all zeros.
 
 *******************************************************************************/
 void allLedsOff() {
-    uint8_t s,i,c;
-    for (s=0;s<8;s++) {
-        for (i=0;i<15;i++) {
-            for (c=0;c<3;c++) {
-                ledDataOut[bank][s][i][c] = 0x0000;
-}   }   }   } 
+    for (uint8_t i =0; i< 127; i++) {
+        RED[i] = 0;
+        GREEN[i] = 0;
+        BLUE[i] = 0;
+    }
+}
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE:
 
     INPUTS:
 
@@ -540,19 +258,18 @@ void allLedsOff() {
         NONE
 
     NOTES:
-        bypass all the math and sets the strob data to all zeros.
 
 *******************************************************************************/
 void allLedsOn() {
-    uint8_t s,i,c;
-    for (s=0;s<8;s++) {
-        for (i=0;i<15;i++) {
-            for (c=0;c<3;c++) {
-                ledDataOut[bank][s][i][c] = 0xffff;
-}   }   }   } 
+    for (uint8_t i =0; i< 127; i++) {
+        RED[i] = 15;
+        GREEN[i] = 15;
+        BLUE[i] = 15;
+    }
+}
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE:
 
     INPUTS:
 
@@ -563,15 +280,15 @@ void allLedsOn() {
 
 *******************************************************************************/
 void allLedsColor( uint8_t red, uint8_t green, uint8_t blue) {
-    uint8_t l,x,y;
-    for (l=0;l<8;l++) {
-        for (x=0;x<4;x++) {
-            for (y=0;y<4;y++) {
-               setLed(l,x,y, red,green,blue);
-}   }   }   }
+    for (uint8_t i =0; i< 127; i++) {
+        RED[i] = red;
+        GREEN[i] = green;
+        BLUE[i] = blue;
+    }
+}
 
 /*******************************************************************************
-    PURPOSE: 
+    PURPOSE:
 
     INPUTS:
 
@@ -579,62 +296,114 @@ void allLedsColor( uint8_t red, uint8_t green, uint8_t blue) {
         NONE
 
     NOTES:
-    http://iot-bits.com/esp32/esp32-spi-tutorial-part-1/
-    https://www.mouser.com/pdfdocs/ESP32-Tech_Reference.pdf
 
 *******************************************************************************/
-void init_LED_driver() {
-    esp_err_t ret;
-    uint8_t i;
-    const spi_bus_config_t buscfg={
-        .miso_io_num=PIN_NUM_MISO,
-        .mosi_io_num=PIN_NUM_MOSI,
-        .sclk_io_num=PIN_NUM_CLK,
-        .quadwp_io_num=-1,
-        .quadhd_io_num=-1,
-	.max_transfer_sz=6*8,
-    };
-    const spi_device_interface_config_t devcfg={
-	.command_bits = 0,
-	.address_bits = 0,
-	.dummy_bits = 0,
-//        .clock_speed_hz=2000*1000,           //Clock out at 2 MHz (Yes this is slow)
-        .clock_speed_hz=750*1000,           //Clock out at 750 KHz (Yes this is slow)
-        .mode=0,                                //SPI mode 0
-        .spics_io_num=-1,                       //CS pin
-        .queue_size=129,                          //We want to be able to queue 129 transactions at a time
-#ifdef ROW_GAP
-	.pre_cb=spi_pre_transfer_callback,
-#endif
-	.post_cb=spi_post_transfer_callback,
-    };
+uint8_t ledOnOff( uint8_t color, uint8_t led, uint8_t bright) {
+    uint8_t red = (bright < RED[ledMap[led]])? 1 : 0;
+    uint8_t green = (bright < GREEN[ledMap[led]])? 1 : 0;
+    uint8_t blue = (bright < BLUE[ledMap[led]])? 1 : 0;
+    return(red<<1|green<<2|blue<<3);
+}
 
-    gpio_pad_select_gpio(BLINK_GPIO);
-    gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
-    gpio_set_level(BLINK_GPIO, 0);
+/*******************************************************************************
+    PURPOSE:
 
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
+void mainLoop(void) {
+    uint16_t i = 0;
+    uint16_t strobe = 0;
+    uint16_t strobeOut = 0;
+    uint8_t count = 0;
+    uint16_t out = 0;
+    uint8_t clock = 0;
+    uint8_t led = 0;
+    uint8_t bright = 0;
+    uint8_t oldStrobe = 32;
+
+    while(1) {
+        uint8_t dummy[1];
+
+        //Send the data to the queue becuase we've filled the buffer
+        if (i%bufferFrameSize == 0) {
+            xQueueSend(main_data_queue, dummy, portMAX_DELAY); //Blocked when queue is full
+        }
+        //Fill the buffer here
+        if (bufferToFill!=NULL) {
+            if (count < 65) {
+                out = clock | ledOnOff(1, led, bright)| strobeOut;
+                if (clock==0) {
+                    clock = 1;
+                } else {
+                    clock = 0;
+                    led++;
+                }
+            } else { // count == 65
+                strobe = (strobe+1)%128;
+                led = (strobe/16)*16;
+                strobeOut = 1<<(5+(strobe/16));
+                count = 0;
+                clock = 0;
+                if (oldStrobe != strobe/16) {
+                    oldStrobe = strobe/16;
+                    bright = 0;
+                    out = 0x10;
+                } else {
+                    bright++;
+                    out = 0x10+strobeOut;
+                }
+            }
+
+            writeSample(bufferToFill, out, i%bufferFrameSize);
+            count++;
+        }
+        i++;
+    }
+}
+
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
+int init_LED_driver(void) {
+    printf("Hello World\n");
     gpio_pad_select_gpio(PIN_ENABLE);
     gpio_set_direction(PIN_ENABLE, GPIO_MODE_OUTPUT);
     gpio_set_level(PIN_ENABLE, 0);
 
-    gpio_pad_select_gpio(PIN_LATCH);
-    gpio_set_direction(PIN_LATCH , GPIO_MODE_OUTPUT);
-    gpio_set_level(PIN_LATCH, 0);
+    //Create data queue
+    main_data_queue=xQueueCreate(1, 1);//bufferFrameSize*2
+    //Initialize I2S parallel device.
+    i2s_parallel_config_t i2scfg= {
+        .gpio_bus={
+            PIN_NUM_CLK, PIN_NUM_RED, PIN_NUM_GREEN, PIN_NUM_BLUE, PIN_LATCH,
+            COMSIG0, COMSIG1, COMSIG2, COMSIG3, COMSIG4, COMSIG5, COMSIG6, COMSIG7,
+            -1, -1, -1
+        },
+        .bits=I2S_PARALLEL_BITS_16,
+        .clkspeed_hz=1000000, //1.00 MHz
+        .bufsz=bufferFrameSize*2,
+        .refill_cb=buffer_filler_fn, //Function Called by I2S interrupt
+        .refill_cb_arg=main_data_queue //Queue pointer
+    };
+    i2s_parallel_setup(&I2S1, &i2scfg);
+    i2s_parallel_start(&I2S1);
 
-    for (i=0;i<8;i++) {
-        gpio_pad_select_gpio(strobeGPIO[i]);
-        gpio_set_direction(strobeGPIO[i], GPIO_MODE_OUTPUT);
-        gpio_set_level(strobeGPIO[i], 0);
-    }
+    xTaskCreatePinnedToCore(mainLoop, "mainLoop", 1024*16, NULL, 7, NULL, 1); //Use core 1 for main loop, I2S interrupt on core 0
 
-    //Initialize the SPI bus
-    ret=spi_bus_initialize(HSPI_HOST, &buscfg, 1);
-    ESP_ERROR_CHECK(ret);
-    //Attach the LEDs to the SPI bus
-    ret=spi_bus_add_device(HSPI_HOST, &devcfg, &spi);
-    ESP_ERROR_CHECK(ret);
-
-    allLedsOff();
-
-    xTaskCreate(updateLedTask, "updateLedTask", 4*1024, NULL, 24, NULL);
+    return 0;
 }
+
