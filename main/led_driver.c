@@ -58,7 +58,7 @@ QueueHandle_t main_data_queue;
 
 uint16_t *bufferToFill; //Pointer to buffer that is next to be filled
 
-uint8_t ledMap[128] = {
+const uint8_t ledMap[128] = {
     2*16+0*4+0, 2*16+0*4+1, 2*16+0*4+2, 2*16+0*4+3,
     6*16+0*4+0, 6*16+0*4+1, 6*16+0*4+2, 6*16+0*4+3,
     4*16+0*4+0, 4*16+0*4+1, 4*16+0*4+2, 4*16+0*4+3,
@@ -93,38 +93,9 @@ uint8_t ledMap[128] = {
     1*16+3*4+0, 1*16+3*4+1, 1*16+3*4+2, 1*16+3*4+3
 };
 
-uint8_t RED[128] = {
-    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-    6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
-    5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
-    4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-    3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-};
-
-uint8_t GREEN[128] = {
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-    3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-    4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-    5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
-    6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
-    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-};
-
-uint8_t BLUE[128] = {
-    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-    6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
-    5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
-    4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
-    3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-};
+uint8_t RED[128] = { 0 };
+uint8_t GREEN[128] = { 0 };
+uint8_t BLUE[128] = { 0 };
 
 
 /*******************************************************************************
@@ -185,6 +156,7 @@ void writeSample(uint16_t *buf, uint16_t data, uint16_t pos) {
 void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB) {
     if ((z > 7)||(x>3)||(y>3)) {
         printf("Error set LED range\n");
+	return;
     }
     uint8_t number = z*16+x*4+y;
     RED[number] = iR;
@@ -207,6 +179,7 @@ void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *
 
     if ((z > 7)||(x>3)||(y>3)) {
         printf("Error get LED range\n");
+	return;
     }
     uint8_t number = z*16+x*4+y;
     *iR = RED[number];
@@ -242,7 +215,7 @@ void changeBank( uint8_t select ) {
 
 *******************************************************************************/
 void allLedsOff() {
-    for (uint8_t i =0; i< 127; i++) {
+    for (uint8_t i =0; i< 128; i++) {
         RED[i] = 0;
         GREEN[i] = 0;
         BLUE[i] = 0;
@@ -261,7 +234,7 @@ void allLedsOff() {
 
 *******************************************************************************/
 void allLedsOn() {
-    for (uint8_t i =0; i< 127; i++) {
+    for (uint8_t i =0; i< 128; i++) {
         RED[i] = 15;
         GREEN[i] = 15;
         BLUE[i] = 15;
@@ -280,7 +253,7 @@ void allLedsOn() {
 
 *******************************************************************************/
 void allLedsColor( uint8_t red, uint8_t green, uint8_t blue) {
-    for (uint8_t i =0; i< 127; i++) {
+    for (uint8_t i =0; i< 128; i++) {
         RED[i] = red;
         GREEN[i] = green;
         BLUE[i] = blue;
@@ -336,7 +309,7 @@ void mainLoop(void) {
         }
         //Fill the buffer here
         if (bufferToFill!=NULL) {
-            if (count < 65) {
+            if (count < 33) {
                 out = clock | ledOnOff(1, led, bright)| strobeOut;
                 if (clock==0) {
                     clock = 1;
@@ -344,7 +317,7 @@ void mainLoop(void) {
                     clock = 0;
                     led++;
                 }
-            } else { // count == 65
+            } else { // count == 33
                 strobe = (strobe+1)%128;
                 led = (strobe/16)*16;
                 strobeOut = 1<<(5+(strobe/16));
