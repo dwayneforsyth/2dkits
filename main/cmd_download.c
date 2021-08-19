@@ -53,7 +53,7 @@ static int command_download(int argc, char **argv) {
         return 1;
     }
 
-    asprintf( &url, "http://www.2dkits.com/kits/kit55/files/%s", 
+    asprintf( &url, "http://www.2dkits.com/kits/kit25/patterns/%s", 
                      download_args.url->basename[0]);
     asprintf( &file, "/spiffs/%s", 
                       download_args.file->basename[0]);
