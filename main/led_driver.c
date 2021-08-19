@@ -24,14 +24,15 @@
 //   I used https://github.com/willz1200/i2s_parallel_queued for the
 //   starting point of this driver.
 
+#include <stdio.h>
+#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "freertos/queue.h"
-#include <string.h>
 #include "queued_i2s_parallel.h"
 #include "driver/gpio.h"
-#include <stdio.h>
+#include "led_driver.h"
 
 #define BLINK_GPIO     2
 #define PIN_NUM_RED   26
@@ -158,6 +159,23 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
         printf("Error set LED range\n");
 	return;
     }
+
+    uint8_t tR, tG, tB;
+
+    getLed(z,x,y, &tR, &tG, &tB);
+
+    if (iR == LED_PLUS) { iR = (tR==15)? 15: tR+1; }
+    if (iG == LED_PLUS) { iG = (tG==15)? 15: tG+1; }
+    if (iB == LED_PLUS) { iB = (tB==15)? 15: tB+1; }
+
+    if (iR == LED_MINUS) { iR = (tR==0)? 0: tR-1; }
+    if (iG == LED_MINUS) { iG = (tG==0)? 0: tG-1; }
+    if (iB == LED_MINUS) { iB = (tB==0)? 0: tB-1; }
+
+    if (iR == LED_NOOP) { iR = tR; }
+    if (iG == LED_NOOP) { iG = tG; }
+    if (iB == LED_NOOP) { iB = tB; }
+
     uint8_t number = z*16+x*4+y;
     RED[number] = iR;
     GREEN[number] = iG;
@@ -351,7 +369,7 @@ void mainLoop(void) {
     NOTES:
 
 *******************************************************************************/
-int init_LED_driver(void) {
+void init_LED_driver(void) {
     printf("Hello World\n");
     gpio_pad_select_gpio(PIN_ENABLE);
     gpio_set_direction(PIN_ENABLE, GPIO_MODE_OUTPUT);
@@ -377,6 +395,6 @@ int init_LED_driver(void) {
 
     xTaskCreatePinnedToCore(mainLoop, "mainLoop", 1024*16, NULL, 7, NULL, 1); //Use core 1 for main loop, I2S interrupt on core 0
 
-    return 0;
+    return;
 }
 
