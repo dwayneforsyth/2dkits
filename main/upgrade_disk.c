@@ -49,9 +49,10 @@ typedef struct {
 } neededFiles_t;
 
 #define NEEDED_FILE_COUNT 6
+// sha1sum <file>
 neededFiles_t  files[NEEDED_FILE_COUNT] = {
     {.name = "patterns.html", .sha="3964c504825ac56c1a69c542cbd53fa8689feb85"},
-    {.name = "header.html",   .sha="faa0c2619ba7f07d159ebb3c85c91739931ad7b4"},
+    {.name = "header.html",   .sha="f94cf0c7ff0880ce7e8eda66e8e351b423c39724"},
     {.name = "footer.html",   .sha="0289f31c9e872fd865eafa54636483a19d1b5018"},
     {.name = "about.html",    .sha="1131b80c280cdd797ec06810210e586b6c8278ff"},
     {.name = "index.html",    .sha="31582d37d13612e94df1751f7925e1372ebaad07"},
@@ -89,7 +90,7 @@ void auditFile_cb( char type, char * size, char * sha, char *name, void *data) {
             }
         }
     }
-    ESP_LOGI(TAG, "file %-20s hash=>%s< check=%d", name, sha, ret );
+//    ESP_LOGI(TAG, "file %-20s hash=>%s< check=%d", name, sha, ret );
 }
 
 /*******************************************************************************
@@ -104,7 +105,7 @@ void auditFile_cb( char type, char * size, char * sha, char *name, void *data) {
 
 *******************************************************************************/
 
-void auditDiskFiles( void ) {
+void auditDiskFiles( void* pvParameters ) {
     char * url;
     char * file;
 
@@ -125,6 +126,7 @@ void auditDiskFiles( void ) {
 	    free(file);
         }
     }
+    vTaskDelete( NULL );
 }
 
 

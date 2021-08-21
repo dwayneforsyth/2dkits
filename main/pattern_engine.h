@@ -27,6 +27,7 @@
 
 void updatePatternsTask( void );
 void addPattern( char * );
+void deletePattern( char * );
 
 uint8_t getPatternNumber();
 void setPatternNumber(uint8_t newStep);
@@ -35,6 +36,7 @@ void setPatternPlus();
 void setPatternMinus();
 
 esp_err_t web_pattern_list( httpd_req_t *req);
+esp_err_t cloud_pattern_list(httpd_req_t *req);
 
 void setPrintPattern( bool onOff );
 bool getPrintPattern( void );

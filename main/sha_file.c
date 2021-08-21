@@ -41,7 +41,7 @@ esp_err_t fileSha( char *filename, char *hash ){
 
   FILE *f = fopen(filename, "r");
     if (f == NULL) {
-        printf("File doesn't exist");
+	hash[0] = 0;
         return ESP_FAIL;
     }
  

@@ -39,6 +39,9 @@
 #include "web_server.h"
 #include "disk_system.h"
 #include "numbers_led.h"
+#include "global.h"
+#include "download_file.h"
+#include "sha_file.h"
 
 #define BUTTON1 34
 #define BUTTON2 35
@@ -424,6 +427,18 @@ void addPattern( char * filename) {
     patternTable[index].patternType = PATTERN_FILE;
 }
 
+void deletePattern( char * filename) {
+    uint8_t index;
+
+    for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
+        if ((patternTable[index].patternType == PATTERN_FILE) &&
+            (strcmp(patternTable[index].fileName, filename)==0)) {
+	    patternTable[index].patternType = PATTERN_NONE;
+	    return;
+	}
+    }
+}
+
 uint8_t getPatternNumber() {
 	return(step);
 }
@@ -443,12 +458,92 @@ char * getPatternName() {
 	return(tmp);
 }
 
+void parsePatternFileStr( char * line,  char * name, char * sha, char * url) {
+
+	uint8_t i = 0;
+	uint8_t length = strlen(line);
+	while ((line[i] != ' ') && (i < length)) { i++;}
+
+	memcpy(name, line, i);
+	name[i] = 0;
+	while ((line[i] == ' ') && (i < length)) { i++;} // dump 1 or more spaces
+	uint8_t offset = i;
+
+	while ((line[i] != ' ') && (i < length)) { i++;}
+	memcpy(sha, &line[offset], i - offset);
+	sha[i-offset] = 0;
+
+	while ((line[i] == ' ') && (i < length)) { i++;} // dump 1 or more spaces
+	memcpy(url, &line[i], length-i); 
+	url[length-i-1] = 0; // dump the \n at the end
+}
+
+esp_err_t cloud_pattern_list(httpd_req_t *req)  {
+    const char *pattern_header = "<table><tr><th>File<th>Sha1 Hash<th>Action<th>&nbsp\n";
+    const char *pattern_footer = "</table></body></html>\n";
+    const char *pattern_heading = "</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Cloud Pattern Library</div><div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n";
+    const char *pattern_noweb = "Not connected to web!";
+
+    char tbuffer2[314];
+
+    parseUrl(req);
+
+    httpd_resp_set_hdr(req, "Content-type", "text/html");
+    file_get_handler(req, "/spiffs/header.html",true);
+
+    httpd_resp_send_chunk(req, pattern_heading, strlen(pattern_heading));
+
+    // no internet report and die
+    if (xAppData.ipName == NULL) {
+        httpd_resp_send_chunk(req, pattern_noweb, strlen(pattern_noweb));
+        return ESP_OK;
+    }
+
+    download_file( "/spiffs/cloud.lst", "https://www.2dkits.com/kits/kit25/patterns/");
+
+    httpd_resp_send_chunk(req, pattern_header, strlen(pattern_header));
+    FILE *ptr = fopen("/spiffs/cloud.lst","rb");
+    char line[130];
+    char name[40];
+    char sha[41];
+    char url[80];
+    char *tpath;
+    char diskSha[41];
+    char *button;
+    while ( fgets( line, 160, ptr ) != NULL ) { 
+            parsePatternFileStr( line, name, sha, url);
+	    asprintf(&tpath,"/spiffs/%s",name);
+	    fileSha(tpath, diskSha);
+	    free(tpath);
+	    if (strcmp(sha,diskSha) ==0) {
+		    asprintf(&button,"loaded");
+	    } else if (strlen(diskSha) == 0) {
+		    asprintf(&button,"<button onclick=\"window.location.href = '/cloudpatterns.html?download=%s';\">Download</button>",url);
+	    } else {
+		    asprintf(&button,"<button onclick=\"window.location.href = '/cloudpatterns.html?download=%s';\">Update</button>",url);
+	    }
+            snprintf(tbuffer2, sizeof(tbuffer2), "<tr><td>%s<td align=\"left\">%s<td>%s\n",
+	       name,
+               sha,
+               button
+            );
+	    free(button);
+            httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
+    }
+    fclose(ptr);
+    httpd_resp_send_chunk(req, pattern_footer, strlen(pattern_footer));
+    httpd_resp_send_chunk(req, NULL, 0);
+
+    return ESP_OK;
+}
+
 esp_err_t web_pattern_list(httpd_req_t *req)  {
     const char *pattern_header = "<table><tr><th>Status<th>Id<th>Name<th>Type<th>Speed<th>Cycles<th>&nbsp\n";
     const char *pattern_footer = "</table></body></html>\n";
     const char *pattern_heading = "</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Pattern List</div><div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n";
 
-    char tbuffer2[200];
+    char tbuffer2[350];
+    char deleteButton[124];
     uint8_t index;
 
     parseUrl(req);
@@ -461,14 +556,20 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
     httpd_resp_send_chunk(req, pattern_header, strlen(pattern_header));
     for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
 	if (patternTable[index].patternType != PATTERN_NONE) {
-            snprintf(tbuffer2, sizeof(tbuffer2), "<tr><td>%s<td>%d<td align=\"left\">%s<td>%s<td>%d<td>%d<td><button onclick=\"window.location.href = '/patterns.html?pattern=%d';\">Select</button>\n",
+	    if (patternTable[index].patternType != PATTERN_BUILT_IN) {
+	            sprintf(deleteButton," <button onclick=\"window.location.href = '/patterns.html?delete=/%s';\">Delete</button>",patternTable[index].patternName);
+	    } else {
+		    deleteButton[0] = 0;
+	    }
+            snprintf(tbuffer2, sizeof(tbuffer2), "<tr><td>%s<td>%d<td align=\"left\">%s<td>%s<td>%d<td>%d<td><button onclick=\"window.location.href = '/patterns.html?pattern=%d';\">Select</button>%s\n",
 	       (step == index)? "==>" : "",
                index,
                patternTable[index].patternName,
                (patternTable[index].patternType == PATTERN_BUILT_IN)? "Build In":"File System",
 	       patternTable[index].delay,
 	       patternTable[index].cycles,
-	       index
+	       index,
+	       deleteButton
             );
             httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
 	}

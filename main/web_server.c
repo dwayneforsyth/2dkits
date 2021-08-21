@@ -54,6 +54,8 @@
 #include "pattern_engine.h"
 #include "global.h"
 #include "version.h"
+#include "upgrade_disk.h"
+#include "download_file.h"
 
 extern blinkieAppData_t xAppData;
 
@@ -250,6 +252,12 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
     return ESP_OK;
 }
 
+void getFileName(char * file, char * line) {
+    uint8_t i = strlen(line);
+    while ((line[i] != '/') && (i != 0)) {i--;}
+    sprintf(file, "/spiffs/%s", &line[i+1]);
+}
+
 void parseUrl(httpd_req_t *req) {
     char*  buf;
     size_t buf_len;
@@ -261,12 +269,27 @@ void parseUrl(httpd_req_t *req) {
         buf = malloc(buf_len);
         if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
             ESP_LOGI(TAG, "Found URL query => %s", buf);
-            char param[32];
+            char param[80];
             /* Get value of expected key from query string */
 #ifndef TIXCLOCK
             if (httpd_query_key_value(buf, "pattern", param, sizeof(param)) == ESP_OK) {
                 ESP_LOGI(TAG, "Pattern = %d", atoi(param));
                 setPatternNumber(atoi(param));
+            }
+            if (httpd_query_key_value(buf, "download", param, sizeof(param)) == ESP_OK) {
+		char file[40];
+                ESP_LOGI(TAG, "Download = %s", param);
+		getFileName(file, param);
+  		download_file( file, param);
+		addPattern(&file[8]); // this is a hack to remove the "/spiffs/"
+            }
+            if (httpd_query_key_value(buf, "delete", param, sizeof(param)) == ESP_OK) {
+		char file[40];
+                ESP_LOGI(TAG, "Delete = %s", param);
+		getFileName(file, param);
+                printf("file = >%s<\n",file);
+  		remove(file);
+		deletePattern(&file[8]); // this is a hack to remove the "/spiffs/"
             }
 #endif
         }
@@ -615,6 +638,12 @@ httpd_uri_t patterns = {
     .handler   = web_pattern_list,
     .user_ctx  = NULL
 };
+httpd_uri_t cloud = {
+    .uri       = "/cloudpatterns.html",
+    .method    = HTTP_GET,
+    .handler   = cloud_pattern_list,
+    .user_ctx  = NULL
+};
 #endif
 httpd_uri_t logo = {
     .uri       = "/header-bg.jpg",
@@ -673,9 +702,9 @@ httpd_handle_t start_webserver(void) {
 
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.stack_size = 5 *1024;
+    config.stack_size = 7 *1024;
 
-    config.max_uri_handlers = 10;
+    config.max_uri_handlers = 11;
 
     // Start the httpd server
     ESP_LOGI(TAG, "Starting server on port: %d", config.server_port);
@@ -691,6 +720,7 @@ httpd_handle_t start_webserver(void) {
         httpd_register_uri_handler(server, &settings);
 #ifndef TIXCLOCK
         httpd_register_uri_handler(server, &patterns);
+        httpd_register_uri_handler(server, &cloud);
 #endif
         httpd_register_uri_handler(server, &content);
         httpd_register_uri_handler(server, &save);
@@ -733,6 +763,7 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     wifi_sta_info_t *sta;
     static bool serverInit = false;
+    static bool audit = false;
     static uint8_t wifiIndex = 0;
 
     wifi_config_t wifi_config_sta = {
@@ -759,6 +790,12 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
             start_mdns_service();
             serverInit = true;
         }
+        /* Audit the disk for updates */
+        if (audit == false) {
+//	    auditDiskFiles(); // out of stack!!
+	    xTaskCreate(auditDiskFiles, "audit", 4*1024, NULL, 23, NULL);
+	    audit = true;
+	}
 
         ESP_LOGI(TAG, "Initializing SNTP");
         sntp_setoperatingmode(SNTP_OPMODE_POLL);

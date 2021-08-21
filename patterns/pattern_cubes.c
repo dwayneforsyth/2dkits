@@ -25,7 +25,7 @@ cube_t cube[3] = {
            },
         [1]{.x = 0,
             .y = 2,
-            .l = 0,
+            .l = 6,
             .colorRed = 0,
             .colorGreen = 15,
             .colorBlue = 0,
@@ -40,7 +40,7 @@ cube_t cube[3] = {
 
 void render_cubes(void) {
    uint8_t c,x,y,l;
-   allLedsColor(LED_MINUS, LED_MINUS, LED_MINUS);
+   allLedsColor(0, 0, 0);
    for (c=0;c<3;c++) {
        for (x=cube[c].x;x<cube[c].x+2;x++) {
            for (y=cube[c].y;y<cube[c].y+2;y++) {
@@ -63,26 +63,32 @@ void make_cubes(void) {
     writeFrame(ptr);
 
     cube[0].l = 1;
+    cube[1].l = 5;
     render_cubes();
     writeFrame(ptr);
 
     cube[0].l = 2;
+    cube[1].l = 4;
     render_cubes();
     writeFrame(ptr);
 
     cube[0].l = 3;
+    cube[1].x = 1;
     render_cubes();
     writeFrame(ptr);
 
     cube[0].l = 4;
+    cube[1].x = 2;
     render_cubes();
     writeFrame(ptr);
 
     cube[0].l = 5;
+    cube[1].l = 3;
     render_cubes();
     writeFrame(ptr);
 
     cube[0].l = 6;
+    cube[1].l = 2;
     render_cubes();
     writeFrame(ptr);
 

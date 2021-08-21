@@ -44,6 +44,7 @@
 #include "pattern_engine.h"
 #include "console.h"
 #include "global.h"
+#include "upgrade_disk.h"
 
 static const char *TAG = "MAIN";
 
@@ -102,8 +103,7 @@ void app_main()
 
     xTaskCreate(updatePatternsTask, "updatePatternsTask", 4*1024, NULL, 23, NULL);
 
-    consoleInit();
-
+    consoleInit(); // console does not return
 
 //  The ESP32 framework has already started the Scheduler, starting it again just
 //  causes a crash

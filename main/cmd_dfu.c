@@ -1,6 +1,8 @@
 
 #include <stdio.h>
 #include "esp_console.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "argtable3/argtable3.h"
 #include "esp_log.h"
 static const char *TAG = "cmd_dfu";
@@ -101,7 +103,8 @@ static void register_dfu(void) {
 
 *******************************************************************************/
 static int command_checkdisk(int argc, char **argv) {
-    auditDiskFiles();
+
+    xTaskCreate(auditDiskFiles, "audit", 4*1024, NULL, 23, NULL);
 
     return 0;
 }
