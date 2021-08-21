@@ -56,7 +56,7 @@ neededFiles_t  files[NEEDED_FILE_COUNT] = {
     {.name = "footer.html",   .sha="0289f31c9e872fd865eafa54636483a19d1b5018"},
     {.name = "about.html",    .sha="1131b80c280cdd797ec06810210e586b6c8278ff"},
     {.name = "index.html",    .sha="31582d37d13612e94df1751f7925e1372ebaad07"},
-    {.name = "settings.html", .sha="2ff4835fbc295af7d91ac03c5a8db1575e905fdb"},
+    {.name = "settings.html", .sha="03730644ae331e0b649381acf9bab280683d5d8f"},
 };
 
 /*******************************************************************************
