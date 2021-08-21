@@ -11,6 +11,7 @@ idf_component_register(SRCS
    "dfu.c"
    "download_file.c"
    "upgrade_disk.c"
+   "file_sha.c"
    "console.c"
    "cmd_system.c"
    "cmd_dfu.c"

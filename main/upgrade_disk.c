@@ -39,25 +39,9 @@
 #include "version.h"
 #include "global.h"
 #include "download_file.h"
+#include "file_sha.h"
 
 static const char *TAG = "updsk";
-
-typedef struct {
-    char *name;
-    char *sha;
-    uint8_t status;
-} neededFiles_t;
-
-#define NEEDED_FILE_COUNT 6
-// sha1sum <file>
-neededFiles_t  files[NEEDED_FILE_COUNT] = {
-    {.name = "patterns.html", .sha="3964c504825ac56c1a69c542cbd53fa8689feb85"},
-    {.name = "header.html",   .sha="f94cf0c7ff0880ce7e8eda66e8e351b423c39724"},
-    {.name = "footer.html",   .sha="0289f31c9e872fd865eafa54636483a19d1b5018"},
-    {.name = "about.html",    .sha="1131b80c280cdd797ec06810210e586b6c8278ff"},
-    {.name = "index.html",    .sha="31582d37d13612e94df1751f7925e1372ebaad07"},
-    {.name = "settings.html", .sha="03730644ae331e0b649381acf9bab280683d5d8f"},
-};
 
 /*******************************************************************************
     PURPOSE: verify if needed file and correct sha
@@ -75,22 +59,18 @@ neededFiles_t  files[NEEDED_FILE_COUNT] = {
 
 *******************************************************************************/
 void auditFile_cb( char type, char * size, char * sha, char *name, void *data) {
-    uint8_t ret = 0;
 
-    for (int8_t i=0; i < NEEDED_FILE_COUNT; i++) {
+    for (int8_t i=0; i < neededFileCount; i++) {
         if (strcmp(files[i].name, name)==0) {
             if (strcmp(files[i].sha, sha)==0) {
-                ret = 1;
                 files[i].status = 1;
 		break;
             } else {
                 files[i].status = 2;
-                ret = 2;
 		break;
             }
         }
     }
-//    ESP_LOGI(TAG, "file %-20s hash=>%s< check=%d", name, sha, ret );
 }
 
 /*******************************************************************************
@@ -116,9 +96,9 @@ void auditDiskFiles( void* pvParameters ) {
 
     disk_dir(req);
 
-    for (int8_t i=0; i < NEEDED_FILE_COUNT; i++) {
+    for (int8_t i=0; i < neededFileCount; i++) {
         if (files[i].status != 1) {
-            asprintf( &url, "http://www.2dkits.com/kits/kit25/%02d\.%02d\.%02d%s/%s",MAJOR, MINOR, BUILD, (getSystemType())?"_test":"", files[i].name); 
+            asprintf( &url, "http://www.2dkits.com/kits/kit25/%02d.%02d.%02d%s/%s",MAJOR, MINOR, BUILD, (getSystemType())?"_test":"", files[i].name); 
             asprintf( &file, "/spiffs/%s", files[i].name);
             printf("Need to download %s %s\n", url, files[i].name);
             download_file( file, url);
