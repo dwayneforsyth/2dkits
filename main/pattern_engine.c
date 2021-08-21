@@ -532,6 +532,7 @@ esp_err_t cloud_pattern_list(httpd_req_t *req)  {
     }
     fclose(ptr);
     httpd_resp_send_chunk(req, pattern_footer, strlen(pattern_footer));
+    file_get_handler(req, "/spiffs/footer.html",false);
     httpd_resp_send_chunk(req, NULL, 0);
 
     return ESP_OK;
@@ -575,6 +576,7 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
 	}
     }
     httpd_resp_send_chunk(req, pattern_footer, strlen(pattern_footer));
+    file_get_handler(req, "/spiffs/footer.html",false);
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
