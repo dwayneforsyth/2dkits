@@ -8,4 +8,4 @@
 #define DFU_TASK_STACK_SIZE (8 * 1024)
 
 void perform_dfu(uint8_t flags);
-
+bool checkForUpdate( uint8_t flags);

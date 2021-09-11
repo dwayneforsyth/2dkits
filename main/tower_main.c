@@ -77,13 +77,16 @@ void app_main()
     init_LED_driver();
     allLedsColor(0,15,0);
 
-
     static httpd_handle_t server = NULL;
     ESP_ERROR_CHECK(nvs_flash_init());
 
     initialise_wifi_p1(&server);
     initialise_disk();
     loadSettings();
+
+    setenv("TZ", "CST6CDT", 1); //DDF Need to save and use setting
+    tzset();
+
 
     if (getSystemType()) { 
         printf("***\n* Test Image\n***\n");

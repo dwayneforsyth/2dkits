@@ -56,6 +56,7 @@
 #include "version.h"
 #include "upgrade_disk.h"
 #include "download_file.h"
+#include "dfu.h"
 
 extern blinkieAppData_t xAppData;
 
@@ -78,7 +79,7 @@ static const char *TAG="WEB";
 *******************************************************************************/
 
 esp_err_t lookupToken(httpd_req_t *req, char *token) {
-    char tBuffer[80];
+    char tBuffer[110];
     time_t now;
     struct tm timeinfo;
     uint8_t i = 0;
@@ -143,6 +144,20 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
                 xAppData.staMac[0], xAppData.staMac[1], xAppData.staMac[2],
                 xAppData.staMac[3], xAppData.staMac[4], xAppData.staMac[5]);
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
+    } else if (strcmp("%upgrade",token)==0) {
+	sprintf(tBuffer, "<li> software version = %d.%d.%d %s<br><br>",MAJOR, MINOR, BUILD, getSystemType()? "(test)":"");
+        httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
+
+        if (checkForUpdate(0)) {
+	    sprintf(tBuffer, "<button onclick=\"window.location.href = '/?dfu=0';\">Upgrade Firmware</button><br><br>");
+            httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
+	}
+	if (getSystemType()) {
+	    sprintf(tBuffer, "<button onclick=\"window.location.href = '/?dfu=1';\">Forced Prod Upgrade Firmware</button><br>");
+            httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
+	    sprintf(tBuffer, "<button onclick=\"window.location.href = '/?dfu=2';\">Forced Test Upgrade Firmware</button><br>");
+            httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
+        }
     } else {
         sprintf(tBuffer, "%s%%",token);
         httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
@@ -292,6 +307,11 @@ void parseUrl(httpd_req_t *req) {
 		deletePattern(&file[8]); // this is a hack to remove the "/spiffs/"
             }
 #endif
+            if (httpd_query_key_value(buf, "dfu", param, sizeof(param)) == ESP_OK) {
+		char file[40];
+                ESP_LOGI(TAG, "dfu = %d", atoi(param));
+		perform_dfu(atoi(param));
+            }
         }
         free(buf);
     }

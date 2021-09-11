@@ -113,7 +113,7 @@ bool check_dfu(char * firmware_file, char * url) {
         }
 
         snprintf(firmware_file,MAX_DFU_CONTROL_LEN,"%s%s",CONFIG_BASE_FIRMWARE_URL,file);
-//        ESP_LOGW(TAG, ">%d.%d.%d %s<", major, minor, build, firmware_file);
+        ESP_LOGW(TAG, ">%d.%d.%d %s<", major, minor, build, firmware_file);
 
         if (major > MAJOR) {
             update = true;
@@ -129,6 +129,11 @@ bool check_dfu(char * firmware_file, char * url) {
     esp_http_client_cleanup(client);
 
     return(update);
+}
+
+bool checkForUpdate( uint8_t flags) {
+    char firmware_file[MAX_DFU_CONTROL_LEN];
+    return( check_dfu(firmware_file, (flags==2)? CONFIG_TEST_FIRMWARE_STATUS_URL :  CONFIG_FIRMWARE_STATUS_URL));
 }
 
 /*******************************************************************************
