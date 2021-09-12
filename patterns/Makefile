@@ -8,7 +8,12 @@ BASE_PATH="/home/httpd/html_2dkits/kits/kit25"
 %.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: rain boom diamon
+all: rain boom diamon cubes
+
+cubes: pattern_cubes.o core.o
+	$(CC) -o cubes pattern_cubes.o core.o
+	./cubes
+	scp cubes.pat $(SERVER):$(BASE_PATH)/patterns
 
 boom: pattern_boom.o core.o
 	$(CC) -o boom pattern_boom.o core.o
