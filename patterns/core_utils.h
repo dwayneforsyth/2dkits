@@ -1,6 +1,5 @@
 
-#ifndef PATTERN_CORE_H
-#define PATTERN_CORE_H
+#pragma once
 
 #include <stdint.h>
 #include <stdio.h>
@@ -36,4 +35,3 @@ void allLedsOff(void);
 void printHeader(void);
 void printFrame(void);
 void writeFrame(FILE *ptr);
-#endif

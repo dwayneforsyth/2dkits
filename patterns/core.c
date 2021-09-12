@@ -5,30 +5,6 @@
 #include <string.h>
 
 #include "core_utils.h"
-#include "pattern_boom.h"
-#include "pattern_diamon.h"
-#include "pattern_cubes.h"
-
-#if (0)
-// header is 24 bytes
-typedef struct blinkieHeader_t {
-   uint8_t type;
-   uint8_t speed;
-   uint8_t cycles;
-   uint8_t free[5];
-   uint8_t name[16];
-} blinkieHeader_t;
-
-typedef struct blinkieFrame32_t {
-   uint16_t led[8][4][4];
-   uint8_t cycles;
-   uint8_t delay;
-} blinkieFrame32_t;
-
-#define LED_PLUS 16
-#define LED_MINUS 17
-#define LED_NOOP 18
-#endif
 
 blinkieFrame32_t patternFrame = {
    .delay = 10,
@@ -104,9 +80,3 @@ void writeFrame(FILE *ptr) {
         fwrite( &patternFrame, sizeof(patternFrame), 1, ptr);
 }
 
-void main(void) {
-    make_boom();
-    make_diamon1();
-    make_diamon2();
-    make_cubes();
-}

@@ -149,7 +149,7 @@ void diamon_slicer(uint8_t slice, uint8_t r, uint8_t g, uint8_t b) {
 	break;
     }    
 }
-void make_diamon1(uint8_t slice) {
+void make_diamon1( void ) {
     int8_t i;
 
     FILE *ptr = fopen("diamon2.pat","wb");
@@ -173,7 +173,7 @@ void make_diamon1(uint8_t slice) {
     fclose(ptr);
 }
 
-void make_diamon2(uint8_t slice) {
+void make_diamon2( void ) {
     int8_t i;
 
     FILE *ptr = fopen("diamon1.pat","wb");
@@ -200,3 +200,7 @@ void make_diamon2(uint8_t slice) {
     fclose(ptr);
 }
 
+void main( void ) {
+    make_diamon1();
+    make_diamon2();
+}

@@ -6,7 +6,7 @@
 
 #include "core_utils.h"
 
-void make_boom(void) {
+void main(void) {
     int8_t l,x,y;
 
     FILE *ptr = fopen("boom.pat","wb");

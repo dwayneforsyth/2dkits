@@ -1,1 +1,6 @@
 build/
+*.o
+*.pat
+boom
+diamon
+rain
