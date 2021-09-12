@@ -46,9 +46,10 @@ blinkieHeader_t header = {
 
 const char *LEDValue[19] = { "0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","+","-","#" };
 static uint16_t frame=0;
+FILE *ptr;
 
 /*******************************************************************************
-    PURPOSE: draws the cubs in the towers LED frame
+    PURPOSE: sets an LED value in the pattern frame
 
     INPUTS:
 
@@ -63,7 +64,7 @@ void setLed(uint8_t l, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
 }
 
 /*******************************************************************************
-    PURPOSE: draws the cubs in the towers LED frame
+    PURPOSE: gets the LED value in the pattern frame
 
     INPUTS:
 
@@ -80,59 +81,7 @@ void getLed(uint8_t l, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *
 }
 
 /*******************************************************************************
-    PURPOSE: draws the cubs in the towers LED frame
-
-    INPUTS:
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
-
-*******************************************************************************/
-void allLedsColor( uint8_t red, uint8_t green, uint8_t blue) {
-   uint8_t l,x,y;
-   for (l=0;l<8;l++) {
-      for (x=0;x<4;x++) {
-         for (y=0;y<4;y++) {
-             setLed(l,x,y, red, green, blue);
-}  }  }  }
-
-/*******************************************************************************
-    PURPOSE: draws the cubs in the towers LED frame
-
-    INPUTS:
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
-
-*******************************************************************************/
-void levelLedsColor( uint8_t l, uint8_t red, uint8_t green, uint8_t blue) {
-   uint8_t x,y;
-   for (x=0;x<4;x++) {
-      for (y=0;y<4;y++) {
-          setLed(l,x,y, red, green, blue);
-}  }  }  
-
-/*******************************************************************************
-    PURPOSE: draws the cubs in the towers LED frame
-
-    INPUTS:
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
-
-*******************************************************************************/
-void allLedsOff(void) {
-   allLedsColor( 0, 0, 0);
-}
-
-/*******************************************************************************
-    PURPOSE: draws the cubs in the towers LED frame
+    PURPOSE: prints info on the pattern header
 
     INPUTS:
 
@@ -153,7 +102,7 @@ void printHeader(void) {
 }
 
 /*******************************************************************************
-    PURPOSE: draws the cubs in the towers LED frame
+    PURPOSE: prints the pattern frame
 
     INPUTS:
 
@@ -183,7 +132,7 @@ void printFrame(void) {
 }
 
 /*******************************************************************************
-    PURPOSE: draws the cubs in the towers LED frame
+    PURPOSE: writes the frame of LED data to file
 
     INPUTS:
 
@@ -193,7 +142,41 @@ void printFrame(void) {
     NOTES:
 
 *******************************************************************************/
-void writeFrame(FILE *ptr) {
+void writeFrame( void ) {
         fwrite( &patternFrame, sizeof(patternFrame), 1, ptr);
+}
+
+/*******************************************************************************
+    PURPOSE: creates a pattern file, and write the header to it.
+
+    INPUTS: file - name of disk file
+            title - title of pattern
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
+void createPattern( char * file, char * title) {
+    ptr = fopen(file,"wb");
+    strncpy(header.name,title,16);
+    fwrite( &header, sizeof(header), 1, ptr);
+    printHeader();
+}
+
+/*******************************************************************************
+    PURPOSE: finishes a pattern file
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
+void finishPattern( void ) {
+    fclose(ptr);
 }
 

@@ -27,11 +27,15 @@ typedef struct blinkieFrame32_t {
 extern blinkieFrame32_t patternFrame;
 extern blinkieHeader_t header;
 
+// core make 
+void writeFrame(void);
+void createPattern( char * file, char * title);
+void finishPattern( void );
+
+// update LEDs in fame
 void setLed(uint8_t l, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB);
 void getLed(uint8_t l, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *iB);
-void allLedsColor( uint8_t red, uint8_t green, uint8_t blue);
-void levelLedsColor( uint8_t l, uint8_t red, uint8_t green, uint8_t blue);
-void allLedsOff(void);
+
+// Debug
 void printHeader(void);
 void printFrame(void);
-void writeFrame(FILE *ptr);

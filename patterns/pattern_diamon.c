@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "core_utils.h"
+#include "core_helper.h"
 
 static void dia(uint8_t line, uint8_t l, uint8_t r, uint8_t g, uint8_t b) {
 
@@ -152,10 +153,7 @@ void diamon_slicer(uint8_t slice, uint8_t r, uint8_t g, uint8_t b) {
 void make_diamon1( void ) {
     int8_t i;
 
-    FILE *ptr = fopen("diamon2.pat","wb");
-    strncpy(header.name,"Diamon 2",16);
-    fwrite( &header, sizeof(header), 1, ptr);
-    printHeader();
+    createPattern("diamon2.pat","Diamon 2");
 
     patternFrame.cycles = 8;
     patternFrame.delay = 1;
@@ -168,18 +166,15 @@ void make_diamon1( void ) {
         if ((i>1)&&(i<16)) diamon_slicer(i-2, LED_MINUS, LED_PLUS, LED_MINUS); // 2 - 15
         if ((i>0)&&(i<15)) diamon_slicer(i-1, LED_PLUS, LED_MINUS, LED_MINUS); // 1 - 14
         if         (i<14)  diamon_slicer(i,   LED_PLUS, LED_MINUS, LED_MINUS); // 0 - 13
-        writeFrame(ptr);
+        writeFrame();
     }
-    fclose(ptr);
+    finishPattern();
 }
 
 void make_diamon2( void ) {
     int8_t i;
 
-    FILE *ptr = fopen("diamon1.pat","wb");
-    strncpy(header.name,"Diamon 1",16);
-    fwrite( &header, sizeof(header), 1, ptr);
-    printHeader();
+    createPattern("diamon1.pat","Diamon 1");
 
     patternFrame.cycles = 8;
     patternFrame.delay = 4;
@@ -195,9 +190,9 @@ void make_diamon2( void ) {
         if ((i>1)&&(i<16)) diamon_slicer(i-1, LED_MINUS, LED_MINUS, LED_PLUS); // 2 - 15
         if ((i>0)&&(i<15)) diamon_slicer(i-1, LED_MINUS, LED_MINUS, LED_PLUS); // 1 - 14
         if         (i<14)  diamon_slicer(i,   LED_MINUS, LED_MINUS, LED_PLUS); // 0 - 13
-        writeFrame(ptr);
+        writeFrame();
     }
-    fclose(ptr);
+    finishPattern();
 }
 
 void main( void ) {

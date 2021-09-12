@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include "core_utils.h"
+#include "core_helper.h"
 
 typedef struct {
    uint8_t len;
@@ -35,32 +36,6 @@ typedef struct {
    uint8_t colorGreen;
    uint8_t colorBlue;
 } drop_t;
-
-/*******************************************************************************
-    PURPOSE: shift the LEDs in the frame down a level
-
-    7 -> 6, 6 -> 5, 5 -> 4, etc ...
-
-    INPUTS:
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
-
-*******************************************************************************/
-
-void shiftDown( void ) {
-    uint8_t r,g,b;
-    for (uint8_t l = 1; l < 8; l++) {
-        for (uint8_t x = 0; x < 4; x++) {
-            for (uint8_t y = 0; y < 4; y++) {
-                getLed(l,x,y,&r, &g, &b);
-		setLed(l-1,x,y, r, g, b);
-	    }
-	}
-    }
-}
 
 /*******************************************************************************
     PURPOSE: generate pattern
@@ -78,10 +53,7 @@ void shiftDown( void ) {
 
 void main( void ) {
 
-    FILE *ptr = fopen("rain.pat","wb");
-    strncpy(header.name,"Rain",16);
-    fwrite( &header, sizeof(header), 1, ptr);
-    printHeader();
+    createPattern("rain.pat","Rain");
 
     patternFrame.cycles = 8;
     patternFrame.delay = 1;
@@ -121,9 +93,9 @@ void main( void ) {
 	    }
 	}
 
-        writeFrame(ptr);
+        writeFrame();
     }
 
-    fclose(ptr);
+    finishPattern();
 }
 

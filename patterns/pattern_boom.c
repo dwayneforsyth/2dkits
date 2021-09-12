@@ -5,14 +5,13 @@
 #include <string.h>
 
 #include "core_utils.h"
+#include "core_helper.h"
 
 void main(void) {
     int8_t l,x,y;
 
-    FILE *ptr = fopen("boom.pat","wb");
-    strncpy(header.name,"Boom",16);
-    fwrite( &header, sizeof(header), 1, ptr);
-    printHeader();
+    createPattern("boom.pat", "Boom");
+
     uint8_t color, red_up, green_up, blue_up;
 
     for (color=1;color < 8;color++) {
@@ -29,7 +28,7 @@ void main(void) {
         }
         patternFrame.cycles = 8;
         patternFrame.delay = 1;
-        writeFrame(ptr);
+        writeFrame();
 
         for (l=2;l<6;l++) {
             setLed(l,1,1, red_up, green_up, blue_up);
@@ -49,7 +48,7 @@ void main(void) {
         }
         patternFrame.cycles = 8;
         patternFrame.delay = 1;
-        writeFrame(ptr);
+        writeFrame();
     
         for (l=1;l<7;l++) {
             setLed(l,1,1, red_up, green_up, blue_up);
@@ -71,7 +70,7 @@ void main(void) {
         levelLedsColor(4, red_up, green_up, blue_up);
         patternFrame.cycles = 8;
         patternFrame.delay = 1;
-        writeFrame(ptr);
+        writeFrame();
 
         for (l=0;l<8;l++) {
             setLed(l,1,1, red_up, green_up, blue_up);
@@ -95,7 +94,7 @@ void main(void) {
         levelLedsColor(5, red_up, green_up, blue_up);
         patternFrame.cycles = 8;
         patternFrame.delay = 1;
-        writeFrame(ptr);
+        writeFrame();
 
         for (l=0;l<8;l++) {
             setLed(l,0,1, red_up, green_up, blue_up);
@@ -115,7 +114,7 @@ void main(void) {
         levelLedsColor(6, red_up, green_up, blue_up);
         patternFrame.cycles = 8;
         patternFrame.delay = 1;
-        writeFrame(ptr);
+        writeFrame();
 
     allLedsColor( red_up, green_up, blue_up);
         for (l=3;l<5;l++) {
@@ -126,7 +125,7 @@ void main(void) {
         }
         patternFrame.cycles = 8;
     patternFrame.delay = 1;
-        writeFrame(ptr);
+        writeFrame();
 
         for (l=2;l<6;l++) {
             setLed(l,1,1, LED_MINUS, LED_MINUS, LED_MINUS);
@@ -146,7 +145,7 @@ void main(void) {
          }
          patternFrame.cycles = 8;
          patternFrame.delay = 1;
-         writeFrame(ptr);
+         writeFrame();
  
          for (l=1;l<7;l++) {
              setLed(l,1,1, LED_MINUS, LED_MINUS, LED_MINUS);
@@ -168,7 +167,7 @@ void main(void) {
          levelLedsColor(4, LED_MINUS, LED_MINUS, LED_MINUS);
          patternFrame.cycles = 8;
          patternFrame.delay = 1;
-         writeFrame(ptr);
+         writeFrame();
  
          for (l=0;l<8;l++) {
              setLed(l,1,1, LED_MINUS, LED_MINUS, LED_MINUS);
@@ -192,7 +191,7 @@ void main(void) {
         levelLedsColor(5, LED_MINUS, LED_MINUS, LED_MINUS);
         patternFrame.cycles = 8;
         patternFrame.delay = 1;
-        writeFrame(ptr);
+        writeFrame();
 
         for (l=0;l<8;l++) {
             setLed(l,0,1, LED_MINUS, LED_MINUS, LED_MINUS);
@@ -212,13 +211,13 @@ void main(void) {
         levelLedsColor(6, LED_MINUS, LED_MINUS, LED_MINUS);
         patternFrame.cycles = 8;
         patternFrame.delay = 1;
-        writeFrame(ptr);
+        writeFrame();
 
         allLedsColor(LED_MINUS, LED_MINUS, LED_MINUS);
         patternFrame.cycles = 8;
         patternFrame.delay = 1;
-        writeFrame(ptr);
+        writeFrame();
 
     }
-    fclose(ptr);
+    finishPattern();
 }

@@ -10,24 +10,24 @@ BASE_PATH="/home/httpd/html_2dkits/kits/kit25"
 
 all: rain boom diamon cubes
 
-cubes: pattern_cubes.o core.o
-	$(CC) -o cubes pattern_cubes.o core.o
+cubes: pattern_cubes.o core_utils.o core_helper.o
+	$(CC) -o cubes pattern_cubes.o core_utils.o core_helper.o
 	./cubes
 	scp cubes.pat $(SERVER):$(BASE_PATH)/patterns
 
-boom: pattern_boom.o core.o
-	$(CC) -o boom pattern_boom.o core.o
+boom: pattern_boom.o core_utils.o core_helper.o
+	$(CC) -o boom pattern_boom.o core_utils.o core_helper.o
 	./boom
 	scp boom.pat $(SERVER):$(BASE_PATH)/patterns
 
-diamon: pattern_diamon.o core.o
-	$(CC) -o diamon pattern_diamon.o core.o
+diamon: pattern_diamon.o core_utils.o core_helper.o
+	$(CC) -o diamon pattern_diamon.o core_utils.o core_helper.o
 	./diamon
 	scp diamon1.pat $(SERVER):$(BASE_PATH)/patterns
 	scp diamon2.pat $(SERVER):$(BASE_PATH)/patterns
 
-rain: pattern_rain.o core.o
-	$(CC) -o rain pattern_rain.o core.o
+rain: pattern_rain.o core_utils.o core_helper.o
+	$(CC) -o rain pattern_rain.o core_utils.o core_helper.o
 	./rain
 	scp rain.pat $(SERVER):$(BASE_PATH)/patterns
 

@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include "core_utils.h"
+#include "core_helper.h"
 
 typedef struct cube_t {
    uint8_t x;
@@ -164,16 +165,13 @@ uint8_t moveCube(uint8_t id, int8_t dl, int8_t dx, int8_t dy) {
 *******************************************************************************/
 void main(void) {
 
-    FILE *ptr = fopen("cubes.pat","wb");
-    strncpy(header.name,"Cubes",16);
-    fwrite( &header, sizeof(header), 1, ptr);
-    printHeader();
+    createPattern("cubes.pat","Cubes");
 
     patternFrame.cycles = 8;
     patternFrame.delay = 1;
 
     render_cubes();
-    writeFrame(ptr);
+    writeFrame();
 
     for (uint16_t loop; loop < 240; loop++) {
         for (uint8_t id=0;id<NUM_CUBES; id++) {
@@ -213,8 +211,8 @@ void main(void) {
 	}
 
         render_cubes();
-        writeFrame(ptr);
+        writeFrame();
     }
 
-    fclose(ptr);
+    finishPattern();
 }
