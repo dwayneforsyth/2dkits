@@ -44,6 +44,7 @@ typedef struct blinkieAppData_t {
    uint8_t apMac[6];
    uint8_t staMac[6];
    bool testRelease;
+   uint8_t tzone;
 } blinkieAppData_t;
 
 void loadSettings();

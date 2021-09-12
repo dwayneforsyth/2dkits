@@ -131,6 +131,16 @@ bool check_dfu(char * firmware_file, char * url) {
     return(update);
 }
 
+/*******************************************************************************
+
+    PURPOSE: simeple test if new firmware exist on server
+
+    INPUTS: dfu flags bit 2 - production / test
+
+    RETURN CODE: bool - if newer code exist
+
+*******************************************************************************/
+
 bool checkForUpdate( uint8_t flags) {
     char firmware_file[MAX_DFU_CONTROL_LEN];
     return( check_dfu(firmware_file, (flags==2)? CONFIG_TEST_FIRMWARE_STATUS_URL :  CONFIG_FIRMWARE_STATUS_URL));

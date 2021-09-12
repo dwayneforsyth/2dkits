@@ -126,7 +126,23 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
     } else if (strncmp("%rgb",token,4)==0) {
         //DDF send nothing - hard codded
     } else if (strncmp("%tz",token,3)==0) {
-        //DDF send nothing - hard codded
+	sprintf(tBuffer,"%%tz%02d", xAppData.tzone);
+        if (strcmp(tBuffer, token)==0) {
+            sprintf(tBuffer, " selected ");
+            httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
+        }
+#ifdef TIXCLOCK
+    } else if (strncmp("%tf",token,3)==0) {
+        if ((strcmp("%tf12", token)==0) && (xAppData.tformat == true)) {
+            sprintf(tBuffer, " selected ");
+            httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
+        } else if ((strcmp("%tf24", token)==0) && (xAppData.tformat == false)) {
+            sprintf(tBuffer, " selected ");
+            httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
+        } else {
+            ESP_LOGI(TAG, "DDF time format error >%s<",token);
+	}
+#endif
     } else if (strcmp("%sasip",token)==0) {
         if (xAppData.ipName != NULL) {
             sprintf(tBuffer, "%s", xAppData.ipName);
@@ -447,6 +463,10 @@ static void processVar( char * name, char * value) {
         setWifiPasswd(i,value);
     } else if (strcmp("tz", name)==0) {
         setTZ(value);
+#ifdef TIXCLOCK
+    } else if (strcmp("tformat", name)==0) {
+        setTFormat(value);
+#endif
     } else {
         ESP_LOGI(TAG, "unknown >%s< = >%s<", name, value);
     }
