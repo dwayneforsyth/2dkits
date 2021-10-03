@@ -110,7 +110,7 @@ bool searchDir( point_t * point, uint8_t r, uint8_t g, uint8_t b) {
 	    }
             break;
         case DIR_UP:
-	    if ((point->l!=7) && checkLed(point->l+1,point->x,point->y, r,g,b)) {
+	    if ((point->l!=3) && checkLed(point->l+1,point->x,point->y, r,g,b)) {
 		point->l++;
                 return( true);
 	    } else {
@@ -140,7 +140,7 @@ void main( void ) {
     uint8_t b = 0;
     bool moved = true;
 
-    createPattern("maze.pat","maze");
+    createPattern("maze4.pat","maze");
 
     patternFrame.cycles = 8;
     patternFrame.delay = 1;

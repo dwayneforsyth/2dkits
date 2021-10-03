@@ -18,7 +18,7 @@ cubes: pattern_cubes.o core_utils.o core_helper.o
 boom: pattern_boom.o core_utils.o core_helper.o
 	$(CC) -o boom pattern_boom.o core_utils.o core_helper.o
 	./boom
-	scp boom.pat $(SERVER):$(BASE_PATH)/patterns
+	scp boom4.pat $(SERVER):$(BASE_PATH)/patterns
 
 diamon: pattern_diamon.o core_utils.o core_helper.o
 	$(CC) -o diamon pattern_diamon.o core_utils.o core_helper.o
@@ -34,7 +34,7 @@ rain: pattern_rain.o core_utils.o core_helper.o
 maze: pattern_maze.o core_utils.o core_helper.o
 	$(CC) -o maze pattern_maze.o core_utils.o core_helper.o
 	./maze
-	scp maze.pat $(SERVER):$(BASE_PATH)/patterns
+	scp maze4.pat $(SERVER):$(BASE_PATH)/patterns
 
 colcol: pattern_colcol.o core_utils.o core_helper.o
 	$(CC) -o colcol pattern_colcol.o core_utils.o core_helper.o
