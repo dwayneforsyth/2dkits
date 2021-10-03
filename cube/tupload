@@ -5,7 +5,7 @@ RELEASE="00.00.03"
 TXT_FILE="current_test_firmware.txt"
 BIN_FILE_PATH="build/cube.bin"
 SERVER="forsyth@www.dforsyth.net"
-BASE_PATH="/home/httpd/html_2dkits/kits/kit31"
+BASE_PATH="/home/httpd/html_2dkits/kits/kit13"
 
 echo "$RELEASE kits/kit13/cube_test_$RELEASE.bin" > $TXT_FILE
 echo "$RELEASE"

@@ -47,6 +47,7 @@
 #define BUTTON2 35
 
 #define MAX_PATTERN_ENTRY 50
+#define MAX_LAYER 4
 
 typedef enum patternType_t {
     PATTERN_NONE,
@@ -148,13 +149,22 @@ bool delay_and_buttons(uint16_t delay) {
     return(exit);
 }
 
-/*
-   This code drive the 2DKits.com 4x4x8 tower
-*/
+/*******************************************************************************
+    PURPOSE: run a single color on each layer
 
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+    DBG RLLLYYXX tower
+     DB GRLLYYXX cube
+
+*******************************************************************************/
 
 void walking_testing( uint16_t cycles, uint16_t delay) {
-    uint16_t step = 0x007f;
+    uint16_t step = 0x003f;
     uint8_t l,x,y,r,g,b;
 
     while(cycles != 0) {
@@ -162,17 +172,17 @@ void walking_testing( uint16_t cycles, uint16_t delay) {
 	step++;
 
 //      -DBG RLLL YYXX
-        l = ((step&0x070)>>4);
-        if ((step&0x400)!=0) {
+        l = ((step&0x030)>>4);
+        if ((step&0x200)!=0) {
            x = ((step&0x003));
            y = ((step&0x00C)>>2);
 	} else {
            y = ((step&0x003));
            x = ((step&0x00C)>>2);
 	}
-        r = ((step&0x080)!=0)? 15 : 0;
-        g = ((step&0x100)!=0)? 15 : 0;
-        b = ((step&0x200)!=0)? 15 : 0;
+        r = ((step&0x040)!=0)? 15 : 0;
+        g = ((step&0x080)!=0)? 15 : 0;
+        b = ((step&0x100)!=0)? 15 : 0;
 	setLed(l,x,y,r,g,b);
 
 //	if (x==0) printf("%X [%d,%d,%d] = (%d,%d,%d)\n",step, l,x,y,r,g,b);
@@ -204,13 +214,25 @@ void rgb_fade( uint16_t cycles, uint16_t delay) {
    }
 }
 
+/*******************************************************************************
+    PURPOSE: run a single color on each layer
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
+
 void layer_test( uint16_t cycles, uint16_t delay) {
    uint8_t l,x,y,c;
 
    while(cycles != 0) {
       cycles--;
       for(c=0;c<3;c++) {
-         for(l=0;l<8;l++) {
+         for(l=0;l<MAX_LAYER;l++) {
             allLedsColor( 0,0,0);
             for(x=0;x<4;x++) {
 	       for (y=0;y<4;y++) {

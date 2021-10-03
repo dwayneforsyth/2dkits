@@ -6,6 +6,7 @@
 static const char *TAG = "cmd_download";
 
 #include "download_file.h"
+#include "version.h"
 
 static void register_download(void);
 
@@ -41,8 +42,6 @@ static struct {
     struct arg_end *end;
 } download_args;
 
-#define CONFIG_TEST_DOWNLOAD_URL "http://www.2dkits.com/kits/kit55/img/index.html"
-
 static int command_download(int argc, char **argv) {
     char * url;
     char * file;
@@ -53,7 +52,7 @@ static int command_download(int argc, char **argv) {
         return 1;
     }
 
-    asprintf( &url, "http://www.2dkits.com/kits/kit25/patterns/%s", 
+    asprintf( &url, "%spatterns/%s", CONFIG_BASE_DFU_FILES_URL,
                      download_args.url->basename[0]);
     asprintf( &file, "/spiffs/%s", 
                       download_args.file->basename[0]);

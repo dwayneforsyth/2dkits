@@ -98,7 +98,7 @@ void auditDiskFiles( void* pvParameters ) {
 
     for (int8_t i=0; i < neededFileCount; i++) {
         if (files[i].status != 1) {
-            asprintf( &url, "http://www.2dkits.com/kits/kit25/%02d.%02d.%02d%s/%s",MAJOR, MINOR, BUILD, (getSystemType())?"_test":"", files[i].name); 
+            asprintf( &url, "%s%02d.%02d.%02d%s/%s",CONFIG_BASE_DFU_FILES_URL,MAJOR, MINOR, BUILD, (getSystemType())?"_test":"", files[i].name);
             asprintf( &file, "/spiffs/%s", files[i].name);
             printf("Need to download %s %s\n", url, files[i].name);
             download_file( file, url);
