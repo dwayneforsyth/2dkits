@@ -57,6 +57,7 @@
 #include "upgrade_disk.h"
 #include "download_file.h"
 #include "dfu.h"
+#include "captdns.h"
 
 extern blinkieAppData_t xAppData;
 
@@ -231,7 +232,7 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
                         chunkHead = chunkIndex+1;
                         token[tokenIndex] = 0;
                         // perform token lookup
-                        ESP_LOGI(TAG, "token = %s", token);
+                        //ESP_LOGI(TAG, "token = %s", token);
                         lookupToken(req, token);
                     } else {
                         readingToken = true;
@@ -279,7 +280,7 @@ esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary)
 
     fclose(f);
     // Adding this logging caused the code to start working.....
-    ESP_LOGI(TAG, "done file : %s", filename);
+//    ESP_LOGI(TAG, "done file : %s", filename);
     return ESP_OK;
 }
 
@@ -353,18 +354,18 @@ esp_err_t get_file_handler(httpd_req_t *req)
     // any inputs?
     parseUrl(req);
 
-    ESP_LOGI(TAG, "ctx = %s", filename);
+//    ESP_LOGI(TAG, "ctx = %s", filename);
     sLength = strlen(filename);
     if (strcmp(".jpg",&filename[sLength-4]) == 0) {
         httpd_resp_set_hdr(req, "Content-type", "image/jpg");
-        ESP_LOGI(TAG, "found jpg:");
+//        ESP_LOGI(TAG, "found jpg:");
     } else if (strcmp(".html",&filename[sLength-5]) == 0) {
         httpd_resp_set_hdr(req, "Content-type", "text/html");
-        ESP_LOGI(TAG, "found html:");
+//        ESP_LOGI(TAG, "found html:");
         headFoot = true;
     } else if (strcmp(".css",&filename[sLength-4]) == 0) {
         httpd_resp_set_hdr(req, "Content-type", "text/html");
-        ESP_LOGI(TAG, "found css:");
+//        ESP_LOGI(TAG, "found css:");
     }
     /* Send a simple response */
     if (headFoot) file_get_handler(req, "/spiffs/header.html", true);
@@ -658,6 +659,20 @@ httpd_uri_t root = {
     .user_ctx  = "/spiffs/index.html"
 };
 
+httpd_uri_t root2 = {
+    .uri       = "/generate_204",
+    .method    = HTTP_GET,
+    .handler   = get_file_handler,
+    .user_ctx  = "/spiffs/index.html"
+};
+
+httpd_uri_t root3 = {
+    .uri       = "/gen_204",
+    .method    = HTTP_GET,
+    .handler   = get_file_handler,
+    .user_ctx  = "/spiffs/index.html"
+};
+
 httpd_uri_t about = {
     .uri       = "/about.html",
     .method    = HTTP_GET,
@@ -743,8 +758,8 @@ httpd_handle_t start_webserver(void) {
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.stack_size = 7 *1024;
-
-    config.max_uri_handlers = 11;
+    config.max_uri_handlers = 14;
+    config.max_open_sockets = 13;
 
     // Start the httpd server
     ESP_LOGI(TAG, "Starting server on port: %d", config.server_port);
@@ -752,6 +767,8 @@ httpd_handle_t start_webserver(void) {
         // Set URI handlers
         ESP_LOGI(TAG, "Registering URI handlers");
         httpd_register_uri_handler(server, &root);
+        httpd_register_uri_handler(server, &root2);
+        httpd_register_uri_handler(server, &root3);
         httpd_register_uri_handler(server, &ccs);
         httpd_register_uri_handler(server, &web_dir);
         httpd_register_uri_handler(server, &logo);
@@ -950,6 +967,8 @@ void initialise_wifi_p2(void *arg) {
     ESP_ERROR_CHECK(esp_wifi_get_mac(WIFI_IF_AP, xAppData.apMac) );
     ESP_ERROR_CHECK(esp_wifi_get_mac(ESP_IF_WIFI_STA, xAppData.staMac));
     ESP_ERROR_CHECK(esp_wifi_start());
+
+    captdnsInit();
 
 //    start_webserver();
 }

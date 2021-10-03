@@ -39,7 +39,7 @@ void storeSettings() {
 
    FILE *ptr = fopen("/spiffs/setting.bin","wb");
 
-   printf("store Settings\n");
+   ESP_LOGW(TAG,"store Settings");
 
    fwrite( &xAppData, sizeof(xAppData), 1, ptr);
 
@@ -50,7 +50,7 @@ void loadSettings() {
 
    FILE *ptr = fopen("/spiffs/setting.bin","rb");
 
-   printf("Load Settings\n");
+   ESP_LOGW(TAG, "Load Settings\n");
 
    if (!ptr) {
        initSettings();
@@ -62,7 +62,6 @@ void loadSettings() {
 }
 
 void addWifiGateway( char * ssid, char * passwd) {
-	printf("ddf0 %s %s", ssid, passwd);
    if ((xAppData.wifiCount+1) < WIFI_TABLE_SIZE) {
        strlcpy(xAppData.wifi[xAppData.wifiCount].ssid, ssid, MAX_SSID_LENGTH);
        strlcpy(xAppData.wifi[xAppData.wifiCount].passwd, passwd, MAX_PASSWD_LENGTH);
@@ -138,7 +137,7 @@ void setWifiSsid( uint8_t index, char * wssid) {
         ESP_LOGE(TAG, "wifi index out of range i=%d", index);
         return;
     }
-    printf("set wifi ssid[%d] = %s\n",index, wssid);
+    ESP_LOGW(TAG,"set wifi ssid[%d] = %s",index, wssid);
     strlcpy(xAppData.wifi[index].ssid, wssid, MAX_SSID_LENGTH);
 }
 
@@ -147,17 +146,17 @@ void setWifiPasswd( uint8_t index, char * wpasswd) {
         ESP_LOGE(TAG, "wifi index out of range i=%d", index);
         return;
     }
-	printf("set wifi passwd[%d] = %s\n",index, wpasswd);
+	ESP_LOGW(TAG,"set wifi passwd[%d] = %s",index, wpasswd);
     strlcpy(xAppData.wifi[index].passwd, wpasswd, MAX_PASSWD_LENGTH);
 }
 
 void WifiCleanup( void ) {
    xAppData.wifiCount = 0;
    for (uint8_t i=0;i<10;i++) {
-       printf("cleanup3 %d >%s<\n",i,xAppData.wifi[i].ssid);
+       //printf("cleanup3 %d >%s<\n",i,xAppData.wifi[i].ssid);
        if (xAppData.wifi[i].ssid[0] != 0) {
            if ( i > xAppData.wifiCount) {
-               printf("shift %d -> %d\n", i, xAppData.wifiCount);
+               //printf("shift %d -> %d\n", i, xAppData.wifiCount);
                //shift down
                strlcpy(xAppData.wifi[xAppData.wifiCount].ssid,
                        xAppData.wifi[i].ssid, MAX_PASSWD_LENGTH);
@@ -166,7 +165,7 @@ void WifiCleanup( void ) {
 	   }
            xAppData.wifiCount++;
        } else {
-           printf("empty i=%d c=%d\n", i, xAppData.wifiCount);
+           //printf("empty i=%d c=%d\n", i, xAppData.wifiCount);
        }
    } 
    storeSettings();
