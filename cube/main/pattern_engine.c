@@ -354,7 +354,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 		  return;
 	      }
 	      break;
-          case 32: {
+          case 32: { // Tower
 //	      const char *LEDValue[19] = { "0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","+","-","#" };
               uint8_t red, green, blue;
 	      uint16_t temp;
@@ -378,10 +378,42 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 			  }
 //		          printf("\n");
                       }
-	       	  }
+                  }
 //		  printf("cycles=%d delay=%d\n",loops,delay*speed);
                   if (delay_and_buttons(delay*speed)) {
-                      fclose(fh); 
+                      fclose(fh);
+		      return;
+	          }
+              }
+              break;
+          }
+          case 33: { // cube
+              uint8_t red, green, blue;
+	      uint16_t temp;
+              uint8_t loops,tLoops[2];
+              int8_t l,x,y;
+              fread(tBuffer,2,(4*4*4), fh);
+              fread(tLoops,1,1, fh);
+              fread(&delay,1,1, fh);
+//	      printf("\nframe %d\n",frame);
+              for (loops=0;loops<tLoops[0];loops++) {
+                  for (l=3;l>=0;l--) {
+                      for (x=0;x<4;x++) {
+                          for (y=0;y<4;y++) {
+                              temp = tBuffer[(l*16+x*4+y)];
+                              blue =   temp & 0x1f;
+                              green = (temp >>5) & 0x1f;
+                              red =   (temp >>10) & 0x1f;
+                              setLed(l,x,y, red,green,blue);
+//			      printf("%4X ", temp);
+//			      printf(" (%2s,%2s,%2s)",LEDValue[red],LEDValue[green],LEDValue[blue]);
+                          }
+//		          printf("\n");
+                      }
+                  }
+//		  printf("cycles=%d delay=%d\n",loops,delay*speed);
+                  if (delay_and_buttons(delay*speed)) {
+                      fclose(fh);
 		      return;
 	          }
               }
@@ -521,7 +553,7 @@ esp_err_t cloud_pattern_list(httpd_req_t *req)  {
         return ESP_OK;
     }
 
-    download_file( "/spiffs/cloud.lst", "https://www.2dkits.com/kits/kit25/patterns/");
+    download_file( "/spiffs/cloud.lst", "https://www.2dkits.com/kits/kit13/patterns/");
 
     httpd_resp_send_chunk(req, pattern_header, strlen(pattern_header));
     FILE *ptr = fopen("/spiffs/cloud.lst","rb");
