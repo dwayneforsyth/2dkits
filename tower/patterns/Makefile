@@ -8,7 +8,7 @@ BASE_PATH="/home/httpd/html_2dkits/kits/kit25"
 %.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: rain boom diamon cubes colcol maze
+all: rain boom diamon cubes colcol maze anoy
 
 cubes: pattern_cubes.o core_utils.o core_helper.o
 	$(CC) -o cubes pattern_cubes.o core_utils.o core_helper.o
@@ -35,6 +35,11 @@ maze: pattern_maze.o core_utils.o core_helper.o
 	$(CC) -o maze pattern_maze.o core_utils.o core_helper.o
 	./maze
 	scp maze.pat $(SERVER):$(BASE_PATH)/patterns
+
+anoy: pattern_anoy.o core_utils.o core_helper.o
+	$(CC) -o anoy pattern_anoy.o core_utils.o core_helper.o
+	./anoy
+	scp anoy.pat $(SERVER):$(BASE_PATH)/patterns
 
 colcol: pattern_colcol.o core_utils.o core_helper.o
 	$(CC) -o colcol pattern_colcol.o core_utils.o core_helper.o

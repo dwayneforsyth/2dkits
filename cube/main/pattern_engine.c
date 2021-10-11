@@ -297,6 +297,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
    uint8_t fad_cycle;
    uint16_t frame = 0;
    bool once = true;
+   int ret;
 
    allLedsColor( 0,0,0);
 
@@ -340,8 +341,9 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 	      }
               break;
 	  case 16:
-              fread(tBuffer,2,(8*3), fh);
-//              printf("read frame=%d cycles=%d\n",frame,cycles);
+              ret = fread(tBuffer,2,(8*3), fh);
+	      if (ret == 0) { break; }
+              // printf("read frame=%d cycles=%d eof=%d\n",frame,cycles,feof(fh));
 	      for (loop=0;loop<8;loop++) {
                   setLed4RGBOnOff(7-(7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
                   setLed4RGBOnOff(7-((7-loop)/4+2), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
@@ -411,7 +413,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 //		          printf("\n");
                       }
                   }
-//		  printf("cycles=%d delay=%d\n",loops,delay*speed);
+		  //printf("cycles=%d delay=%d\n",loops,delay*speed);
                   if (delay_and_buttons(delay*speed)) {
                       fclose(fh);
 		      return;
