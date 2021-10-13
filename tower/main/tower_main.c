@@ -23,8 +23,6 @@
 //   other files.
 //**********************************************************************
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,6 +68,17 @@ void addPattern_cb( char type, char * size, char * sha, char *name, void *data) 
     }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void app_main()
 {
  

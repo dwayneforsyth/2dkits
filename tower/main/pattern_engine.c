@@ -71,37 +71,125 @@ uint8_t step = 0;
 
 bool printPattern = false;
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setPrintPattern( bool onOff ) {
     printPattern = onOff;
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 bool getPrintPattern( void ) {
     return(printPattern);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setPatternPlus() {
     step = ((step+1) % MAX_PATTERN_ENTRY);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setPatternMinus() {
     step = ((step-1) % MAX_PATTERN_ENTRY);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 bool demoMode = true;
 bool getDemoMode() {
     return(demoMode);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setDemoMode(bool onOff) {
     demoMode = onOff;
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void patternEngineOff(void) {
     changeBank(1);
     allLedsOff();
 }
 
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 bool delay_and_buttons(uint16_t delay) {
     bool exit = pendingExit;
     uint16_t delayCount = 0;
@@ -153,6 +241,17 @@ bool delay_and_buttons(uint16_t delay) {
 */
 
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void walking_testing( uint16_t cycles, uint16_t delay) {
     uint16_t step = 0x007f;
     uint8_t l,x,y,r,g,b;
@@ -180,6 +279,17 @@ void walking_testing( uint16_t cycles, uint16_t delay) {
     }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void rgb_fade( uint16_t cycles, uint16_t delay) {
    uint8_t r,g,b,fad,color;
 
@@ -204,6 +314,17 @@ void rgb_fade( uint16_t cycles, uint16_t delay) {
    }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void layer_test( uint16_t cycles, uint16_t delay) {
    uint8_t l,x,y,c;
 
@@ -223,6 +344,17 @@ void layer_test( uint16_t cycles, uint16_t delay) {
    }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void rgb_test( uint16_t cycles, uint16_t delay) {
 
    while(cycles != 0) {
@@ -240,6 +372,17 @@ void rgb_test( uint16_t cycles, uint16_t delay) {
    }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setLed4RGBOnOff(uint8_t l, uint8_t x, uint16_t r, uint16_t g, uint16_t b, uint16_t mask) {
     uint8_t y;
     for (y=0;y<4;y++) {
@@ -248,12 +391,34 @@ void setLed4RGBOnOff(uint8_t l, uint8_t x, uint16_t r, uint16_t g, uint16_t b, u
     }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 uint8_t upDown(bool test, uint8_t value) {
    if ((test == true ) && (value < 15)) return( value+1);
    if ((test == false) && (value != 0)) return( value-1);
    return(value);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setLed4RGBUpDown(uint8_t l, uint8_t x, uint16_t red, uint16_t green, uint16_t blue, uint16_t mask) {
     uint8_t y;
     uint8_t cRed,cGreen,cBlue;
@@ -265,6 +430,17 @@ void setLed4RGBUpDown(uint8_t l, uint8_t x, uint16_t red, uint16_t green, uint16
     }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
    uint16_t tBuffer[256];
    char filename[40];
@@ -377,6 +553,17 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 }
 
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
    {.patternType = PATTERN_BUILT_IN,
     .runMe = layer_test,
@@ -404,6 +591,17 @@ pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
     .enabled = true},
   };
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void addPattern( char * filename) {
     uint8_t index;
 
@@ -427,6 +625,17 @@ void addPattern( char * filename) {
     patternTable[index].patternType = PATTERN_FILE;
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void deletePattern( char * filename) {
     uint8_t index;
 
@@ -439,10 +648,32 @@ void deletePattern( char * filename) {
     }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 uint8_t getPatternNumber() {
 	return(step);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setPatternNumber(uint8_t newStep) {
     if (step != newStep) {
 	step = ((newStep-1) % MAX_PATTERN_ENTRY);
@@ -450,6 +681,17 @@ void setPatternNumber(uint8_t newStep) {
     }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 char * getPatternName() {
         static  char * none = "[no name]";
 
@@ -458,6 +700,17 @@ char * getPatternName() {
 	return(tmp);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void parsePatternFileStr( char * line,  char * name, char * sha, char * url) {
 
 	uint8_t i = 0;
@@ -478,6 +731,17 @@ void parsePatternFileStr( char * line,  char * name, char * sha, char * url) {
 	url[length-i-1] = 0; // dump the \n at the end
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 esp_err_t cloud_pattern_list(httpd_req_t *req)  {
     const char *pattern_header = "<table><tr><th>File<th>Sha1 Hash<th>Action<th>&nbsp\n";
     const char *pattern_footer = "</table></body></html>\n";
@@ -538,6 +802,17 @@ esp_err_t cloud_pattern_list(httpd_req_t *req)  {
     return ESP_OK;
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 esp_err_t web_pattern_list(httpd_req_t *req)  {
     const char *pattern_header = "<table><tr><th>Status<th>Id<th>Name<th>Type<th>Speed<th>Cycles<th>&nbsp\n";
     const char *pattern_footer = "</table></body></html>\n";
@@ -566,7 +841,7 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
 	       (step == index)? "==>" : "",
                index,
                patternTable[index].patternName,
-               (patternTable[index].patternType == PATTERN_BUILT_IN)? "Build In":"File System",
+               (patternTable[index].patternType == PATTERN_BUILT_IN)? "Built-in":"File System",
 	       patternTable[index].delay,
 	       patternTable[index].cycles,
 	       index,
@@ -581,6 +856,17 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
     return ESP_OK;
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void updatePatternsTask(void *param) {
 
     allLedsOff();
@@ -607,4 +893,3 @@ void updatePatternsTask(void *param) {
         if (demoMode) {setPatternPlus();}
     }
 }
-
