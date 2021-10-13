@@ -130,6 +130,7 @@ void consoleInit( void ) {
     commands_download();
 #ifndef TIXCLOCK
     commands_pattern();
+    commands_picoc();
 #else
     commands_tixclock();
 #endif

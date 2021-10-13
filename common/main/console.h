@@ -13,6 +13,7 @@ void commands_dfu( void );
 void commands_pattern( void );
 void commands_wifi( void );
 void commands_download( void );
+void commands_picoc( void );
 
 #ifdef TIXCLOCK
 void commands_tixclock( void );

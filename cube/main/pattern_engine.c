@@ -622,7 +622,7 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
 	       (step == index)? "==>" : "",
                index,
                patternTable[index].patternName,
-               (patternTable[index].patternType == PATTERN_BUILT_IN)? "Build In":"File System",
+               (patternTable[index].patternType == PATTERN_BUILT_IN)? "Built-in":"File System",
 	       patternTable[index].delay,
 	       patternTable[index].cycles,
 	       index,
