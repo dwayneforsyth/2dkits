@@ -735,4 +735,9 @@ extern const char UnistdDefs[];
 extern struct LibraryFunction UnistdFunctions[];
 extern void UnistdSetupFunc(Picoc *pc);
 
+/* blinkie.c */
+extern struct LibraryFunction BlinkieFunctions[];
+extern void BlinkieSetupFunc(Picoc *pc);
+
+
 #endif /* INTERPRETER_H */

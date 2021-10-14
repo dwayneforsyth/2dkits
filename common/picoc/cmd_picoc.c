@@ -48,7 +48,7 @@ static struct {
 } run_args;
 
 /* Override via STACKSIZE environment variable */
-#define PICOC_STACK_SIZE (1024*4)
+#define PICOC_STACK_SIZE (1024*40)
 
 
 static int command_run(int argc, char **argv) {
@@ -77,6 +77,7 @@ static int command_run(int argc, char **argv) {
     if (run_args.interactive->count) {
         PicocIncludeAllSystemHeaders(&pc);
         PicocParseInteractive(&pc);
+        DontRunMain = true;
     } else { 
 
         if (run_args.files->count) {
@@ -84,7 +85,7 @@ static int command_run(int argc, char **argv) {
                 PicocCleanup(&pc);
                 return pc.PicocExitValue;
             }
-            printf("scan file=>%s<\n",run_args.files->basename[0]);
+            ESP_LOGI(TAG,"... scan file=>%s<",run_args.files->basename[0]);
             char *file;
 	    asprintf( &file, "/spiffs/%s", run_args.files->basename[0]);
             PicocPlatformScanFile(&pc, file);
@@ -93,13 +94,13 @@ static int command_run(int argc, char **argv) {
     }
 
     if (!DontRunMain) {
-       printf("call main\n");
+       ESP_LOGI(TAG,"... call main");
        PicocCallMain(&pc, 0, NULL);
     }
 
     PicocCleanup(&pc);
   
-    printf("picoc done\n");
+    ESP_LOGI(TAG,"... picoc done");
     return 0;
 }
 

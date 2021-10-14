@@ -67,8 +67,14 @@ typedef struct pattern_entry_t {
 
 uint8_t pendingExit = false;
 
-uint8_t step = 0;
+bool patternRun = true;
 
+void setPatternRun( bool onOff ) {
+    printf("SetPatternRun %d -> %d\n", patternRun, onOff);
+    patternRun = onOff;
+}
+
+uint8_t step = 0;
 
 bool printPattern = false;
 
@@ -109,6 +115,10 @@ bool delay_and_buttons(uint16_t delay) {
 
     pendingExit = false;
     vTaskDelay(delay / portTICK_PERIOD_MS);
+
+    while (patternRun == false) {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
 
     if (gpio_get_level(BUTTON1) == 0) {
         printf("Button 1\n");
@@ -648,19 +658,23 @@ void updatePatternsTask(void *param) {
     gpio_set_direction(BUTTON2 , GPIO_MODE_INPUT);
 
     while (1) {
-	if (printPattern) {printf("running pattern %d %s\n", step, patternTable[step].patternName);}
-        switch (patternTable[step].patternType) {
-            case PATTERN_BUILT_IN:
-                (patternTable[step].runMe)(patternTable[step].cycles, patternTable[step].delay);
-                break;
-            case PATTERN_FILE:
-                runDiskPattern(patternTable[step].fileName, patternTable[step].cycles, patternTable[step].delay);
-                break;
-            case PATTERN_NONE:
-            default:
-                break;
+	if (patternRun == true) {
+	    if (printPattern) {printf("running pattern %d %s\n", step, patternTable[step].patternName);}
+            switch (patternTable[step].patternType) {
+                case PATTERN_BUILT_IN:
+                    (patternTable[step].runMe)(patternTable[step].cycles, patternTable[step].delay);
+                    break;
+                case PATTERN_FILE:
+                    runDiskPattern(patternTable[step].fileName, patternTable[step].cycles, patternTable[step].delay);
+                    break;
+                case PATTERN_NONE:
+                default:
+                    break;
+            }
+            if (demoMode) {setPatternPlus();}
+	} else {
+            vTaskDelay(1000); // wait a second
         }
-        if (demoMode) {setPatternPlus();}
     }
 }
 

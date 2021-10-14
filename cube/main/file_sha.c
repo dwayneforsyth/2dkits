@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include "file_sha.h"
 
-const uint8_t neededFileCount = 6;
+const uint8_t neededFileCount = 10;
 neededFiles_t  files[] = {
     {.name = "about.html",       .sha="14f2b37387906b043f66ead493876212dc85bcc4"},
     {.name = "patterns.html",    .sha="3964c504825ac56c1a69c542cbd53fa8689feb85"},
@@ -37,5 +37,6 @@ neededFiles_t  files[] = {
     {.name = "styles.css",       .sha="cfdbd4de3f1a040c8a383e4cf53976df8ca793b4"},
     {.name = "header-bg.jpg",    .sha="7b4d322d9e6b84143ff974b9052bdcd9369f09a1"},
     {.name = "box-title-bg.jpg", .sha="423c796eb3986460384521d82d345b416fe47a67"},
+
 };
 

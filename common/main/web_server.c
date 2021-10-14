@@ -313,7 +313,9 @@ void parseUrl(httpd_req_t *req) {
                 ESP_LOGI(TAG, "Download = %s", param);
 		getFileName(file, param);
   		download_file( file, param);
-		addPattern(&file[8]); // this is a hack to remove the "/spiffs/"
+		if (file[strlen(file)-1] != 'c') { // do not include 'c' files in pattern DDF
+		    addPattern(&file[8]); // this is a hack to remove the "/spiffs/"
+		}
             }
             if (httpd_query_key_value(buf, "delete", param, sizeof(param)) == ESP_OK) {
 		char file[40];

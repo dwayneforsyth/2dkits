@@ -8,7 +8,7 @@ BASE_PATH="/home/httpd/html_2dkits/kits/kit13"
 %.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: rain boom diamon cubes colcol maze axis space anoy twink
+all: rain boom diamon cubes colcol maze axis space anoy twink other
 
 cubes: pattern_cubes.o core_utils.o core_helper.o
 	$(CC) -o cubes pattern_cubes.o core_utils.o core_helper.o
@@ -61,6 +61,13 @@ twink: pattern_twink.o core_utils.o core_helper.o
 	$(CC) -o twink pattern_twink.o core_utils.o core_helper.o
 	./twink
 	scp twink.pat $(SERVER):$(BASE_PATH)/patterns
+
+other: hello.c nested.c printled.c
+	scp hello.c $(SERVER):$(BASE_PATH)/patterns
+	scp nested.c $(SERVER):$(BASE_PATH)/patterns
+	scp printled.c $(SERVER):$(BASE_PATH)/patterns
+	scp testpat0.c $(SERVER):$(BASE_PATH)/patterns
+	scp cubes.c $(SERVER):$(BASE_PATH)/patterns
 
 clean:
 	rm *.o

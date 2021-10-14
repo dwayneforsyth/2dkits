@@ -22,6 +22,8 @@
 #ifndef LED_DRIVER_H
 #define LED_DRIVER_H
 
+#include <stdint.h>
+
 #define LED_PLUS 16
 #define LED_MINUS 17
 #define LED_NOOP 18

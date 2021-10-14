@@ -45,5 +45,8 @@ void setDemoMode( bool onOff );
 bool getDemoMode( void );
 
 void patternEngineOff( void );
+void setPatternRun( bool onOff );
+
+bool delay_and_buttons(uint16_t delay);
 #endif
 

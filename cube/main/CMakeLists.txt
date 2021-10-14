@@ -43,6 +43,7 @@ idf_component_register(SRCS
    "${PICOC}/cstdlib/string.c"
    "${PICOC}/cstdlib/time.c"
    "${PICOC}/cstdlib/unistd.c"
+   "${PICOC}/cstdlib/blinkie.c"
    "${PICOC}/platform/platform_esp32.c"
    "${PICOC}/platform/library_unix.c"
    INCLUDE_DIRS

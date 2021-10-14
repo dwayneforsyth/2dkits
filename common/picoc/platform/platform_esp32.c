@@ -47,6 +47,7 @@ char *PlatformGetLine(char *Buf, int MaxLen, const char *Prompt)
         if (InLine == NULL)
             return NULL;
 
+	linenoiseHistoryAdd(InLine);
         Buf[MaxLen-1] = '\0';
         strncpy(Buf, InLine, MaxLen-2);
         strncat(Buf, "\n", MaxLen-2);
