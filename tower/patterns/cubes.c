@@ -22,68 +22,44 @@
 //   This runs on a pc, not the tower
 //**********************************************************************
 
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
-#include "core_utils.h"
-#include "core_helper.h"
+#include <blinkie.h>
 
 typedef struct cube_t {
-   uint8_t x;
-   uint8_t y;
-   uint8_t l;
-   int8_t dir;
-   int8_t side;
-   uint8_t delay;
-   uint8_t colorRed;
-   uint8_t colorGreen;
-   uint8_t colorBlue;
+   int x;
+   int y;
+   int l;
+   int dir;
+   int side;
+   int delay;
+   int colorRed;
+   int colorGreen;
+   int colorBlue;
 } cube_t;
 
-#define NUM_CUBES 5
-cube_t cube[NUM_CUBES] = {
-        [0]{.x = 0,
-            .y = 0,
-            .l = 0,
-	    .dir = 1,
-            .colorRed = 15,
-            .colorGreen = 0,
-            .colorBlue = 0,
-           },
-        [1]{.x = 0,
-            .y = 2,
-            .l = 6,
-	    .dir = -1,
-            .colorRed = 0,
-            .colorGreen = 15,
-            .colorBlue = 0,
-           },
-        [2]{.x = 2,
-            .y = 0,
-            .l = 0,
-	    .dir = 1,
-            .colorRed = 0,
-            .colorGreen = 0,
-            .colorBlue = 15,
-           },
-        [3]{.x = 2,
-            .y = 2,
-            .l = 4,
-	    .dir = -1,
-            .colorRed = 9,
-            .colorGreen = 9,
-            .colorBlue = 0,
-           },
-        [4]{.x = 2,
-            .y = 2,
-            .l = 0,
-	    .dir = -1,
-            .colorRed = 9,
-            .colorGreen = 0,
-            .colorBlue = 9,
-           }};
+#define NUM_CUBES 6
+cube_t cube[NUM_CUBES];
+
+void initEntry( int i, int x, int y, int l, int d, int r, int g, int b) {
+	cube[i].x = x;
+	cube[i].y = y;
+	cube[i].l = l;
+	cube[i].dir = d;
+	cube[i].side = 0;
+	cube[i].delay = 0;
+	cube[i].colorRed = r;
+	cube[i].colorGreen = g;
+	cube[i].colorBlue = b;
+}
+
+initEntry(0,0,0,0, 1,15, 0, 0);
+initEntry(1,0,2,6,-1, 0,15, 0);
+initEntry(2,2,0,0, 1, 0, 0,15);
+initEntry(3,2,2,4,-1, 9, 9, 0);
+initEntry(4,2,2,0,-1, 9, 0, 9);
+initEntry(5,0,0,6,-1, 0, 9, 9);
 
 /*******************************************************************************
     PURPOSE: draws the cubs in the towers LED frame
@@ -97,16 +73,18 @@ cube_t cube[NUM_CUBES] = {
 
 *******************************************************************************/
 
-void render_cubes(void) {
-   uint8_t c,x,y,l;
-   allLedsColor(0, 0, 0);
+int render_cubes(void) {
+   int c,x,y,l;
+   allLedsColor2(0, 0, 0);
    for (c=0;c<NUM_CUBES;c++) {
        for (x=cube[c].x;x<cube[c].x+2;x++) {
            for (y=cube[c].y;y<cube[c].y+2;y++) {
                for (l=cube[c].l;l<cube[c].l+2;l++) {
-//                   printf("(%d,%d,%d) = (%d,%d,%d)\n",l,x,y,cube[c].colorRed,cube[c].colorGreen,cube[c].colorBlue);
-                   setLed(l,x,y, cube[c].colorRed,cube[c].colorGreen,cube[c].colorBlue);
-}   }   }   }   }
+                   setLed2(l,x,y, cube[c].colorRed,cube[c].colorGreen,cube[c].colorBlue);
+    }   }   }   }
+    transferBuffer();
+    return(endFrame(200));
+}
 
 
 /*******************************************************************************
@@ -122,8 +100,8 @@ void render_cubes(void) {
     NOTES:
 
 *******************************************************************************/
-uint8_t moveCube(uint8_t id, int8_t dl, int8_t dx, int8_t dy) {
-    int8_t l, x, y;
+int moveCube(int id, int dl, int dx, int dy) {
+    int l, x, y;
 
     // out of range check
     l = cube[id].l + dl;
@@ -136,7 +114,7 @@ uint8_t moveCube(uint8_t id, int8_t dl, int8_t dx, int8_t dy) {
     if ((y < 0)||(y > 2)) { return 1; }
 
     // hitting another cube
-    for (uint8_t c=0;c<NUM_CUBES;c++) {
+    for (int c=0;c<NUM_CUBES;c++) {
 	if (( id != c) &&
        	    ((cube[c].l+1 == l)||(cube[c].l == l+1)||(cube[c].l == l)) &&
 	    ((cube[c].x+1 == x)||(cube[c].x == x+1)||(cube[c].x == x)) &&
@@ -165,16 +143,11 @@ uint8_t moveCube(uint8_t id, int8_t dl, int8_t dx, int8_t dy) {
 *******************************************************************************/
 void main(void) {
 
-    createPattern("cubes.pat","Cubes");
+    int run = render_cubes();
 
-    patternFrame.cycles = 8;
-    patternFrame.delay = 1;
-
-    render_cubes();
-    writeFrame();
-
-    for (uint16_t loop; loop < 240; loop++) {
-        for (uint8_t id=0;id<NUM_CUBES; id++) {
+    int loops = 240;
+    while ((loops != 0) && (run == 0)) {
+        for (int id=0;id<NUM_CUBES; id++) {
 	    if (cube[id].delay != 0) {
 		// finish the wait
 	        cube[id].delay--;
@@ -189,10 +162,10 @@ void main(void) {
 		cube[id].side = 0;
 	    } else {
 		// try up/down
-		uint8_t t = moveCube(id, cube[id].dir,0,0);
+		int t = moveCube(id, cube[id].dir,0,0);
 		if (t != 0) {
 		    // blocked, random side to side
-		    uint8_t r = (t==1)? rand()%7 : rand()%3;
+		    int r = (t==1)? rand()%7 : rand()%2;
 		    if ((r == 0) && (moveCube(id, 0,1,0) == 0)) {
 	                cube[id].side = 1;
        		    } else if ((r == 0) && (moveCube(id, 0,0,1) == 0)) {
@@ -209,10 +182,7 @@ void main(void) {
 		}
             }
 	}
-
-        render_cubes();
-        writeFrame();
+        run = render_cubes();
+	loops--;
     }
-
-    finishPattern();
 }

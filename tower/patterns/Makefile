@@ -8,12 +8,7 @@ BASE_PATH="/home/httpd/html_2dkits/kits/kit25"
 %.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: rain boom diamon cubes colcol maze anoy
-
-cubes: pattern_cubes.o core_utils.o core_helper.o
-	$(CC) -o cubes pattern_cubes.o core_utils.o core_helper.o
-	./cubes
-	scp cubes.pat $(SERVER):$(BASE_PATH)/patterns
+all: boom diamon colcol anoy
 
 boom: pattern_boom.o core_utils.o core_helper.o
 	$(CC) -o boom pattern_boom.o core_utils.o core_helper.o
@@ -26,16 +21,6 @@ diamon: pattern_diamon.o core_utils.o core_helper.o
 	scp diamon1.pat $(SERVER):$(BASE_PATH)/patterns
 	scp diamon2.pat $(SERVER):$(BASE_PATH)/patterns
 
-rain: pattern_rain.o core_utils.o core_helper.o
-	$(CC) -o rain pattern_rain.o core_utils.o core_helper.o
-	./rain
-	scp rain.pat $(SERVER):$(BASE_PATH)/patterns
-
-maze: pattern_maze.o core_utils.o core_helper.o
-	$(CC) -o maze pattern_maze.o core_utils.o core_helper.o
-	./maze
-	scp maze.pat $(SERVER):$(BASE_PATH)/patterns
-
 anoy: pattern_anoy.o core_utils.o core_helper.o
 	$(CC) -o anoy pattern_anoy.o core_utils.o core_helper.o
 	./anoy
@@ -46,6 +31,16 @@ colcol: pattern_colcol.o core_utils.o core_helper.o
 	./colcol
 	scp colcol1.pat $(SERVER):$(BASE_PATH)/patterns
 	scp colcol2.pat $(SERVER):$(BASE_PATH)/patterns
+
+other: hello.c nested.c printled.c
+	scp hello.c $(SERVER):$(BASE_PATH)/patterns
+	scp nested.c $(SERVER):$(BASE_PATH)/patterns
+	scp printled.c $(SERVER):$(BASE_PATH)/patterns
+	scp testpat0.c $(SERVER):$(BASE_PATH)/patterns
+	scp cubes.c $(SERVER):$(BASE_PATH)/patterns
+	scp rain.c $(SERVER):$(BASE_PATH)/patterns
+	scp twink.c $(SERVER):$(BASE_PATH)/patterns
+	scp maze.c $(SERVER):$(BASE_PATH)/patterns
 
 clean:
 	rm *.o

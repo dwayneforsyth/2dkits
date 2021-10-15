@@ -5,7 +5,7 @@ idf_component_register(SRCS
    "${COMMON}disk_system.c"
    "${COMMON}sha_file.c"
    "file_sha.c"
-   "global.c"
+   "${COMMON}global.c"
    "led_driver.c"
    "${COMMON}queued_i2s_parallel.c"
    "numbers_led.c"

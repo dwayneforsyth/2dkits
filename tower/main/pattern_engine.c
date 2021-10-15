@@ -34,6 +34,7 @@
 #include "esp_http_server.h"
 #include "esp_wifi.h"
 #include "driver/gpio.h"
+#include <esp_log.h>
 
 #include "led_driver.h"
 #include "web_server.h"
@@ -42,16 +43,19 @@
 #include "global.h"
 #include "download_file.h"
 #include "sha_file.h"
+#include "picoc.h"
 
 #define BUTTON1 34
 #define BUTTON2 35
 
 #define MAX_PATTERN_ENTRY 50
+#define MAX_LAYER 8
 
 typedef enum patternType_t {
     PATTERN_NONE,
     PATTERN_BUILT_IN,
-    PATTERN_FILE
+    PATTERN_FILE,
+    PATTERN_SCRIPT_FILE
 } patternType_t;
 
 typedef struct pattern_entry_t {
@@ -64,7 +68,16 @@ typedef struct pattern_entry_t {
     bool enabled;
 } pattern_entry_t;
 
+static const char *TAG="PENG";
+
 uint8_t pendingExit = false;
+
+bool patternRun = true;
+
+void setPatternRun( bool onOff ) {
+    printf("SetPatternRun %d -> %d\n", patternRun, onOff);
+    patternRun = onOff;
+}
 
 uint8_t step = 0;
 
@@ -196,6 +209,10 @@ bool delay_and_buttons(uint16_t delay) {
 
     pendingExit = false;
     vTaskDelay(delay / portTICK_PERIOD_MS);
+
+    while (patternRun == false) {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
 
     if (gpio_get_level(BUTTON1) == 0) {
         printf("Button 1\n");
@@ -451,13 +468,14 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
    uint8_t fad_cycle;
    uint16_t frame = 0;
    bool once = true;
+   int ret;
 
    allLedsColor( 0,0,0);
 
    while(cycles != 0) {
       cycles--;
       sprintf(filename, "/spiffs/%s",name);
-      if (once==true) printf("file=%s\n", filename);
+      if (once==true) ESP_LOGI(TAG,"file=%s", filename);
       fh = fopen(filename, "r");
       frame = 0;
 //      printf("================================================\n");
@@ -468,7 +486,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
       speed = tBuffer[1];
  
       if (once==true) {
-	  printf("type=%d speed=%d delay=%d math=%d\n",type,speed,delay,delay*speed);
+	  ESP_LOGI(TAG,"type=%d speed=%d delay=%d math=%d",type,speed,delay,delay*speed);
 	  once = false;
       }
 
@@ -494,8 +512,9 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 	      }
               break;
 	  case 16:
-              fread(tBuffer,2,(8*3), fh);
-//              printf("read frame=%d cycles=%d\n",frame,cycles);
+              ret = fread(tBuffer,2,(8*3), fh);
+              if (ret == 0) { break;}
+              // printf("read frame=%d cycles=%d\n",frame,cycles);
 	      for (loop=0;loop<8;loop++) {
                   setLed4RGBOnOff(7-(7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
                   setLed4RGBOnOff(7-((7-loop)/4+2), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
@@ -552,6 +571,18 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
    }
 }
 
+#define PICOC_STACK_SIZE (1024*40)
+void runDiskScriptPattern(char *name) {
+   char *filename;
+   Picoc pc;
+
+   PicocInitialize(&pc, PICOC_STACK_SIZE);
+   asprintf(&filename, "/spiffs/%s",name);
+   PicocPlatformScanFile(&pc, filename);
+   free(filename);
+   PicocCallMain(&pc, 0, NULL);
+   PicocCleanup(&pc);
+}
 
 /*******************************************************************************
     PURPOSE:
@@ -606,7 +637,7 @@ void addPattern( char * filename) {
     uint8_t index;
 
     for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
-        if ((patternTable[index].patternType == PATTERN_FILE) &&
+        if (((patternTable[index].patternType == PATTERN_FILE)||(patternTable[index].patternType == PATTERN_SCRIPT_FILE)) &&
             (strcmp(patternTable[index].fileName, filename)==0)) {
 	    return; // found it, don't need to save it
 	}
@@ -622,7 +653,7 @@ void addPattern( char * filename) {
     patternTable[index].cycles = 10;
     patternTable[index].enabled = true;
     strcpy(patternTable[index].patternName, filename);
-    patternTable[index].patternType = PATTERN_FILE;
+    patternTable[index].patternType = (filename[strlen(filename)-1] == 'c')? PATTERN_SCRIPT_FILE : PATTERN_FILE;
 }
 
 /*******************************************************************************
@@ -640,7 +671,7 @@ void deletePattern( char * filename) {
     uint8_t index;
 
     for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
-        if ((patternTable[index].patternType == PATTERN_FILE) &&
+        if (((patternTable[index].patternType == PATTERN_FILE)||(patternTable[index].patternType == PATTERN_SCRIPT_FILE)) &&
             (strcmp(patternTable[index].fileName, filename)==0)) {
 	    patternTable[index].patternType = PATTERN_NONE;
 	    return;
@@ -878,18 +909,26 @@ void updatePatternsTask(void *param) {
     gpio_set_direction(BUTTON2 , GPIO_MODE_INPUT);
 
     while (1) {
-	if (printPattern) {printf("running pattern %d %s\n", step, patternTable[step].patternName);}
-        switch (patternTable[step].patternType) {
-            case PATTERN_BUILT_IN:
-                (patternTable[step].runMe)(patternTable[step].cycles, patternTable[step].delay);
-                break;
-            case PATTERN_FILE:
-                runDiskPattern(patternTable[step].fileName, patternTable[step].cycles, patternTable[step].delay);
-                break;
-            case PATTERN_NONE:
-            default:
-                break;
+	if (patternRun == true) {
+	    if (printPattern) {ESP_LOGI(TAG,"running pattern %d %s\n", step, patternTable[step].patternName);}
+            switch (patternTable[step].patternType) {
+                case PATTERN_BUILT_IN:
+                    (patternTable[step].runMe)(patternTable[step].cycles, patternTable[step].delay);
+                    break;
+                case PATTERN_FILE:
+                    runDiskPattern(patternTable[step].fileName, patternTable[step].cycles, patternTable[step].delay);
+                    break;
+                case PATTERN_SCRIPT_FILE:
+                    ESP_LOGI(TAG,"running %s script", patternTable[step].patternName);
+		    runDiskScriptPattern(patternTable[step].patternName);
+                    break;
+                case PATTERN_NONE:
+                default:
+                    break;
+            }
+            if (demoMode) {setPatternPlus();}
+	} else {
+            vTaskDelay(1000); // wait a second
         }
-        if (demoMode) {setPatternPlus();}
     }
 }
