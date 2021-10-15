@@ -107,7 +107,7 @@ bool searchDir( point_t * point, int r, int g, int b) {
             }
             break;
         case DIR_UP:
-            if ((point->l!=7) && checkLed(point->l+1,point->x,point->y, r,g,b)) {
+            if ((point->l!=(NUM_LAYER-1)) && checkLed(point->l+1,point->x,point->y, r,g,b)) {
                 point->l++;
                 return( true);
             } else {
@@ -129,7 +129,7 @@ bool searchDir( point_t * point, int r, int g, int b) {
 
 void myAllLedsColor( int red, int green, int blue) {
    int l,x,y;
-   for (l=0;l<8;l++) {
+   for (l=0;l<NUM_LAYER;l++) {
       for (x=0;x<4;x++) {
          for (y=0;y<4;y++) {
              setLed(l,x,y, red, green, blue);

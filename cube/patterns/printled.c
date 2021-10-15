@@ -9,7 +9,7 @@ int main(int argc,char ** argv) {
    int red,green,blue;
 
    printf("Start\n");
-   for (l=3;l>=0;l--) {
+   for (l=(NUM_LAYER-1);l>=0;l--) {
       printf("#level %d\n",l);
       for (x=0;x<4;x++) {
          for (y=0;y<4;y++) {

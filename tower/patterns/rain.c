@@ -50,7 +50,7 @@ typedef struct {
 
 void shiftDown( void ) {
     int r,g,b;
-    for (int l = 1; l < 8; l++) {
+    for (int l = 1; l < NUM_LAYER; l++) {
         for (int x = 0; x < 4; x++) {
             for (int y = 0; y < 4; y++) {
                 getLed(l,x,y,  &r, &g, &b);
@@ -78,7 +78,7 @@ void main( void ) {
     for (int x = 0; x < 4; x++) {
         for (int y=0; y < 4; y++) {
             top[x][y].len = 0;
-            setLed(7,x,y, 0, 0, 0);
+            setLed((NUM_LAYER-1),x,y, 0, 0, 0);
         }
     }
 
@@ -101,9 +101,9 @@ void main( void ) {
         for (int x = 0; x < 4; x++) {
             for (int y=0; y < 4; y++) {
                 if (top[x][y].len == 0) {
-                    setLed(7,x,y, 0, 0, 0);
+                    setLed((NUM_LAYER-1),x,y, 0, 0, 0);
                 } else {
-                    setLed(7,x,y, top[x][y].colorRed, top[x][y].colorGreen, top[x][y].colorBlue);
+                    setLed(NUM_LAYER-1),x,y, top[x][y].colorRed, top[x][y].colorGreen, top[x][y].colorBlue);
                     top[x][y].len--;
                 }
             }

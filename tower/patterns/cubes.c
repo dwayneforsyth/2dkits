@@ -39,8 +39,11 @@ typedef struct cube_t {
    int colorBlue;
 } cube_t;
 
-#define NUM_CUBES 6
-cube_t cube[NUM_CUBES];
+printf("NUM_LAYER=%d\n",NUM_LAYER);
+
+int numCubes = (NUM_LAYER == 8)? 6 : 4;
+
+cube_t cube[numCubes];
 
 void initEntry( int i, int x, int y, int l, int d, int r, int g, int b) {
 	cube[i].x = x;
@@ -55,12 +58,13 @@ void initEntry( int i, int x, int y, int l, int d, int r, int g, int b) {
 }
 
 initEntry(0,0,0,0, 1,15, 0, 0);
-initEntry(1,0,2,6,-1, 0,15, 0);
+initEntry(1,0,2,NUM_LAYER-2,-1, 0,15, 0);
 initEntry(2,2,0,0, 1, 0, 0,15);
 initEntry(3,2,2,4,-1, 9, 9, 0);
-initEntry(4,2,2,0,-1, 9, 0, 9);
-initEntry(5,0,0,6,-1, 0, 9, 9);
-
+if (numCubes == 6) {
+   initEntry(4,2,2,0,-1, 9, 0, 9);
+   initEntry(5,0,0,6,-1, 0, 9, 9);
+}
 /*******************************************************************************
     PURPOSE: draws the cubs in the towers LED frame
 
@@ -76,7 +80,7 @@ initEntry(5,0,0,6,-1, 0, 9, 9);
 int render_cubes(void) {
    int c,x,y,l;
    allLedsColor2(0, 0, 0);
-   for (c=0;c<NUM_CUBES;c++) {
+   for (c=0;c<numCubes;c++) {
        for (x=cube[c].x;x<cube[c].x+2;x++) {
            for (y=cube[c].y;y<cube[c].y+2;y++) {
                for (l=cube[c].l;l<cube[c].l+2;l++) {
@@ -105,7 +109,7 @@ int moveCube(int id, int dl, int dx, int dy) {
 
     // out of range check
     l = cube[id].l + dl;
-    if ((l < 0)||(l > 6)) { return 1; }
+    if ((l < 0)||(l > (NUM_LAYER-2))) { return 1; }
 
     x = cube[id].x + dx;
     if ((x < 0)||(x > 2)) { return 1; }
@@ -114,7 +118,7 @@ int moveCube(int id, int dl, int dx, int dy) {
     if ((y < 0)||(y > 2)) { return 1; }
 
     // hitting another cube
-    for (int c=0;c<NUM_CUBES;c++) {
+    for (int c=0;c<numCubes;c++) {
 	if (( id != c) &&
        	    ((cube[c].l+1 == l)||(cube[c].l == l+1)||(cube[c].l == l)) &&
 	    ((cube[c].x+1 == x)||(cube[c].x == x+1)||(cube[c].x == x)) &&
@@ -147,7 +151,7 @@ void main(void) {
 
     int loops = 240;
     while ((loops != 0) && (run == 0)) {
-        for (int id=0;id<NUM_CUBES; id++) {
+        for (int id=0;id<numCubes; id++) {
 	    if (cube[id].delay != 0) {
 		// finish the wait
 	        cube[id].delay--;

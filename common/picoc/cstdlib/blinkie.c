@@ -3,9 +3,11 @@
 #include "freertos/task.h"
 #include "led_driver.h"
 #include "pattern_engine.h"
+#include "version.h"
 
 #include "../interpreter.h"
 
+static int NUM_LAYERValue = NUM_LAYER;
 
 
 void BlinkieGetLed(struct ParseState *Parser, struct Value *ReturnValue,
@@ -69,4 +71,6 @@ struct LibraryFunction BlinkieFunctions[] =
 /* creates various system-dependent definitions */
 void BlinkieSetupFunc(Picoc *pc)
 {
+    VariableDefinePlatformVar(pc, NULL, "NUM_LAYER", &pc->IntType,
+        (union AnyValue*)&NUM_LAYERValue, false);
 }

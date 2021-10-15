@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <blinkie.h>
 
-char *LEDValue[19] = { "0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","+","-","#" };
-
 void allLedsColor( int red, int green, int blue) {
    int l,x,y;
-   for (l=0;l<4;l++) {
+   for (l=0;l<NUM_LAYER;l++) {
       for (x=0;x<4;x++) {
          for (y=0;y<4;y++) {
              setLed(l,x,y, red, green, blue);

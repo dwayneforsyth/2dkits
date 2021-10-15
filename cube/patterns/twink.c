@@ -45,9 +45,9 @@ void main( void ) {
 
     for (int loop=0; loop < LOOPS; loop++) {
         allLedsColor(  0,  0, 0);
-        if (endFrame(250)) { return 0; }
+        if (endFrame(250)) { return; }
 
-        setLed(rand()%4,rand()%4,rand()%4, rand()%15,rand()%15,rand()%15);
-        if (endFrame(10)) { return 0; }
+        setLed(rand()%NUM_LAYER,rand()%4,rand()%4, rand()%15,rand()%15,rand()%15);
+        if (endFrame(10)) { return; }
     }
 }

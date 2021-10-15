@@ -47,7 +47,7 @@ void main( void ) {
         allLedsColor(  0,  0, 0);
         if (endFrame(250)) { return; }
 
-        setLed(rand()%8,rand()%4,rand()%4, rand()%15,rand()%15,rand()%15);
+        setLed(rand()%NUM_LAYER,rand()%4,rand()%4, rand()%15,rand()%15,rand()%15);
         if (endFrame(10)) { return; }
     }
 }
