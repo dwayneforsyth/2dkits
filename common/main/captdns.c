@@ -313,7 +313,7 @@ static void captdnsTask(void *pvParameters) {
 
 void captdnsInit(void) 
 {
-  xTaskCreate(captdnsTask, (const char *)"captdns_task", 10000, NULL, 3, NULL);
+  xTaskCreate(captdnsTask, (const char *)"captdns_task", 3*1024, NULL, 3, NULL);
 }
 
 

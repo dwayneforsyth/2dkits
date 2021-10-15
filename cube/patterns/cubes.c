@@ -59,15 +59,6 @@ initEntry(1,0,2,2,-1, 0,15, 0);
 initEntry(2,2,0,0, 1, 0, 0,15);
 initEntry(3,2,2,2,-1, 9, 9, 0);
 
-void allLedsColor( int red, int green, int blue) {
-   int l,x,y;
-   for (l=0;l<4;l++) {
-      for (x=0;x<4;x++) {
-         for (y=0;y<4;y++) {
-             setLed(l,x,y, red, green, blue);
-}  }  }  }
-
-
 /*******************************************************************************
     PURPOSE: draws the cubs in the towers LED frame
 
@@ -80,15 +71,18 @@ void allLedsColor( int red, int green, int blue) {
 
 *******************************************************************************/
 
-void render_cubes(void) {
+int render_cubes(void) {
    int c,x,y,l;
-   allLedsColor(0, 0, 0);
+   allLedsColor2(0, 0, 0);
    for (c=0;c<NUM_CUBES;c++) {
        for (x=cube[c].x;x<cube[c].x+2;x++) {
            for (y=cube[c].y;y<cube[c].y+2;y++) {
                for (l=cube[c].l;l<cube[c].l+2;l++) {
-                   setLed(l,x,y, cube[c].colorRed,cube[c].colorGreen,cube[c].colorBlue);
-}   }   }   }   }
+                   setLed2(l,x,y, cube[c].colorRed,cube[c].colorGreen,cube[c].colorBlue);
+    }   }   }   }
+    transferBuffer();
+    return(endFrame(200));
+}
 
 
 /*******************************************************************************
@@ -147,11 +141,10 @@ int moveCube(int id, int dl, int dx, int dy) {
 *******************************************************************************/
 void main(void) {
 
-    setPatternRun(0);
+    int run = render_cubes();
 
-    render_cubes();
-
-    for (int loop; loop < 240; loop++) {
+    int loops = 240;
+    while ((loops != 0) && (run == 0)) {
         for (int id=0;id<NUM_CUBES; id++) {
 	    if (cube[id].delay != 0) {
 		// finish the wait
@@ -187,8 +180,7 @@ void main(void) {
 		}
             }
 	}
-        render_cubes();
-	vTaskDelay(200);
+        run = render_cubes();
+	loops--;
     }
-    setPatternRun(1);
 }

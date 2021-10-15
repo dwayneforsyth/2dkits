@@ -22,20 +22,10 @@
 //   This runs on a pc, not the tower
 //**********************************************************************
 
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
-#include "core_utils.h"
-#include "core_helper.h"
-
-typedef struct {
-   uint8_t len;
-   uint8_t colorRed;
-   uint8_t colorGreen;
-   uint8_t colorBlue;
-} drop_t;
+#include <blinkie.h>
 
 /*******************************************************************************
     PURPOSE: generate pattern
@@ -49,53 +39,15 @@ typedef struct {
 
 *******************************************************************************/
 
-#define LOOPS 100
+#define LOOPS 2000
 
 void main( void ) {
 
-    createPattern("rain.pat","Rain");
+    for (int loop=0; loop < LOOPS; loop++) {
+        allLedsColor(  0,  0, 0);
+        if (endFrame(250)) { return 0; }
 
-    patternFrame.cycles = 8;
-    patternFrame.delay = 1;
-
-    drop_t top[4][4];
-    for (int8_t x = 0; x < 4; x++) {
-        for (int8_t y=0; y < 4; y++) {
-	    top[x][y].len = 0;
-            setLed(7,x,y, 0, 0, 0);
-	}
+        setLed(rand()%4,rand()%4,rand()%4, rand()%15,rand()%15,rand()%15);
+        if (endFrame(10)) { return 0; }
     }
-
-    for (uint16_t loop = 0; loop < LOOPS; loop++) {
-
-	if (loop < (LOOPS - 8)) {
-            uint8_t drops = rand()%4;    
-            for (uint8_t drop=0; drop < drops; drop++) {
-                uint8_t x = rand()%4;
-                uint8_t y = rand()%4;
-	        top[x][y].len = rand()%4;
-	        top[x][y].colorRed = rand()%16;
-	        top[x][y].colorGreen = rand()%16;
-	        top[x][y].colorBlue = rand()%16;
-            }
-        }
-
-	shiftDown();
-
-	for (int8_t x = 0; x < 4; x++) {
-	    for (int8_t y=0; y < 4; y++) {
-                if (top[x][y].len == 0) {
-                    setLed(7,x,y, 0, 0, 0);
-		} else {
-                    setLed(7,x,y, top[x][y].colorRed, top[x][y].colorGreen, top[x][y].colorBlue);
-		    top[x][y].len--;
-		}
-	    }
-	}
-
-        writeFrame();
-    }
-
-    finishPattern();
 }
-

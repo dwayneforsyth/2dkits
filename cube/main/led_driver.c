@@ -101,6 +101,10 @@ uint8_t RED[128] = { 0 };
 uint8_t GREEN[128] = { 0 };
 uint8_t BLUE[128] = { 0 };
 
+uint8_t RED2[128] = { 0 };
+uint8_t GREEN2[128] = { 0 };
+uint8_t BLUE2[128] = { 0 };
+
 
 /*******************************************************************************
     PURPOSE:
@@ -183,6 +187,40 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
     RED[number] = iR;
     GREEN[number] = iG;
     BLUE[number] = iB;
+}
+
+void setLed2(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB) {
+    if ((z > 7)||(x>3)||(y>3)) {
+        printf("Error set LED range\n");
+	return;
+    }
+
+    uint8_t tR, tG, tB;
+
+    getLed(z,x,y, &tR, &tG, &tB);
+
+    if (iR == LED_PLUS) { iR = (tR==15)? 15: tR+1; }
+    if (iG == LED_PLUS) { iG = (tG==15)? 15: tG+1; }
+    if (iB == LED_PLUS) { iB = (tB==15)? 15: tB+1; }
+
+    if (iR == LED_MINUS) { iR = (tR==0)? 0: tR-1; }
+    if (iG == LED_MINUS) { iG = (tG==0)? 0: tG-1; }
+    if (iB == LED_MINUS) { iB = (tB==0)? 0: tB-1; }
+
+    if (iR == LED_NOOP) { iR = tR; }
+    if (iG == LED_NOOP) { iG = tG; }
+    if (iB == LED_NOOP) { iB = tB; }
+
+    uint8_t number = z*16+x*4+y;
+    RED2[number] = iR;
+    GREEN2[number] = iG;
+    BLUE2[number] = iB;
+}
+
+void transferBuffer( void ) {
+   memcpy(RED, RED2, sizeof(RED2));
+   memcpy(GREEN, GREEN2, sizeof(GREEN2));
+   memcpy(BLUE, BLUE2, sizeof(BLUE2));
 }
 
 /*******************************************************************************
@@ -278,6 +316,14 @@ void allLedsColor( uint8_t red, uint8_t green, uint8_t blue) {
         RED[i] = red;
         GREEN[i] = green;
         BLUE[i] = blue;
+    }
+}
+
+void allLedsColor2( uint8_t red, uint8_t green, uint8_t blue) {
+    for (uint8_t i =0; i< 128; i++) {
+        RED2[i] = red;
+        GREEN2[i] = green;
+        BLUE2[i] = blue;
     }
 }
 
@@ -396,7 +442,7 @@ void init_LED_driver(void) {
     i2s_parallel_setup(&I2S1, &i2scfg);
     i2s_parallel_start(&I2S1);
 
-    xTaskCreatePinnedToCore(mainLoop, "mainLoop", 1024*16, NULL, 7, NULL, 1); //Use core 1 for main loop, I2S interrupt on core 0
+    xTaskCreatePinnedToCore(mainLoop, "mainLoop", 1024*3, NULL, 23, NULL, 1); //Use core 1 for main loop, I2S interrupt on core 0
 
     return;
 }

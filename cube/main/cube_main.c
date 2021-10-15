@@ -68,6 +68,9 @@ void addPattern_cb( char type, char * size, char * sha, char *name, void *data) 
     if (strcmp(".pat",&(name[strlen(name)-4])) == 0) {
         addPattern(name);
     }
+    if (strcmp(".c",&(name[strlen(name)-2])) == 0) {
+        addPattern(name);
+    }
 }
 
 void app_main()
@@ -104,7 +107,7 @@ void app_main()
     initialise_wifi_p2(&server);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
-    xTaskCreate(updatePatternsTask, "updatePatternsTask", 4*1024, NULL, 23, NULL);
+    xTaskCreate(updatePatternsTask, "updatePatternsTask", 10*1024, NULL, 22, NULL);
 
     consoleInit(); // console does not return
 

@@ -22,32 +22,47 @@ void BlinkieSetLed(struct ParseState *Parser, struct Value *ReturnValue,
            Param[3]->Val->Integer, Param[4]->Val->Integer, Param[5]->Val->Integer);
 }
 
+void BlinkieSetLed2(struct ParseState *Parser, struct Value *ReturnValue,
+    struct Value **Param, int NumArgs)
+{
+    setLed2(Param[0]->Val->Integer, Param[1]->Val->Integer, Param[2]->Val->Integer,
+           Param[3]->Val->Integer, Param[4]->Val->Integer, Param[5]->Val->Integer);
+}
+
 void BlinkieEndFrame(struct ParseState *Parser, struct Value *ReturnValue,
     struct Value **Param, int NumArgs)
 {
-    delay_and_buttons(Param[0]->Val->Integer);
+    ReturnValue->Val->Integer = delay_and_buttons(Param[0]->Val->Integer);
 }
 
-void BlinkieSetPatternRun(struct ParseState *Parser, struct Value *ReturnValue,
+void BlinkieAllLedsColor(struct ParseState *Parser, struct Value *ReturnValue,
     struct Value **Param, int NumArgs)
 {
-    setPatternRun(Param[0]->Val->Integer);
+    allLedsColor(Param[0]->Val->Integer, Param[1]->Val->Integer, Param[2]->Val->Integer);
 }
 
-void BlinkieTaskDelay(struct ParseState *Parser, struct Value *ReturnValue,
+void BlinkieAllLedsColor2(struct ParseState *Parser, struct Value *ReturnValue,
     struct Value **Param, int NumArgs)
 {
-    vTaskDelay(Param[0]->Val->Integer / portTICK_PERIOD_MS);
+    allLedsColor2(Param[0]->Val->Integer, Param[1]->Val->Integer, Param[2]->Val->Integer);
+}
+
+void BlinkieTransferBuffer(struct ParseState *Parser, struct Value *ReturnValue,
+    struct Value **Param, int NumArgs)
+{
+    transferBuffer();
 }
 
 /* all math.h functions */
 struct LibraryFunction BlinkieFunctions[] =
 {
      {BlinkieSetLed, "void setLed(int,int,int, int,int,int);"},
+     {BlinkieSetLed2, "void setLed2(int,int,int, int,int,int);"},
      {BlinkieGetLed, "void getLed(int,int,int, int *, int *, int *);"},
-     {BlinkieEndFrame, "void endFrame( int );"},
-     {BlinkieSetPatternRun, "void setPatternRun( int );"},
-     {BlinkieTaskDelay, "void vTaskDelay( int );"},
+     {BlinkieEndFrame, "int endFrame( int );"},
+     {BlinkieAllLedsColor, "void allLedsColor( int, int, int);"},
+     {BlinkieAllLedsColor2, "void allLedsColor2( int, int, int);"},
+     {BlinkieTransferBuffer, "void transferBuffer();"},
      {NULL,  NULL }
 };
 
