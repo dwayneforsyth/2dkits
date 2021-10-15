@@ -52,7 +52,7 @@ static int command_download(int argc, char **argv) {
         return 1;
     }
 
-    asprintf( &url, "%spatterns/%s", CONFIG_BASE_DFU_FILES_URL,
+    asprintf( &url, "%spatterns/%s", CONFIG_BASE_CLOUD_URL,
                      download_args.url->basename[0]);
     asprintf( &file, "/spiffs/%s", 
                       download_args.file->basename[0]);

@@ -44,12 +44,12 @@
 #include "download_file.h"
 #include "sha_file.h"
 #include "picoc.h"
+#include "version.h"
 
 #define BUTTON1 34
 #define BUTTON2 35
 
 #define MAX_PATTERN_ENTRY 50
-#define MAX_LAYER 8
 
 typedef enum patternType_t {
     PATTERN_NONE,
@@ -270,14 +270,16 @@ bool delay_and_buttons(uint16_t delay) {
 
 *******************************************************************************/
 void walking_testing( uint16_t cycles, uint16_t delay) {
-    uint16_t step = 0x007f;
     uint8_t l,x,y,r,g,b;
+
+    uint16_t step = (NUM_LAYER==8)? 0x007f : 0x003f;
 
     while(cycles != 0) {
 	cycles--;
 	step++;
 
-//      -DBG RLLL YYXX
+#if (NUM_LAYER == 8)
+//      -----DBG RLLLYYXX tower
         l = ((step&0x070)>>4);
         if ((step&0x400)!=0) {
            x = ((step&0x003));
@@ -289,6 +291,20 @@ void walking_testing( uint16_t cycles, uint16_t delay) {
         r = ((step&0x080)!=0)? 15 : 0;
         g = ((step&0x100)!=0)? 15 : 0;
         b = ((step&0x200)!=0)? 15 : 0;
+#else
+//      ------DB GRLLYYXX cube
+        l = ((step&0x030)>>4);
+        if ((step&0x200)!=0) {
+           x = ((step&0x003));
+           y = ((step&0x00C)>>2);
+	} else {
+           y = ((step&0x003));
+           x = ((step&0x00C)>>2);
+	}
+        r = ((step&0x040)!=0)? 15 : 0;
+        g = ((step&0x080)!=0)? 15 : 0;
+        b = ((step&0x100)!=0)? 15 : 0;
+#endif
 	setLed(l,x,y,r,g,b);
 
 //	if (x==0) printf("%X [%d,%d,%d] = (%d,%d,%d)\n",step, l,x,y,r,g,b);
@@ -348,7 +364,7 @@ void layer_test( uint16_t cycles, uint16_t delay) {
    while(cycles != 0) {
       cycles--;
       for(c=0;c<3;c++) {
-         for(l=0;l<8;l++) {
+         for(l=0;l<NUM_LAYER;l++) {
             allLedsColor( 0,0,0);
             for(x=0;x<4;x++) {
 	       for (y=0;y<4;y++) {
@@ -493,7 +509,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
       while (!feof(fh)) {
           // read entry
           switch (type) {
-          case 2:
+          case 2: // old tower
               fread(tBuffer,2,(8*3), fh);
               fread(&fad_cycle,1,1, fh);
               fad_cycle *= 2;
@@ -511,7 +527,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 	          }
 	      }
               break;
-	  case 16:
+	  case 16: // old tower
               ret = fread(tBuffer,2,(8*3), fh);
               if (ret == 0) { break;}
               // printf("read frame=%d cycles=%d\n",frame,cycles);
@@ -527,7 +543,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 		  return;
 	      }
 	      break;
-          case 32: {
+          case 32: { // tower
 //	      const char *LEDValue[19] = { "0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","+","-","#" };
               uint8_t red, green, blue;
 	      uint16_t temp;
@@ -560,6 +576,40 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
               }
               break;
           }
+#if (NUM_LAYER == 4)
+          case 33: { // cube
+              uint8_t red, green, blue;
+              uint16_t temp;
+              uint8_t loops,tLoops[2];
+              int8_t l,x,y;
+              fread(tBuffer,2,(4*4*4), fh);
+              fread(tLoops,1,1, fh);
+              fread(&delay,1,1, fh);
+//	      printf("\nframe %d\n",frame);
+              for (loops=0;loops<tLoops[0];loops++) {
+                  for (l=3;l>=0;l--) {
+                      for (x=0;x<4;x++) {
+                          for (y=0;y<4;y++) {
+                              temp = tBuffer[(l*16+x*4+y)];
+                              blue =   temp & 0x1f;
+                              green = (temp >>5) & 0x1f;
+                              red =   (temp >>10) & 0x1f;
+                              setLed(l,x,y, red,green,blue);
+//			      printf("%4X ", temp);
+//			      printf(" (%2s,%2s,%2s)",LEDValue[red],LEDValue[green],LEDValue[blue]);
+                          }
+//		          printf("\n");
+                      }
+                  }
+ 		  //printf("cycles=%d delay=%d\n",loops,delay*speed);
+                  if (delay_and_buttons(delay*speed)) {
+                      fclose(fh);
+		      return;
+		  }
+	      }
+	      break;
+          }
+#endif
           default:
               printf("unknown pattern type=%d file=%s\n",type, filename);
 	      return;
@@ -794,7 +844,7 @@ esp_err_t cloud_pattern_list(httpd_req_t *req)  {
         return ESP_OK;
     }
 
-    download_file( "/spiffs/cloud.lst", "https://www.2dkits.com/kits/kit25/patterns/");
+    download_file( "/spiffs/cloud.lst", CONFIG_CLOUD_PATTERN_URL);
 
     httpd_resp_send_chunk(req, pattern_header, strlen(pattern_header));
     FILE *ptr = fopen("/spiffs/cloud.lst","rb");

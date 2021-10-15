@@ -44,12 +44,12 @@
 #include "download_file.h"
 #include "sha_file.h"
 #include "picoc.h"
+#include "version.h"
 
 #define BUTTON1 34
 #define BUTTON2 35
 
 #define MAX_PATTERN_ENTRY 50
-#define MAX_LAYER 4
 
 typedef enum patternType_t {
     PATTERN_NONE,
@@ -81,39 +81,128 @@ void setPatternRun( bool onOff ) {
 
 uint8_t step = 0;
 
+
 bool printPattern = false;
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setPrintPattern( bool onOff ) {
     printPattern = onOff;
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 bool getPrintPattern( void ) {
     return(printPattern);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setPatternPlus() {
     step = ((step+1) % MAX_PATTERN_ENTRY);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setPatternMinus() {
     step = ((step-1) % MAX_PATTERN_ENTRY);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 bool demoMode = true;
 bool getDemoMode() {
     return(demoMode);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setDemoMode(bool onOff) {
     demoMode = onOff;
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void patternEngineOff(void) {
     changeBank(1);
     allLedsOff();
 }
 
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 bool delay_and_buttons(uint16_t delay) {
     bool exit = pendingExit;
     uint16_t delayCount = 0;
@@ -164,8 +253,13 @@ bool delay_and_buttons(uint16_t delay) {
     return(exit);
 }
 
+/*
+   This code drive the 2DKits.com 4x4x8 tower
+*/
+
+
 /*******************************************************************************
-    PURPOSE: run a single color on each layer
+    PURPOSE:
 
     INPUTS:
 
@@ -173,20 +267,32 @@ bool delay_and_buttons(uint16_t delay) {
         NONE
 
     NOTES:
-    DBG RLLLYYXX tower
-     DB GRLLYYXX cube
 
 *******************************************************************************/
-
 void walking_testing( uint16_t cycles, uint16_t delay) {
-    uint16_t step = 0x003f;
     uint8_t l,x,y,r,g,b;
+
+    uint16_t step = (NUM_LAYER==8)? 0x007f : 0x003f;
 
     while(cycles != 0) {
 	cycles--;
 	step++;
 
-//      -DBG RLLL YYXX
+#if (NUM_LAYER == 8)
+//      -----DBG RLLLYYXX tower
+        l = ((step&0x070)>>4);
+        if ((step&0x400)!=0) {
+           x = ((step&0x003));
+           y = ((step&0x00C)>>2);
+	} else {
+           y = ((step&0x003));
+           x = ((step&0x00C)>>2);
+	}
+        r = ((step&0x080)!=0)? 15 : 0;
+        g = ((step&0x100)!=0)? 15 : 0;
+        b = ((step&0x200)!=0)? 15 : 0;
+#else
+//      ------DB GRLLYYXX cube
         l = ((step&0x030)>>4);
         if ((step&0x200)!=0) {
            x = ((step&0x003));
@@ -198,6 +304,7 @@ void walking_testing( uint16_t cycles, uint16_t delay) {
         r = ((step&0x040)!=0)? 15 : 0;
         g = ((step&0x080)!=0)? 15 : 0;
         b = ((step&0x100)!=0)? 15 : 0;
+#endif
 	setLed(l,x,y,r,g,b);
 
 //	if (x==0) printf("%X [%d,%d,%d] = (%d,%d,%d)\n",step, l,x,y,r,g,b);
@@ -205,6 +312,17 @@ void walking_testing( uint16_t cycles, uint16_t delay) {
     }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void rgb_fade( uint16_t cycles, uint16_t delay) {
    uint8_t r,g,b,fad,color;
 
@@ -230,7 +348,7 @@ void rgb_fade( uint16_t cycles, uint16_t delay) {
 }
 
 /*******************************************************************************
-    PURPOSE: run a single color on each layer
+    PURPOSE:
 
     INPUTS:
 
@@ -240,14 +358,13 @@ void rgb_fade( uint16_t cycles, uint16_t delay) {
     NOTES:
 
 *******************************************************************************/
-
 void layer_test( uint16_t cycles, uint16_t delay) {
    uint8_t l,x,y,c;
 
    while(cycles != 0) {
       cycles--;
       for(c=0;c<3;c++) {
-         for(l=0;l<MAX_LAYER;l++) {
+         for(l=0;l<NUM_LAYER;l++) {
             allLedsColor( 0,0,0);
             for(x=0;x<4;x++) {
 	       for (y=0;y<4;y++) {
@@ -260,6 +377,17 @@ void layer_test( uint16_t cycles, uint16_t delay) {
    }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void rgb_test( uint16_t cycles, uint16_t delay) {
 
    while(cycles != 0) {
@@ -277,6 +405,17 @@ void rgb_test( uint16_t cycles, uint16_t delay) {
    }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setLed4RGBOnOff(uint8_t l, uint8_t x, uint16_t r, uint16_t g, uint16_t b, uint16_t mask) {
     uint8_t y;
     for (y=0;y<4;y++) {
@@ -285,12 +424,34 @@ void setLed4RGBOnOff(uint8_t l, uint8_t x, uint16_t r, uint16_t g, uint16_t b, u
     }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 uint8_t upDown(bool test, uint8_t value) {
    if ((test == true ) && (value < 15)) return( value+1);
    if ((test == false) && (value != 0)) return( value-1);
    return(value);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setLed4RGBUpDown(uint8_t l, uint8_t x, uint16_t red, uint16_t green, uint16_t blue, uint16_t mask) {
     uint8_t y;
     uint8_t cRed,cGreen,cBlue;
@@ -302,6 +463,17 @@ void setLed4RGBUpDown(uint8_t l, uint8_t x, uint16_t red, uint16_t green, uint16
     }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
    uint16_t tBuffer[256];
    char filename[40];
@@ -337,7 +509,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
       while (!feof(fh)) {
           // read entry
           switch (type) {
-          case 2:
+          case 2: // old tower
               fread(tBuffer,2,(8*3), fh);
               fread(&fad_cycle,1,1, fh);
               fad_cycle *= 2;
@@ -355,10 +527,10 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 	          }
 	      }
               break;
-	  case 16:
+	  case 16: // old tower
               ret = fread(tBuffer,2,(8*3), fh);
-	      if (ret == 0) { break; }
-              // printf("read frame=%d cycles=%d eof=%d\n",frame,cycles,feof(fh));
+              if (ret == 0) { break;}
+              // printf("read frame=%d cycles=%d\n",frame,cycles);
 	      for (loop=0;loop<8;loop++) {
                   setLed4RGBOnOff(7-(7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
                   setLed4RGBOnOff(7-((7-loop)/4+2), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
@@ -371,7 +543,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 		  return;
 	      }
 	      break;
-          case 32: { // Tower
+          case 32: { // tower
 //	      const char *LEDValue[19] = { "0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","+","-","#" };
               uint8_t red, green, blue;
 	      uint16_t temp;
@@ -395,18 +567,19 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 			  }
 //		          printf("\n");
                       }
-                  }
+	       	  }
 //		  printf("cycles=%d delay=%d\n",loops,delay*speed);
                   if (delay_and_buttons(delay*speed)) {
-                      fclose(fh);
+                      fclose(fh); 
 		      return;
 	          }
               }
               break;
           }
+#if (NUM_LAYER == 4)
           case 33: { // cube
               uint8_t red, green, blue;
-	      uint16_t temp;
+              uint16_t temp;
               uint8_t loops,tLoops[2];
               int8_t l,x,y;
               fread(tBuffer,2,(4*4*4), fh);
@@ -428,14 +601,15 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 //		          printf("\n");
                       }
                   }
-		  //printf("cycles=%d delay=%d\n",loops,delay*speed);
+ 		  //printf("cycles=%d delay=%d\n",loops,delay*speed);
                   if (delay_and_buttons(delay*speed)) {
                       fclose(fh);
 		      return;
-	          }
-              }
-              break;
+		  }
+	      }
+	      break;
           }
+#endif
           default:
               printf("unknown pattern type=%d file=%s\n",type, filename);
 	      return;
@@ -460,7 +634,17 @@ void runDiskScriptPattern(char *name) {
    PicocCleanup(&pc);
 }
 
+/*******************************************************************************
+    PURPOSE:
 
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
    {.patternType = PATTERN_BUILT_IN,
     .runMe = layer_test,
@@ -488,6 +672,17 @@ pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
     .enabled = true},
   };
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void addPattern( char * filename) {
     uint8_t index;
 
@@ -511,6 +706,17 @@ void addPattern( char * filename) {
     patternTable[index].patternType = (filename[strlen(filename)-1] == 'c')? PATTERN_SCRIPT_FILE : PATTERN_FILE;
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void deletePattern( char * filename) {
     uint8_t index;
 
@@ -523,10 +729,32 @@ void deletePattern( char * filename) {
     }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 uint8_t getPatternNumber() {
 	return(step);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void setPatternNumber(uint8_t newStep) {
     if (step != newStep) {
 	step = ((newStep-1) % MAX_PATTERN_ENTRY);
@@ -534,6 +762,17 @@ void setPatternNumber(uint8_t newStep) {
     }
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 char * getPatternName() {
         static  char * none = "[no name]";
 
@@ -542,6 +781,17 @@ char * getPatternName() {
 	return(tmp);
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void parsePatternFileStr( char * line,  char * name, char * sha, char * url) {
 
 	uint8_t i = 0;
@@ -562,6 +812,17 @@ void parsePatternFileStr( char * line,  char * name, char * sha, char * url) {
 	url[length-i-1] = 0; // dump the \n at the end
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 esp_err_t cloud_pattern_list(httpd_req_t *req)  {
     const char *pattern_header = "<table><tr><th>File<th>Sha1 Hash<th>Action<th>&nbsp\n";
     const char *pattern_footer = "</table></body></html>\n";
@@ -583,7 +844,7 @@ esp_err_t cloud_pattern_list(httpd_req_t *req)  {
         return ESP_OK;
     }
 
-    download_file( "/spiffs/cloud.lst", "https://www.2dkits.com/kits/kit13/patterns/");
+    download_file( "/spiffs/cloud.lst", CONFIG_CLOUD_PATTERN_URL);
 
     httpd_resp_send_chunk(req, pattern_header, strlen(pattern_header));
     FILE *ptr = fopen("/spiffs/cloud.lst","rb");
@@ -622,6 +883,17 @@ esp_err_t cloud_pattern_list(httpd_req_t *req)  {
     return ESP_OK;
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 esp_err_t web_pattern_list(httpd_req_t *req)  {
     const char *pattern_header = "<table><tr><th>Status<th>Id<th>Name<th>Type<th>Speed<th>Cycles<th>&nbsp\n";
     const char *pattern_footer = "</table></body></html>\n";
@@ -665,6 +937,17 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
     return ESP_OK;
 }
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 void updatePatternsTask(void *param) {
 
     allLedsOff();
@@ -699,4 +982,3 @@ void updatePatternsTask(void *param) {
         }
     }
 }
-

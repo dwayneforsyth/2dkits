@@ -103,7 +103,7 @@ void main( void ) {
                 if (top[x][y].len == 0) {
                     setLed((NUM_LAYER-1),x,y, 0, 0, 0);
                 } else {
-                    setLed(NUM_LAYER-1),x,y, top[x][y].colorRed, top[x][y].colorGreen, top[x][y].colorBlue);
+                    setLed((NUM_LAYER-1),x,y, top[x][y].colorRed, top[x][y].colorGreen, top[x][y].colorBlue);
                     top[x][y].len--;
                 }
             }

@@ -112,7 +112,7 @@ bool check_dfu(char * firmware_file, char * url) {
             file[0]='\0';
         }
 
-        snprintf(firmware_file,MAX_DFU_CONTROL_LEN,"%s%s",CONFIG_BASE_FIRMWARE_URL,file);
+        snprintf(firmware_file,MAX_DFU_CONTROL_LEN,"%s%s",CONFIG_SERVER_URL,file);
         ESP_LOGW(TAG, ">%d.%d.%d %s<", major, minor, build, firmware_file);
 
         if (major > MAJOR) {
