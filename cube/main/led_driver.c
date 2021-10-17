@@ -419,7 +419,6 @@ void mainLoop(void) {
 
 *******************************************************************************/
 void init_LED_driver(void) {
-    printf("Hello World\n");
     gpio_pad_select_gpio(PIN_ENABLE);
     gpio_set_direction(PIN_ENABLE, GPIO_MODE_OUTPUT);
     gpio_set_level(PIN_ENABLE, 0);

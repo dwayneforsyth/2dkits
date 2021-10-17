@@ -10,6 +10,35 @@
 <h2 class="greeting">About</h2>
 
 </div><ul>
-	This is the 4x4x8 Tower! A 2DKits.com creation, 128 LEDs of fun assembled into 8 levels of eletronics.
+   This is the 4x4x8 Tower! A 2DKits.com creation, 128 LEDs of fun assembled into 8 levels of eletronics.
+
+    <h1> build source code unix</h1><ul>
+        <li>git clone git.2dkits.com:/home/git/tower.git
+        <li>cd tower
+        <li>git clone https://github.com/espressif/esp-idf.git
+        <li>Set-ExecutionPolicy -ExecutionPolicy Bypass
+        <li>esp-idf/install.sh
+        <li>source esp-idf/export.sh
+        <li>cd tower
+        <li>idf.py build
+        <li>idf.py -p [comxx] flash
+    </ul>
+    <h1> build source code win10</h1><ul>
+        <li>git clone git.2dkits.com:/home/git/tower.git
+        <li>cd tower
+        <li>git clone https://github.com/espressif/esp-idf.git
+        <li>Set-ExecutionPolicy -ExecutionPolicy Bypass
+        <li>esp-idf/install.ps1
+        <li>esp-idf/export.ps1
+        <li>cd tower
+        <li>idf.py build
+        <li>idf.py -p [comxx] flash
+    </ul>
+    <h1> picoc a</h1><ul>
+        We have a "c" interpreter for blinkie patterns
+	https://gitlab.com/zsaleeba/picoc
+
+    </ul>
+
 </ul>
 

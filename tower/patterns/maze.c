@@ -171,7 +171,7 @@ void main( void ) {
         while (moved) {
             myAllLedsColor( LED_NOOP, LED_MINUS, LED_NOOP);
             setLed(point.l,point.x,point.y, r,g,b);
-            if (endFrame(250)) { return 0; }
+            if (endFrame(250)) { return; }
             moved = searchDir( &point, r,g,b );
         }
 
@@ -184,7 +184,7 @@ void main( void ) {
         while (moved) {
             myAllLedsColor( LED_NOOP, LED_NOOP, LED_MINUS);
             setLed(point.l,point.x,point.y, r,g,b);
-            if (endFrame(250)) { return 0; }
+            if (endFrame(250)) { return; }
             moved = searchDir( &point, r,g,b );
         }
 
@@ -197,7 +197,7 @@ void main( void ) {
         while (moved) {
         myAllLedsColor( LED_MINUS, LED_NOOP, LED_NOOP);
             setLed(point.l,point.x,point.y, r,g,b);
-            if (endFrame(250)) { return 0; }
+            if (endFrame(250)) { return; }
             moved = searchDir( &point, r,g,b );
         }
     }

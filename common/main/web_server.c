@@ -28,6 +28,10 @@
 //   as a hotspot too.
 //**********************************************************************
 
+#define MAX_FILE_SIZE (10*1024)
+#define SCRATCH_BUFSIZE  8192
+#define FILE_PATH_MAX 12
+#define MAX_FILE_SIZE_STR "10KB"
 
 /* Simple HTTP Server Example
 
@@ -648,6 +652,161 @@ esp_err_t web_disk_dir_list(httpd_req_t *req) {
     return(ESP_OK);
 }
 
+/* Copies the full path into destination buffer and returns
+ * pointer to path (skipping the preceding base path) */
+static const char* get_path_from_uri(char *dest, const char *base_path, const char *uri, size_t destsize)
+{
+    const size_t base_pathlen = strlen(base_path);
+    size_t pathlen = strlen(uri);
+
+    const char *quest = strchr(uri, '?');
+    if (quest) {
+        pathlen = MIN(pathlen, quest - uri);
+    }
+    const char *hash = strchr(uri, '#');
+    if (hash) {
+        pathlen = MIN(pathlen, hash - uri);
+    }
+
+    if (base_pathlen + pathlen + 1 > destsize) {
+        /* Full path string won't fit into destination buffer */
+        return NULL;
+    }
+
+    /* Construct full path (base + path) */
+    strcpy(dest, base_path);
+    strlcpy(dest + base_pathlen, uri, pathlen + 1);
+
+    /* Return pointer to path, skipping the base */
+    return dest + base_pathlen;
+}
+
+
+/*******************************************************************************
+    PURPOSE: get disk drive output in html format
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
+static esp_err_t upload_post_handler(httpd_req_t *req)
+{
+    char filepath[FILE_PATH_MAX];
+    FILE *fd = NULL;
+    struct stat file_stat;
+
+    /* Skip leading "/upload" from URI to get filename */
+    /* Note sizeof() counts NULL termination hence the -1 */
+    const char *filename = get_path_from_uri(filepath, "/spiff",
+                                             req->uri + sizeof("/upload") - 1, sizeof(filepath));
+    if (!filename) {
+        /* Respond with 500 Internal Server Error */
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Filename too long");
+        return ESP_FAIL;
+    }
+
+    /* Filename cannot have a trailing '/' */
+    if (filename[strlen(filename) - 1] == '/') {
+        ESP_LOGE(TAG, "Invalid filename : %s", filename);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Invalid filename");
+        return ESP_FAIL;
+    }
+
+    if (stat(filepath, &file_stat) == 0) {
+        ESP_LOGE(TAG, "File already exists : %s", filepath);
+        /* Respond with 400 Bad Request */
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "File already exists");
+        return ESP_FAIL;
+    }
+
+    /* File cannot be larger than a limit */
+    if (req->content_len > MAX_FILE_SIZE) {
+        ESP_LOGE(TAG, "File too large : %d bytes", req->content_len);
+        /* Respond with 400 Bad Request */
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
+                            "File size must be less than "
+                            MAX_FILE_SIZE_STR "!");
+        /* Return failure to close underlying connection else the
+         * incoming file content will keep the socket busy */
+        return ESP_FAIL;
+    }
+
+    fd = fopen(filepath, "w");
+
+    if (!fd) {
+        ESP_LOGE(TAG, "Failed to create file : %s", filepath);
+        /* Respond with 500 Internal Server Error */
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to create file");
+        return ESP_FAIL;
+    }
+
+    ESP_LOGI(TAG, "Receiving file : %s...", filename);
+
+    /* Retrieve the pointer to scratch buffer for temporary storage */
+    char buf[1024]; //DDF
+    int received;
+
+    /* Content length of the request gives
+     * the size of the file being uploaded */
+    int remaining = req->content_len;
+
+    while (remaining > 0) {
+
+        ESP_LOGI(TAG, "Remaining size : %d", remaining);
+        /* Receive the file part by part into a buffer */
+        if ((received = httpd_req_recv(req, buf, MIN(remaining, SCRATCH_BUFSIZE))) <= 0) {
+            if (received == HTTPD_SOCK_ERR_TIMEOUT) {
+                /* Retry if timeout occurred */
+                continue;
+            }
+
+            /* In case of unrecoverable error,
+             * close and delete the unfinished file*/
+            fclose(fd);
+            unlink(filepath);
+
+            ESP_LOGE(TAG, "File reception failed!");
+            /* Respond with 500 Internal Server Error */
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to receive file");
+            return ESP_FAIL;
+        }
+/* Write buffer content to file on storage */
+        if (received && (received != fwrite(buf, 1, received, fd))) {
+            /* Couldn't write everything to file!
+             * Storage may be full? */
+            fclose(fd);
+            unlink(filepath);
+
+            ESP_LOGE(TAG, "File write failed!");
+            /* Respond with 500 Internal Server Error */
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to write file to storage");
+            return ESP_FAIL;
+        }
+
+        /* Keep track of remaining size of
+         * the file left to be uploaded */
+        remaining -= received;
+    }
+
+    /* Close file upon upload completion */
+    fclose(fd);
+    ESP_LOGI(TAG, "File reception complete");
+
+    /* Redirect onto root to see the updated file list */
+    httpd_resp_set_status(req, "303 See Other");
+    httpd_resp_set_hdr(req, "Location", "/");
+#ifdef CONFIG_EXAMPLE_HTTPD_CONN_CLOSE_HEADER
+    httpd_resp_set_hdr(req, "Connection", "close");
+#endif
+    httpd_resp_sendstr(req, "File uploaded successfully");
+    return ESP_OK;
+}
+
+
 /*******************************************************************************
     PURPOSE: mapping of web path to function to call
 
@@ -697,6 +856,12 @@ httpd_uri_t cloud = {
     .uri       = "/cloudpatterns.html",
     .method    = HTTP_GET,
     .handler   = cloud_pattern_list,
+    .user_ctx  = NULL
+};
+httpd_uri_t upload = {
+    .uri       = "/upload/*",
+    .method    = HTTP_POST,
+    .handler   = upload_post_handler,
     .user_ctx  = NULL
 };
 #endif
@@ -758,7 +923,7 @@ httpd_handle_t start_webserver(void) {
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.stack_size = 7 *1024;
-    config.max_uri_handlers = 14;
+    config.max_uri_handlers = 15;
     config.max_open_sockets = 13;
 
     // Start the httpd server
@@ -778,6 +943,7 @@ httpd_handle_t start_webserver(void) {
 #ifndef TIXCLOCK
         httpd_register_uri_handler(server, &patterns);
         httpd_register_uri_handler(server, &cloud);
+        httpd_register_uri_handler(server, &upload);
 #endif
         httpd_register_uri_handler(server, &content);
         httpd_register_uri_handler(server, &save);

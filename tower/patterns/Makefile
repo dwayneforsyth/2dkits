@@ -41,6 +41,8 @@ other: hello.c nested.c printled.c
 	scp rain.c $(SERVER):$(BASE_PATH)/patterns
 	scp twink.c $(SERVER):$(BASE_PATH)/patterns
 	scp maze.c $(SERVER):$(BASE_PATH)/patterns
+	scp random.c $(SERVER):$(BASE_PATH)/patterns
+	scp random1.c $(SERVER):$(BASE_PATH)/patterns
 
 clean:
 	rm *.o
