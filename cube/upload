@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RELEASE="00.01.00"
+RELEASE="00.01.01"
 
 TXT_FILE="current_firmware.txt"
 BIN_FILE_PATH="build/cube.bin"
