@@ -61,7 +61,7 @@ esp_err_t _http_event_handle3(esp_http_client_event_t *evt)
         //DDF we could get this in parts?
 //        ESP_LOGW(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
 //        printf("%.*s", evt->data_len, (char*)evt->data);
-        printf("writefile %d bytes\n", evt->data_len);
+//        printf("writefile %d bytes\n", evt->data_len);
 	fwrite( evt->data, evt->data_len, 1, pDownloadFile);
 
         break;
