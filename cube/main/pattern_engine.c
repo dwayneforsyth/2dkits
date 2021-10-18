@@ -896,7 +896,7 @@ esp_err_t cloud_pattern_list(httpd_req_t *req)  {
 *******************************************************************************/
 esp_err_t web_pattern_list(httpd_req_t *req)  {
     const char *pattern_header = "<table><tr><th>Status<th>Id<th>Name<th>Type<th>Speed<th>Cycles<th>&nbsp\n";
-    const char *pattern_footer = "</table></body></html>\n";
+    const char *pattern_footer = "</table><br>\n";
     const char *pattern_heading = "</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Pattern List</div><div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n";
 
     char tbuffer2[350];
@@ -932,6 +932,7 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
 	}
     }
     httpd_resp_send_chunk(req, pattern_footer, strlen(pattern_footer));
+    file_get_handler(req, "/spiffs/patterns.html",true);
     file_get_handler(req, "/spiffs/footer.html",false);
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;

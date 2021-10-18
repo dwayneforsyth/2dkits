@@ -30,7 +30,7 @@
 
 #define MAX_FILE_SIZE (10*1024)
 #define SCRATCH_BUFSIZE  8192
-#define FILE_PATH_MAX 12
+#define FILE_PATH_MAX 40
 #define MAX_FILE_SIZE_STR "10KB"
 
 /* Simple HTTP Server Example
@@ -701,7 +701,7 @@ static esp_err_t upload_post_handler(httpd_req_t *req)
 
     /* Skip leading "/upload" from URI to get filename */
     /* Note sizeof() counts NULL termination hence the -1 */
-    const char *filename = get_path_from_uri(filepath, "/spiff",
+    const char *filename = get_path_from_uri(filepath, "/spiffs",
                                              req->uri + sizeof("/upload") - 1, sizeof(filepath));
     if (!filename) {
         /* Respond with 500 Internal Server Error */
@@ -744,7 +744,7 @@ static esp_err_t upload_post_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "Receiving file : %s...", filename);
+    ESP_LOGI(TAG, "Receiving file : %s", filename);
 
     /* Retrieve the pointer to scratch buffer for temporary storage */
     char buf[1024]; //DDF
@@ -803,6 +803,13 @@ static esp_err_t upload_post_handler(httpd_req_t *req)
     httpd_resp_set_hdr(req, "Connection", "close");
 #endif
     httpd_resp_sendstr(req, "File uploaded successfully");
+
+    if (strcmp(".pat",&(filepath[strlen(filepath)-4])) == 0) {
+        addPattern(&filepath[8]); // this is a hack to remove the "/spiffs/"
+    } else if (strcmp(".c",&(filepath[strlen(filepath)-2])) == 0) {
+        addPattern(&filepath[8]); // this is a hack to remove the "/spiffs/"
+    }
+
     return ESP_OK;
 }
 
@@ -859,7 +866,7 @@ httpd_uri_t cloud = {
     .user_ctx  = NULL
 };
 httpd_uri_t upload = {
-    .uri       = "/upload/*",
+    .uri       = "/upload/*",   // Match all URIs of type /upload/path/to/file
     .method    = HTTP_POST,
     .handler   = upload_post_handler,
     .user_ctx  = NULL
@@ -922,6 +929,7 @@ httpd_handle_t start_webserver(void) {
 
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.uri_match_fn = httpd_uri_match_wildcard;
     config.stack_size = 7 *1024;
     config.max_uri_handlers = 15;
     config.max_open_sockets = 13;
