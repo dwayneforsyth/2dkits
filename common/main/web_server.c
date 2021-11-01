@@ -121,7 +121,13 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
     } else if (strncmp("%wpasswd",token,8)==0) {
         i = token[8] - '0';
         if (i<10) {
-            sprintf(tBuffer, "%s",getWifiPasswd(i));
+	    if ((strncmp("[None]",getWifiPasswd(i),7) == 0) ||
+                (strncmp("[Not Used]",getWifiPasswd(i),11) == 0)) {
+                sprintf(tBuffer, "%s",getWifiPasswd(i));
+	    } else {
+                strcpy(tBuffer,"[Assigned]");
+		printf("DDF P=%s\n",getWifiPasswd(i));
+	    }
         } else {
             sprintf(tBuffer, "[software error]");
         }
@@ -456,16 +462,25 @@ static void processVar( char * name, char * value) {
         printf("processVr2 %d %s\n", i, value);
         setWifiSsid(i,value);
     } else if (strncmp("wpasswd", name, 7)==0) {
-        ESP_LOGI(TAG, "DDF3 >%s< = >%s<", name, value);
-        if (strcmp(value, "[None]")==0) {
-            value[0] = 0;
-        }
-        if (strcmp(value, "[Not Used]")==0) {
-            value[0] = 0;
-        }
-        ESP_LOGI(TAG, "DDF4 >%s< = >%s<", name, value);
         i = name[7] - '0';
-        setWifiPasswd(i,value);
+        ESP_LOGI(TAG, "DDF3 >%s< = >%s< len=%d", name, value,strlen(value));
+        if (strlen(value) == 0) {
+            printf("erase password len=0 %d\n",i);
+            setWifiPasswd(i,value);
+        } else if (strcmp(value, "[None]")==0) {
+            printf("erase password None %d\n",i);
+            value[0] = 0;
+            setWifiPasswd(i,value);
+        } else if (strcmp(value, "[Not Used]")==0) {
+            printf("erase password Not Used %d\n",i);
+            value[0] = 0;
+            setWifiPasswd(i,value);
+        } else if ((strcmp(value, "[Assigned]")!=0)&&(strlen(value)>=8)) {
+            ESP_LOGI(TAG, "DDF4a >%s< = >%s<", name, value);
+            setWifiPasswd(i,value);
+	} else {
+            ESP_LOGI(TAG, "DDF4b not saved >%s< = >%s<", name, value);
+	}
     } else if (strcmp("tz", name)==0) {
         setTZ(value);
 #ifdef TIXCLOCK
