@@ -72,6 +72,11 @@ static const char *TAG="PENG";
 
 uint8_t pendingExit = false;
 
+// this is a kludge. the pattern timeout should be in
+// delay_and_buttons() but it is current in the pattern
+// engine for historical reasons.
+uint8_t exitReason = false;
+
 bool patternRun = true;
 
 void setPatternRun( bool onOff ) {
@@ -83,6 +88,42 @@ uint8_t step = 0;
 
 
 bool printPattern = false;
+
+void layer_test( uint16_t cycles, uint16_t delay);
+void rgb_test( uint16_t cycles, uint16_t delay);
+void walking_testing( uint16_t cycles, uint16_t delay);
+void rgb_fade( uint16_t cycles, uint16_t delay);
+/*******************************************************************************
+
+    Pattern table
+
+*******************************************************************************/
+pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
+   {.patternType = PATTERN_BUILT_IN,
+    .runMe = layer_test,
+    .patternName = "Layer test",
+    .delay = 500,
+    .cycles = 10,
+    .enabled = true},
+   {.patternType = PATTERN_BUILT_IN,
+    .runMe = rgb_test,
+    .patternName = "Just a RGB test",
+    .delay = 1000 * 3,
+    .cycles = 10,
+    .enabled = true},
+   {.patternType = PATTERN_BUILT_IN,
+    .runMe = walking_testing,
+    .patternName = "Walking LED test",
+    .delay = 200,
+    .cycles = 1000,
+    .enabled = true},
+   {.patternType = PATTERN_BUILT_IN,
+    .runMe = rgb_fade,
+    .patternName = "RGB all Fade test",
+    .delay = 100,
+    .cycles = 10,
+    .enabled = true},
+  };
 
 /*******************************************************************************
     PURPOSE:
@@ -115,6 +156,27 @@ bool getPrintPattern( void ) {
 }
 
 /*******************************************************************************
+    PURPOSE: returns the last pattern number
+
+    INPUTS: none
+
+    RETURN CODE: last pattern index
+
+    NOTES: zero based number!
+
+*******************************************************************************/
+uint8_t getLastPattern() {
+    uint8_t index;
+    for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
+       if (patternTable[index].patternType == PATTERN_NONE) {
+            printf("last_pattern = %d\n", index);
+           return( index-1);
+       }
+    }
+    return(MAX_PATTERN_ENTRY-1);
+}
+
+/*******************************************************************************
     PURPOSE:
 
     INPUTS:
@@ -126,7 +188,8 @@ bool getPrintPattern( void ) {
 
 *******************************************************************************/
 void setPatternPlus() {
-    step = ((step+1) % MAX_PATTERN_ENTRY);
+    step = (step+1) % (getLastPattern()+1);
+    pendingExit = true;
 }
 
 /*******************************************************************************
@@ -141,7 +204,8 @@ void setPatternPlus() {
 
 *******************************************************************************/
 void setPatternMinus() {
-    step = ((step-1) % MAX_PATTERN_ENTRY);
+    step = (step == 0)? getLastPattern() : step -1;
+    pendingExit = true;
 }
 
 /*******************************************************************************
@@ -207,7 +271,6 @@ bool delay_and_buttons(uint16_t delay) {
     bool exit = pendingExit;
     uint16_t delayCount = 0;
 
-    pendingExit = false;
     vTaskDelay(delay / portTICK_PERIOD_MS);
 
     while (patternRun == false) {
@@ -250,6 +313,12 @@ bool delay_and_buttons(uint16_t delay) {
         return(exit);
     }
 
+    if (pendingExit==true) {
+        pendingExit = false;
+        exit = true;
+    }
+
+    exitReason = exit;
     return(exit);
 }
 
@@ -634,43 +703,6 @@ void runDiskScriptPattern(char *name) {
    PicocCleanup(&pc);
 }
 
-/*******************************************************************************
-    PURPOSE:
-
-    INPUTS:
-
-    RETURN CODE:
-        NONE
-
-    NOTES:
-
-*******************************************************************************/
-pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
-   {.patternType = PATTERN_BUILT_IN,
-    .runMe = layer_test,
-    .patternName = "Layer test",
-    .delay = 500,
-    .cycles = 10,
-    .enabled = true},
-   {.patternType = PATTERN_BUILT_IN,
-    .runMe = rgb_test,
-    .patternName = "Just a RGB test",
-    .delay = 1000 * 3,
-    .cycles = 10,
-    .enabled = true},
-   {.patternType = PATTERN_BUILT_IN,
-    .runMe = walking_testing,
-    .patternName = "Walking LED test",
-    .delay = 200,
-    .cycles = 1000,
-    .enabled = true},
-   {.patternType = PATTERN_BUILT_IN,
-    .runMe = rgb_fade,
-    .patternName = "RGB all Fade test",
-    .delay = 100,
-    .cycles = 10,
-    .enabled = true},
-  };
 
 /*******************************************************************************
     PURPOSE:
@@ -757,7 +789,7 @@ uint8_t getPatternNumber() {
 *******************************************************************************/
 void setPatternNumber(uint8_t newStep) {
     if (step != newStep) {
-	step = ((newStep-1) % MAX_PATTERN_ENTRY);
+	step = (newStep % MAX_PATTERN_ENTRY);
 	pendingExit = true;
     }
 }
@@ -977,7 +1009,12 @@ void updatePatternsTask(void *param) {
                 default:
                     break;
             }
-            if (demoMode) {setPatternPlus();}
+            if ((demoMode) && (exitReason == false)) {
+               printf("demo mode forward\n");
+               setPatternPlus();
+               delay_and_buttons(1); // clean the pending stop
+            }
+
 	} else {
             vTaskDelay(1000); // wait a second
         }
