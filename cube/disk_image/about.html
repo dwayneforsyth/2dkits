@@ -17,10 +17,9 @@ This is the 4x4x4 Cube! A 2DKits.com creation, 64 LEDs of fun assembled into 4 l
         <li>git clone https://github.com/dwayneforsyth/2dkits.git
         <li>cd 2dkits
         <li>git clone https://github.com/espressif/esp-idf.git
-        <li>Set-ExecutionPolicy -ExecutionPolicy Bypass
         <li>esp-idf/install.sh
         <li>source esp-idf/export.sh
-        <li>cd tower
+        <li>cd cube
         <li>idf.py build
         <li>idf.py -p /dev/ttyUSBx] flash
     </ul>
@@ -31,9 +30,19 @@ This is the 4x4x4 Cube! A 2DKits.com creation, 64 LEDs of fun assembled into 4 l
         <li>Set-ExecutionPolicy -ExecutionPolicy Bypass
         <li>esp-idf/install.ps1
         <li>esp-idf/export.ps1
-        <li>cd tower
+        <li>cd cube
         <li>idf.py build
         <li>idf.py -p [comxx] flash
+    </ul>
+    <h1> build source code Mac</h1><ul>
+        <li>git clone https://github.com/dwayneforsyth/2dkits.git
+        <li>cd 2dkits
+        <li>git clone https://github.com/espressif/esp-idf.git
+        <li>esp-idf/install.sh
+        <li>source esp-idf/export.sh
+        <li>cd cube
+        <li>idf.py build
+        <li>idf.py -p /dev/tty.usbserial-xxxx] flash
     </ul>
     <h1> picoc</h1><ul>
         We have a "c" interpreter for blinkie patterns

@@ -27,7 +27,7 @@
 
 const uint8_t neededFileCount = 10;
 neededFiles_t  files[] = {
-    {.name = "about.html",       .sha="737819358f4d3b227512035582c742b506b029ff"},
+    {.name = "about.html",       .sha="a9d468e568c8e2323b4985e27958452a088a2d6b"},
     {.name = "patterns.html",    .sha="1c6413e42a4d20853cca0c71d92639019af149ab"},
     {.name = "header.html",      .sha="d067a220eda0a69389818b21e2397211922e60d6"},
     {.name = "footer.html",      .sha="0289f31c9e872fd865eafa54636483a19d1b5018"},

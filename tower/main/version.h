@@ -4,7 +4,7 @@
 
 #define MAJOR 0
 #define MINOR 1
-#define BUILD 1
+#define BUILD 2
 
 #define NUM_LAYER 8
 
