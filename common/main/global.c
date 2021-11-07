@@ -171,6 +171,16 @@ void WifiCleanup( void ) {
    storeSettings();
 }
 
+void setTZ( char * timezone) {
+   printf("set TZ >%s|%c<\n", timezone, timezone[1]);
+   xAppData.tzone = timezone[1] - '0';
+}
 
-void setTZ( char * wpasswd) {
+void setTFormat( char * tformat) {
+   printf("set TFormat >%s|%c<\n", tformat, tformat[1]);
+   if (tformat[1] == '2') {
+       xAppData.tformat = true;
+   } else {
+       xAppData.tformat = false;
+   }
 }

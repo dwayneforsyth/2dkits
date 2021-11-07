@@ -1,23 +1,27 @@
+set (COMMON "../../common/main/")
+
 idf_component_register(SRCS
-   "disk_system.c"
-   "sha_file.c"
-   "global.c"
+   "${COMMON}disk_system.c"
+   "${COMMON}sha_file.c"
+   "${COMMON}global.c"
    "tixclock_main.c"
    "led_driver.c"
    "web_server.c"
-   "captdns.c"
+   "${COMMON}captdns.c"
    "pattern_engine.c"
-   "dfu.c"
-   "console.c"
-   "download_file.c"
-   "upgrade_disk.c"
+   "${COMMON}dfu.c"
+   "${COMMON}console.c"
+   "${COMMON}download_file.c"
+   "${COMMON}upgrade_disk.c"
    "file_sha.c"
-   "cmd_dfu.c"
-   "cmd_system.c"
+   "${COMMON}cmd_dfu.c"
+   "${COMMON}cmd_system.c"
    "cmd_tixclock.c"
-   "cmd_wifi.c"
-   "cmd_download.c"
-   INCLUDE_DIRS "")
+   "${COMMON}cmd_wifi.c"
+   "${COMMON}cmd_download.c"
+   INCLUDE_DIRS
+       "../../common/main" .
+   )
 
 spiffs_create_partition_image(storage ../disk_image FLASH_IN_PROJECT)
 

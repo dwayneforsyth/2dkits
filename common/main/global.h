@@ -45,6 +45,7 @@ typedef struct blinkieAppData_t {
    uint8_t staMac[6];
    bool testRelease;
    uint8_t tzone;
+   bool tformat;
 } blinkieAppData_t;
 
 void loadSettings();
@@ -66,6 +67,7 @@ void setHSSsid( char * hssid);
 void setHSPasswd( char * hpasswd);
 void setHSChan( uint8_t hchan);
 void setTZ( char * wpasswd);
+void setTFormat( char * tformat);
 void setSystemType( bool);
 
 void setWifiSsid( uint8_t index, char * wssid);
