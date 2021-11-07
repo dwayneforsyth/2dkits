@@ -1,4 +1,7 @@
-This is the source code for 2dkits.com 2nd generation LED Cube 4x4x4 and Tower 8x4x4.
+This is the source code for 2dkits.com's
+<li>2nd generation LED Cube 4x4x4
+<li>2nd generation Tower 8x4x4.
+<li>Tix Clock
 
 https://www.kickstarter.com/projects/2dkits/led-cube-4x4x4-and-tower-8x4x4-kit
 
