@@ -5,8 +5,8 @@
 #define TIXCLOCK
 
 #define MAJOR 0
-#define MINOR 0
-#define BUILD 7
+#define MINOR 1
+#define BUILD 0
 
 #define CONFIG_SERVER_URL                "http://www.2dkits.com/"
 #define CONFIG_BASE_CLOUD_URL            CONFIG_SERVER_URL "kits/kit55/"

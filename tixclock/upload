@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RELEASE="00.00.07"
+RELEASE="00.01.00"
 
 TXT_FILE="current_firmware.txt"
 BIN_FILE_PATH="build/tixclock.bin"
