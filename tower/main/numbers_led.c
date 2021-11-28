@@ -119,8 +119,8 @@ void displayNumber(uint8_t number) {
    for (l=0;l<7;l++) {
        for(i=0;i<4;i++) {
 	   temp = (digitMap[digit1][l][i])? 15 : 0;
-	   setLed(l+1,0,i, 0,temp,temp);
+	   setLed3(l+1,0,i, 0,temp,temp);
 	   temp = (digitMap[digit2][l][i])? 15 : 0;
-	   setLed(l+1,2,i, temp,0,0);
+	   setLed3(l+1,2,i, temp,0,0);
 }  }   }
 

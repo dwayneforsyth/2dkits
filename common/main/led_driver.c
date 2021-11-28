@@ -33,6 +33,8 @@
 #include "queued_i2s_parallel.h"
 #include "driver/gpio.h"
 #include "led_driver.h"
+#include "led_map.h"
+#include "version.h"
 
 #define BLINK_GPIO     2
 #define PIN_NUM_RED   26
@@ -59,48 +61,15 @@ QueueHandle_t main_data_queue;
 
 uint16_t *bufferToFill; //Pointer to buffer that is next to be filled
 
-const uint8_t ledMap[128] = {
-    2*16+0*4+0, 2*16+0*4+1, 2*16+0*4+2, 2*16+0*4+3,
-    6*16+0*4+0, 6*16+0*4+1, 6*16+0*4+2, 6*16+0*4+3,
-    4*16+0*4+0, 4*16+0*4+1, 4*16+0*4+2, 4*16+0*4+3,
-    0*16+0*4+0, 0*16+0*4+1, 0*16+0*4+2, 0*16+0*4+3,
-    2*16+1*4+0, 2*16+1*4+1, 2*16+1*4+2, 2*16+1*4+3,
-    6*16+1*4+0, 6*16+1*4+1, 6*16+1*4+2, 6*16+1*4+3,
-    4*16+1*4+0, 4*16+1*4+1, 4*16+1*4+2, 4*16+1*4+3,
-    0*16+1*4+0, 0*16+1*4+1, 0*16+1*4+2, 0*16+1*4+3,
-    2*16+2*4+0, 2*16+2*4+1, 2*16+2*4+2, 2*16+2*4+3,
-    6*16+2*4+0, 6*16+2*4+1, 6*16+2*4+2, 6*16+2*4+3,
-    4*16+2*4+0, 4*16+2*4+1, 4*16+2*4+2, 4*16+2*4+3,
-    0*16+2*4+0, 0*16+2*4+1, 0*16+2*4+2, 0*16+2*4+3,
-    2*16+3*4+0, 2*16+3*4+1, 2*16+3*4+2, 2*16+3*4+3,
-    6*16+3*4+0, 6*16+3*4+1, 6*16+3*4+2, 6*16+3*4+3,
-    4*16+3*4+0, 4*16+3*4+1, 4*16+3*4+2, 4*16+3*4+3,
-    0*16+3*4+0, 0*16+3*4+1, 0*16+3*4+2, 0*16+3*4+3,
-    3*16+0*4+0, 3*16+0*4+1, 3*16+0*4+2, 3*16+0*4+3,
-    7*16+0*4+0, 7*16+0*4+1, 7*16+0*4+2, 7*16+0*4+3,
-    5*16+0*4+0, 5*16+0*4+1, 5*16+0*4+2, 5*16+0*4+3,
-    1*16+0*4+0, 1*16+0*4+1, 1*16+0*4+2, 1*16+0*4+3,
-    3*16+1*4+0, 3*16+1*4+1, 3*16+1*4+2, 3*16+1*4+3,
-    7*16+1*4+0, 7*16+1*4+1, 7*16+1*4+2, 7*16+1*4+3,
-    5*16+1*4+0, 5*16+1*4+1, 5*16+1*4+2, 5*16+1*4+3,
-    1*16+1*4+0, 1*16+1*4+1, 1*16+1*4+2, 1*16+1*4+3,
-    3*16+2*4+0, 3*16+2*4+1, 3*16+2*4+2, 3*16+2*4+3,
-    7*16+2*4+0, 7*16+2*4+1, 7*16+2*4+2, 7*16+2*4+3,
-    5*16+2*4+0, 5*16+2*4+1, 5*16+2*4+2, 5*16+2*4+3,
-    1*16+2*4+0, 1*16+2*4+1, 1*16+2*4+2, 1*16+2*4+3,
-    3*16+3*4+0, 3*16+3*4+1, 3*16+3*4+2, 3*16+3*4+3,
-    7*16+3*4+0, 7*16+3*4+1, 7*16+3*4+2, 7*16+3*4+3,
-    5*16+3*4+0, 5*16+3*4+1, 5*16+3*4+2, 5*16+3*4+3,
-    1*16+3*4+0, 1*16+3*4+1, 1*16+3*4+2, 1*16+3*4+3
-};
+uint8_t active = 0;
 
-uint8_t RED[128] = { 0 };
-uint8_t GREEN[128] = { 0 };
-uint8_t BLUE[128] = { 0 };
+typedef struct {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+} led_t;
 
-uint8_t RED2[128] = { 0 };
-uint8_t GREEN2[128] = { 0 };
-uint8_t BLUE2[128] = { 0 };
+led_t LED[3][128] = { 0 };
 
 
 /*******************************************************************************
@@ -158,7 +127,7 @@ void writeSample(uint16_t *buf, uint16_t data, uint16_t pos) {
     NOTES:
 
 *******************************************************************************/
-void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB) {
+void setLedNum(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB, uint8_t set) {
     if ((z > 7)||(x>3)||(y>3)) {
         printf("Error set LED range\n");
 	return;
@@ -181,45 +150,26 @@ void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB)
     if (iB == LED_NOOP) { iB = tB; }
 
     uint8_t number = z*16+x*4+y;
-    RED[number] = iR;
-    GREEN[number] = iG;
-    BLUE[number] = iB;
+    LED[set][number].red = iR;
+    LED[set][number].green = iG;
+    LED[set][number].blue = iB;
+}
+
+void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB) {
+    setLedNum(z, x, y, iR, iG, iB, 0);
 }
 
 void setLed2(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB) {
-    if ((z > 7)||(x>3)||(y>3)) {
-        printf("Error set LED range\n");
-	return;
-    }
+    setLedNum(z, x, y, iR, iG, iB, 1);
+}
 
-    uint8_t tR, tG, tB;
-
-    getLed(z,x,y, &tR, &tG, &tB);
-
-    if (iR == LED_PLUS) { iR = (tR==15)? 15: tR+1; }
-    if (iG == LED_PLUS) { iG = (tG==15)? 15: tG+1; }
-    if (iB == LED_PLUS) { iB = (tB==15)? 15: tB+1; }
-
-    if (iR == LED_MINUS) { iR = (tR==0)? 0: tR-1; }
-    if (iG == LED_MINUS) { iG = (tG==0)? 0: tG-1; }
-    if (iB == LED_MINUS) { iB = (tB==0)? 0: tB-1; }
-
-    if (iR == LED_NOOP) { iR = tR; }
-    if (iG == LED_NOOP) { iG = tG; }
-    if (iB == LED_NOOP) { iB = tB; }
-
-    uint8_t number = z*16+x*4+y;
-    RED2[number] = iR;
-    GREEN2[number] = iG;
-    BLUE2[number] = iB;
+void setLed3(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB) {
+    setLedNum(z, x, y, iR, iG, iB, 2);
 }
 
 void transferBuffer( void ) {
-   memcpy(RED, RED2, sizeof(RED2));
-   memcpy(GREEN, GREEN2, sizeof(GREEN2));
-   memcpy(BLUE, BLUE2, sizeof(BLUE2));
+   memcpy(LED[0], LED[1], 128*3);
 }
-
 
 /*******************************************************************************
     PURPOSE:
@@ -239,9 +189,9 @@ void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *
 	return;
     }
     uint8_t number = z*16+x*4+y;
-    *iR = RED[number];
-    *iG = GREEN[number];
-    *iB = BLUE[number];
+    *iR = LED[0][number].red;
+    *iG = LED[0][number].green;
+    *iB = LED[0][number].blue;
 }
 
 /*******************************************************************************
@@ -257,6 +207,7 @@ void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *
 *******************************************************************************/
 void changeBank( uint8_t select ) {
 
+    active = (select==0)? 0 : 2;
     printf("need to implement change bank\n");
 }
 
@@ -273,9 +224,9 @@ void changeBank( uint8_t select ) {
 *******************************************************************************/
 void allLedsOff() {
     for (uint8_t i =0; i< 128; i++) {
-        RED[i] = 0;
-        GREEN[i] = 0;
-        BLUE[i] = 0;
+        LED[0][i].red = 0;
+        LED[0][i].green = 0;
+        LED[0][i].blue = 0;
     }
 }
 
@@ -292,9 +243,9 @@ void allLedsOff() {
 *******************************************************************************/
 void allLedsOn() {
     for (uint8_t i =0; i< 128; i++) {
-        RED[i] = 15;
-        GREEN[i] = 15;
-        BLUE[i] = 15;
+        LED[0][i].red = 15;
+        LED[0][i].green = 15;
+        LED[0][i].blue = 15;
     }
 }
 
@@ -311,17 +262,25 @@ void allLedsOn() {
 *******************************************************************************/
 void allLedsColor( uint8_t red, uint8_t green, uint8_t blue) {
     for (uint8_t i =0; i< 128; i++) {
-        RED[i] = red;
-        GREEN[i] = green;
-        BLUE[i] = blue;
+        LED[0][i].red = red;
+        LED[0][i].green = green;
+        LED[0][i].blue = blue;
     }
 }
 
 void allLedsColor2( uint8_t red, uint8_t green, uint8_t blue) {
     for (uint8_t i =0; i< 128; i++) {
-        RED2[i] = red;
-        GREEN2[i] = green;
-        BLUE2[i] = blue;
+        LED[1][i].red = red;
+        LED[1][i].green = green;
+        LED[1][i].blue = blue;
+    }
+}
+
+void allLedsColor3( uint8_t red, uint8_t green, uint8_t blue) {
+    for (uint8_t i =0; i< 128; i++) {
+        LED[2][i].red = red;
+        LED[2][i].green = green;
+        LED[2][i].blue = blue;
     }
 }
 
@@ -337,9 +296,9 @@ void allLedsColor2( uint8_t red, uint8_t green, uint8_t blue) {
 
 *******************************************************************************/
 uint8_t ledOnOff( uint8_t color, uint8_t led, uint8_t bright) {
-    uint8_t red = (bright < RED[ledMap[led]])? 1 : 0;
-    uint8_t green = (bright < GREEN[ledMap[led]])? 1 : 0;
-    uint8_t blue = (bright < BLUE[ledMap[led]])? 1 : 0;
+    uint8_t red   = (bright < LED[active][ledMap[led]].red)?   1 : 0;
+    uint8_t green = (bright < LED[active][ledMap[led]].green)? 1 : 0;
+    uint8_t blue  = (bright < LED[active][ledMap[led]].blue)?  1 : 0;
     return(red<<1|green<<2|blue<<3);
 }
 
@@ -374,7 +333,7 @@ void mainLoop(void) {
         }
         //Fill the buffer here
         if (bufferToFill!=NULL) {
-            if (count < 33) {
+            if (count < (NUM_LAYER*4+1)) {
                 out = clock | ledOnOff(1, led, bright)| strobeOut;
                 if (clock==0) {
                     clock = 1;
@@ -382,7 +341,7 @@ void mainLoop(void) {
                     clock = 0;
                     led++;
                 }
-            } else { // count == 33
+            } else { // count == 17 / 33
                 strobe = (strobe+1)%128;
                 led = (strobe/16)*16;
                 strobeOut = 1<<(5+(strobe/16));
@@ -417,6 +376,10 @@ void mainLoop(void) {
 
 *******************************************************************************/
 void init_LED_driver(void) {
+
+    allLedsColor( 0, 0, 0);
+    allLedsColor2( 0, 0, 0);
+    allLedsColor3( 0, 0, 0);
     gpio_pad_select_gpio(PIN_ENABLE);
     gpio_set_direction(PIN_ENABLE, GPIO_MODE_OUTPUT);
     gpio_set_level(PIN_ENABLE, 0);
