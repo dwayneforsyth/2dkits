@@ -92,7 +92,7 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
 
     if (strcmp("%patternNumber",token)==0) {
 #ifndef TIXCLOCK
-        sprintf(tBuffer, "%d",getPatternNumber());
+        sprintf(tBuffer, "%d",getPatternNumber()+1);
         httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
     } else if (strcmp("%patternName",token)==0) {
         sprintf(tBuffer, "%s",getPatternName());

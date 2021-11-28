@@ -952,7 +952,7 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
 	    }
             snprintf(tbuffer2, sizeof(tbuffer2), "<tr><td>%s<td>%d<td align=\"left\">%s<td>%s<td>%d<td>%d<td><button onclick=\"window.location.href = '/patterns.html?pattern=%d';\">Select</button>%s\n",
 	       (step == index)? "==>" : "",
-               index,
+               index+1,
                patternTable[index].patternName,
                (patternTable[index].patternType == PATTERN_BUILT_IN)? "Built-in":"File System",
 	       patternTable[index].delay,

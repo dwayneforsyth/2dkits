@@ -114,6 +114,8 @@ void displayNumber(uint8_t number) {
    uint8_t digit1, digit2;
    uint8_t l,i;
 
+   number++;
+
    digit2 = number / 10;
    digit1 = number % 10;
    for (l=0;l<7;l++) {

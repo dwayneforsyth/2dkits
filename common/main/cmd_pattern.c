@@ -92,21 +92,25 @@ static int pattern(int argc, char **argv)
     }
 
     if (strlen(pattern_args.control->sval[0])==0) {
-        ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber(),getPatternName());
+        ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber()+1,getPatternName());
         return( 0 );
     } else if (strcasecmp(pattern_args.control->sval[0], "+") == 0) {
 	setPatternPlus();
-        ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber(), getPatternName());
+        ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber()+1, getPatternName());
         return( 0 );
     } else if (strcasecmp(pattern_args.control->sval[0], "-") == 0) {
 	setPatternMinus();
-        ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber(), getPatternName());
+        ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber()+1, getPatternName());
         return( 0 );
     } else if (isdigit(pattern_args.control->sval[0][0])) {
 	uint8_t value = atoi(pattern_args.control->sval[0]);
-	setPatternNumber( value );
+	if (value == 0) {
+            ESP_LOGW(TAG, "Pattern is 1 based (for user UI)");
+            return( 2 );
+        }
+	setPatternNumber( value-1 );
 	vTaskDelay(1000 / portTICK_PERIOD_MS);
-        ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber(), getPatternName());
+        ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber()+1, getPatternName());
         return( 0 );
     } else {
         ESP_LOGW(TAG, "Pattern >%s<", pattern_args.control->sval[0]);
