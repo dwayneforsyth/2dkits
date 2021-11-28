@@ -19,8 +19,7 @@
 //
 //**********************************************************************
 
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -73,6 +72,3 @@ void setSystemType( bool);
 void setWifiSsid( uint8_t index, char * wssid);
 void setWifiPasswd( uint8_t index, char * wpasswd);
 void WifiCleanup( void );
-
-
-#endif

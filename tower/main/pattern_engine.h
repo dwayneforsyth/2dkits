@@ -1,4 +1,4 @@
-//   Copyright (C) 2019 Dwayne Forsyth
+//   Copyright (C) 2021 Dwayne Forsyth
 //                                 
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License
@@ -19,8 +19,7 @@
 //
 //**********************************************************************
 
-#ifndef PATTERN_ENGINE_H
-#define PATTERN_ENGINE_H
+#pragma once
 
 #include <esp_http_server.h>
 
@@ -48,5 +47,3 @@ void patternEngineOff( void );
 void setPatternRun( bool onOff );
 
 bool delay_and_buttons(uint16_t delay);
-#endif
-

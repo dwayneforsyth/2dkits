@@ -1,4 +1,4 @@
-//   Copyright (C) 2019 Dwayne Forsyth
+//   Copyright (C) 2021 Dwayne Forsyth
 //                                 
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License
@@ -19,9 +19,6 @@
 //
 //**********************************************************************
 
-#ifndef NUMBERS_LED_H
-#define NUMBERS_LED_H
+#pragma once
 
 void displayNumber(uint8_t number);
-
-#endif

@@ -19,8 +19,7 @@
 //
 //**********************************************************************
 
-#ifndef LED_DRIVER_H
-#define LED_DRIVER_H
+#pragma once
 
 #include <stdint.h>
 
@@ -40,5 +39,3 @@ void allLedsOff();
 void allLedsOn();
 void allLedsColor( uint8_t red, uint8_t green, uint8_t blue);
 void allLedsColor2( uint8_t red, uint8_t green, uint8_t blue);
-
-#endif
