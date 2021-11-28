@@ -168,10 +168,10 @@ bool getPrintPattern( void ) {
 uint8_t getLastPattern() {
     uint8_t index;
     for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
-       if (patternTable[index].patternType == PATTERN_NONE) {
+        if (patternTable[index].patternType == PATTERN_NONE) {
             printf("last_pattern = %d\n", index);
-           return( index-1);
-       }
+            return( index-1);
+        }
     }
     return(MAX_PATTERN_ENTRY-1);
 }
@@ -1010,12 +1010,11 @@ void updatePatternsTask(void *param) {
                     break;
             }
             if ((demoMode) && (exitReason == false)) {
-               printf("demo mode forward\n");
-               setPatternPlus();
-               delay_and_buttons(1); // clean the pending stop
+                printf("demo mode forward\n");
+                setPatternPlus();
+                delay_and_buttons(1); // clean the pending stop
             }
-
-	} else {
+        } else {
             vTaskDelay(1000); // wait a second
         }
     }
