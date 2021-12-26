@@ -876,7 +876,11 @@ esp_err_t cloud_pattern_list(httpd_req_t *req)  {
         return ESP_OK;
     }
 
-    download_file( "/spiffs/cloud.lst", CONFIG_CLOUD_PATTERN_URL);
+    // sending the MAC so we can see who is using the server
+    sprintf( tbuffer2, "%s?id=%2.2X%2.2X%2.2X%2.2X%2.2X%2.2X",CONFIG_CLOUD_PATTERN_URL,
+                xAppData.apMac[0], xAppData.apMac[1], xAppData.apMac[2],
+                xAppData.apMac[3], xAppData.apMac[4], xAppData.apMac[5]);
+    download_file( "/spiffs/cloud.lst", tbuffer2);
 
     httpd_resp_send_chunk(req, pattern_header, strlen(pattern_header));
     FILE *ptr = fopen("/spiffs/cloud.lst","rb");
