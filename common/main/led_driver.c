@@ -37,8 +37,8 @@
 #include "version.h"
 
 #define BLINK_GPIO     2
-#define PIN_NUM_RED   26
-#define PIN_NUM_GREEN 25
+#define PIN_NUM_RED   25
+#define PIN_NUM_GREEN 26
 #define PIN_NUM_BLUE  14
 #define PIN_NUM_CLK   13
 #define PIN_ENABLE    18
