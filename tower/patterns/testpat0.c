@@ -22,16 +22,16 @@ int main(int argc,char ** argv) {
              g = (color & 0x02)? 0 : fad;
              b = (color & 0x04)? 0 : fad;
              allLedsColor(r,g,b);
-	     if (endFrame(150)) { return 0; }
+	     if (endFrame(150)) { return; }
           }
           for (fad= 14; fad != 0; fad--) {
              r = (color & 0x01)? 0 : fad;
              g = (color & 0x02)? 0 : fad;
              b = (color & 0x04)? 0 : fad;
              allLedsColor(r,g,b);
-	     if (endFrame(150)) { return 0; }
+	     if (endFrame(150)) { return; }
           }
       }
    }
-   return 0;
+   return;
 }

@@ -108,6 +108,6 @@ void main( void ) {
                 }
             }
         }
-        if (endFrame(150)) { return 0; }
+        if (endFrame(150)) { return; }
     }
 }
