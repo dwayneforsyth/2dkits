@@ -1,0 +1,83 @@
+</div></td>
+    <td valign="top">
+    <div id="navBreadCrumb">Settings
+</div>
+
+<div class="centerColumn" id="indexDefault">
+<h1 id="indexDefaultHeading"></h1>
+
+<h2 class="greeting">Settings</h2>
+
+</div><ul>
+	<form action="/form-settings" method="post">
+	<h3> Wifi Hotspot </h3><ul>
+		<li><label for="hssid">SSID</label>
+		<input type="text" id="hssid" name="hssid" value="%hssid%">
+		<li><label for="hpasswd">Password</label>
+		<input type="text" id="hpasswd" name="hpasswd" value="%hpasswd%">
+		<li><label for="hchan">Channel</label>
+			<select id="hchan" name="hchan">
+				<optgroup label="hrfchan">
+					<option %hchsel01% >1</option>
+					<option %hchsel02% >2</option>
+					<option %hchsel03% >3</option>
+					<option %hchsel04% >4</option>
+					<option %hchsel05% >5</option>
+					<option %hchsel06% >6</option>
+					<option %hchsel07% >7</option>
+					<option %hchsel08% >8</option>
+					<option %hchsel09% >9</option>
+					<option %hchsel10% >10</option>
+					<option %hchsel11% >11</option>
+					<option %hchsel12% >12</option>
+					<option %hchsel13% >13</option>
+					</optgroup>
+			</select>
+	</ul>
+        <h3> Wifi network </h3><ul>
+		<table><tr><th>SSID<th>Passcode
+		       <tr><td> <input type="text" id="wssid" name="wssid0" value="%wssid0%">
+		           <td> <input type="text" id="wpasswd" name="wpasswd0" value="%wpasswd0%">
+		       <tr><td> <input type="text" id="wssid" name="wssid1" value="%wssid1%">
+		           <td> <input type="text" id="wpasswd" name="wpasswd1" value="%wpasswd1%">
+		       <tr><td> <input type="text" id="wssid" name="wssid2" value="%wssid2%">
+		           <td> <input type="text" id="wpasswd" name="wpasswd2" value="%wpasswd2%">
+		       <tr><td> <input type="text" id="wssid" name="wssid3" value="%wssid3%">
+		           <td> <input type="text" id="wpasswd" name="wpasswd3" value="%wpasswd3%">
+		       <tr><td> <input type="text" id="wssid" name="wssid4" value="%wssid4%">
+		           <td> <input type="text" id="wpasswd" name="wpasswd4" value="%wpasswd4%">
+		       <tr><td> <input type="text" id="wssid" name="wssid5" value="%wssid5%">
+		           <td> <input type="text" id="wpasswd" name="wpasswd5" value="%wpasswd5%">
+		       <tr><td> <input type="text" id="wssid" name="wssid6" value="%wssid6%">
+		           <td> <input type="text" id="wpasswd" name="wpasswd6" value="%wpasswd6%">
+		       <tr><td> <input type="text" id="wssid" name="wssid7" value="%wssid7%">
+		           <td> <input type="text" id="wpasswd" name="wpasswd7" value="%wpasswd7%">
+		       <tr><td> <input type="text" id="wssid" name="wssid8" value="%wssid8%">
+		           <td> <input type="text" id="wpasswd" name="wpasswd8" value="%wpasswd8%">
+		       <tr><td> <input type="text" id="wssid" name="wssid9" value="%wssid9%">
+		           <td> <input type="text" id="wpasswd" name="wpasswd9" value="%wpasswd9%">
+		</table>
+	</ul>
+	<h3> Time </h3><ul>
+		<li><label for="tz">Timezone</label>
+			<select id="tz" name="tz">
+				<optgroup label="tz">
+					<option %tz04% >-4 EDT</option>
+					<option %tz05% >-5 CDT</option>
+					<option %tz06% >-6 CST</option>
+					<option %tz07% >-7 PDT</option>
+					<option %tz08% >-8 AKDT</option>
+					<option %tz09% >-9 HDT</option>
+					</optgroup>
+			</select>
+		<li><label for="tformat">Time Format</label>
+			<select id="tformat" name="tformat">
+				<optgroup label="tformat">
+					<option %tf12% >12 hour</option>
+					<option %tf24% >24 hour</option>
+					</optgroup>
+			</select>
+	</ul>
+</ul>
+<button type="submit">Save Settings</button>
+	</form>

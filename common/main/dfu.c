@@ -181,7 +181,9 @@ void dfu_task(void *pvParameter)
 
         while (tries != 0) {
 #ifndef TIXCLOCK
+#ifndef BLASTER
 	    setPatternNumber(0); // give visual feedback we are downloading
+#endif
 #endif
             ESP_LOGW(TAG, "Downloading >%s<",firmware_file);
             esp_err_t ret = esp_https_ota(&configDFU);
@@ -189,7 +191,9 @@ void dfu_task(void *pvParameter)
 		setSystemType( (flags==2)? true : false);
                 ESP_LOGW(TAG, "Downloadable Firmware Upgrade Done");
 #ifndef TIXCLOCK
+#ifndef BLASTER
 		patternEngineOff();
+#endif
 #endif
                 vTaskDelay(1000 / portTICK_PERIOD_MS); // wait 1 second
                 esp_restart();
