@@ -36,13 +36,14 @@
 // #include "esp_wifi.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
-static const char *TAG = "PATTERN";
+// static const char *TAG = "PATTERN";
 
 
 #include "led_driver.h"
 // #include "web_server.h"
 // #include "disk_system.h"
-#include "driver/timer.h"
+//#include "driver/timer.h"
+#include "esp_timer.h"
 #include "global.h"
 
 bool debugLed = false;
@@ -69,6 +70,7 @@ void display_LED_uart( void) {
         }
 }
 
+#if (0)
 #define TIMER_DIVIDER         16  //  Hardware timer clock divider
 #define TIMER_SCALE           (TIMER_BASE_CLK / TIMER_DIVIDER)  // convert counter value to seconds
 #define TIMER_WITH_RELOAD      1        // testing will be done with auto reload
@@ -133,7 +135,20 @@ void setupTimer( void ) {
 
     timer_start(TIMER_GROUP_0, TIMER_0);
 }
+#endif
 
+void setupTimer( void ) {
+    const esp_timer_create_args_t periodic_timer_args = {
+            .callback = &strobe_display,
+            /* name is optional, but may help identify the timer when debugging */
+            .name = "periodic"
+    };
+    esp_timer_handle_t periodic_timer;
+    ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
+    /* The timer has been created but is not running yet */
+
+    ESP_ERROR_CHECK(esp_timer_start_periodic(periodic_timer, 2));
+}
 
 
 void updatePatternsTask( void ) {

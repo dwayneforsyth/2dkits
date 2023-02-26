@@ -7,7 +7,7 @@ idf_component_register(SRCS
    "tixclock_main.c"
    "led_driver.c"
    "web_server.c"
-   "${COMMON}captdns.c"
+#   "${COMMON}captdns.c"
    "pattern_engine.c"
    "${COMMON}dfu.c"
    "${COMMON}console.c"
