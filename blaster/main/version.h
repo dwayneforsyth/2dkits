@@ -6,7 +6,7 @@
 
 #define MAJOR 0
 #define MINOR 0
-#define BUILD 1
+#define BUILD 2
 
 #define CONFIG_SERVER_URL                "http://www.2dkits.com/"
 #define CONFIG_BASE_CLOUD_URL            CONFIG_SERVER_URL "kits/kit99/"

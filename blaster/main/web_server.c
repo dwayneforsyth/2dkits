@@ -678,6 +678,13 @@ httpd_uri_t about = {
     .user_ctx  = "/spiffs/about.html"
 };
 
+httpd_uri_t build = {
+    .uri       = "/build.html",
+    .method    = HTTP_GET,
+    .handler   = get_file_handler,
+    .user_ctx  = "/spiffs/build.html"
+};
+
 httpd_uri_t settings = {
     .uri       = "/settings.html",
     .method    = HTTP_GET,
@@ -757,7 +764,7 @@ httpd_handle_t start_webserver(void) {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.stack_size = 7 *1024;
 
-    config.max_uri_handlers = 13;
+    config.max_uri_handlers = 14;
 
     // Start the httpd server
     ESP_LOGI(TAG, "Starting server on port: %d", config.server_port);
@@ -772,6 +779,7 @@ httpd_handle_t start_webserver(void) {
         httpd_register_uri_handler(server, &logo);
         httpd_register_uri_handler(server, &title);
         httpd_register_uri_handler(server, &about);
+        httpd_register_uri_handler(server, &build);
         httpd_register_uri_handler(server, &settings);
 #ifndef BLASTER
         httpd_register_uri_handler(server, &patterns);
@@ -811,11 +819,10 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base,
 
     switch (event_id) {
     case IP_EVENT_STA_GOT_IP: {
-
-//        xAppData.ipName = ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip);
-//        ESP_LOGI(TAG, "SYSTEM_EVENT_STA_GOT_IP");
-//        ESP_LOGI(TAG, "Got IP: %s",
-//                 ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+        ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
+        asprintf(&(xAppData.ipName), IPSTR, IP2STR(&event->ip_info.ip));
+        ESP_LOGI(TAG, "SYSTEM_EVENT_STA_GOT_IP");
+        ESP_LOGI(TAG, "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
 
         /* Start the web server */
         if (serverInit == false) {

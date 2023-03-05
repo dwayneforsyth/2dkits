@@ -34,8 +34,9 @@ neededFiles_t  files[] = {
     {.name = "styles.css",       .sha="cfdbd4de3f1a040c8a383e4cf53976df8ca793b4"},
     {.name = "header-bg.jpg",    .sha="7b4d322d9e6b84143ff974b9052bdcd9369f09a1"},
     {.name = "box-title-bg.jpg", .sha="423c796eb3986460384521d82d345b416fe47a67"},
-    {.name = "header.html",      .sha="29936aaa794dc91a62bc25661228742fe8e02c81"},
+    {.name = "header.html",      .sha="fd63482c606b3299741cc291b944ec0870385d09"},
     {.name = "about.html",       .sha="7e58556910da40573f748b2be3723d1c7e314a24"},
+    {.name = "build.html",       .sha="594aaac299eba16854b34a18ce6d5cd261eadfb2"},
     {.name = "index.html",       .sha="d6dce707bc931da848a01c2ff6f5a5d2d8a02114"},
     {.name = "settings.html",    .sha="9c1ce9f3d4cc12ff8e1e111e0553cad603429868"},
 };
