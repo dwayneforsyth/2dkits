@@ -18,6 +18,12 @@ idf_component_register(SRCS
    "${COMMON}cmd_system.c"
    "${COMMON}cmd_wifi.c"
    "${COMMON}cmd_download.c"
+   "display.c"
+   "st7789.c"
+   "fontx.c"
+   "pngle.c"
+   "decode_png.c"
+   "decode_jpeg.c"
    INCLUDE_DIRS
        "../../common/main" .
    )

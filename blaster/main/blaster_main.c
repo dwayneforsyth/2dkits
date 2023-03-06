@@ -45,6 +45,7 @@
 #include "driver/uart.h"
 #include "console.h"
 #include "pattern_engine.h"
+#include "display.h"
 
 #include "esp_log.h"
 // static const char *TAG = "MAIN";
@@ -61,7 +62,7 @@ void app_main()
 {
     time_t now;
     
-    printf("Hello from Tix Clock 2\n");
+    printf("Hello from Blaster\n");
 
     init_gpio();
     init_LEDs();
@@ -79,7 +80,9 @@ void app_main()
     
     initialise_wifi_p2(&server);
 
-    xTaskCreate(updatePatternsTask, "updatePatternsTask", 4*1024, NULL, 23, NULL);
+//    xTaskCreate(updatePatternsTask, "updatePatternsTask", 4*1024, NULL, 23, NULL);
+
+    display_init();
 
     consoleInit();
     //consoleInit does not return
