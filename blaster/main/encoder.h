@@ -18,11 +18,8 @@
 //      Boston, MA  02110-1301, USA.
 //
 //**********************************************************************
-//   This is the sha1 files to the html files tied to the sofaware.
-// sha1sum <file>
-//**********************************************************************
+
 #pragma once
 
-#include <stdint.h>
+void init_encoder_knob( void );
 
-void display_init(void);

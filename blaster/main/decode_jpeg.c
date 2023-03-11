@@ -1,3 +1,8 @@
+//  from TFT library for ESP32
+//  https://github.com/loboris/ESP32_TFT_library                                
+//
+//**********************************************************************
+
 #include <stdio.h>
 #include "decode_jpeg.h"
 //#include "esp32/rom/tjpgd.h"
