@@ -762,7 +762,7 @@ static esp_err_t upload_post_handler(httpd_req_t *req)
     ESP_LOGI(TAG, "Receiving file : %s", filename);
 
     /* Retrieve the pointer to scratch buffer for temporary storage */
-    char buf[1024]; //DDF
+    static char buf[1024]; //DDF
     int received;
 
     /* Content length of the request gives

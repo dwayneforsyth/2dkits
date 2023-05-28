@@ -151,11 +151,12 @@ void consoleInit( void ) {
     commands_dfu();
     commands_wifi();
     commands_download();
-#ifndef TIXCLOCK
-    commands_pattern();
-//    commands_picoc();
-#else
+#ifdef TIXCLOCK
     commands_tixclock();
+#elif defined(BLASTER)
+//    commands_tixclock();
+#else
+    commands_pattern();
 #endif
 
     /* Prompt to be printed before each line.
