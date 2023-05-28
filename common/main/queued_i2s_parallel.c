@@ -11,6 +11,9 @@
  * ----------------------------------------------------------------------------
  */
 
+// porting to v5.0 ?? https://github.com/TobleMiner/esp_i2s_parallel
+// orig code?? https://esp32.com/viewtopic.php?t=8919&start=10
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -22,7 +25,8 @@
 #include "freertos/queue.h"
 #include "soc/i2s_struct.h"
 #include "soc/i2s_reg.h"
-#include "driver/periph_ctrl.h"
+// #include "driver/periph_ctrl.h"
+#include "soc/gpio_sig_map.h"
 #include "soc/io_mux_reg.h"
 #include "rom/lldesc.h"
 #include "esp_heap_caps.h"
@@ -77,9 +81,10 @@ static int fill_dma_desc(volatile lldesc_t *dmadesc, void *memory, int size) {
 static void gpio_setup_out(int gpio, int sig) {
 	if (gpio==-1) return;
 
-	PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpio], PIN_FUNC_GPIO);
+//	PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpio], PIN_FUNC_GPIO);
+	gpio_reset_pin(gpio);
 	gpio_set_direction(gpio, GPIO_MODE_DEF_OUTPUT);
-	gpio_matrix_out(gpio, sig, false, false);
+//	gpio_matrix_out(gpio, sig, false, false);
 }
 
 
@@ -103,9 +108,9 @@ void i2s_parallel_setup(volatile i2s_dev_t *dev, const i2s_parallel_config_t *cf
 
 	//Power on peripheral
 	if (dev==&I2S0) {
-		periph_module_enable(PERIPH_I2S0_MODULE);
+//DDF		periph_module_enable(PERIPH_I2S0_MODULE);
 	} else {
-		periph_module_enable(PERIPH_I2S1_MODULE);
+//DDF		periph_module_enable(PERIPH_I2S1_MODULE);
 	}
 
 	//Route the signals from the selected I2S bus to the GPIOs

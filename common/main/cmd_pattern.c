@@ -30,7 +30,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_sleep.h"
-#include "esp_spi_flash.h"
+// #include "esp_flash_mmap.h"
 #include "driver/rtc_io.h"
 #include "driver/uart.h"
 #include "argtable3/argtable3.h"
@@ -102,6 +102,7 @@ static int pattern(int argc, char **argv)
 	setPatternMinus();
         ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber()+1, getPatternName());
         return( 0 );
+	/* DDF do not understand error
     } else if (isdigit(pattern_args.control->sval[0][0])) {
 	uint8_t value = atoi(pattern_args.control->sval[0]);
 	if (value == 0) {
@@ -112,6 +113,7 @@ static int pattern(int argc, char **argv)
 	vTaskDelay(1000 / portTICK_PERIOD_MS);
         ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber()+1, getPatternName());
         return( 0 );
+	*/
     } else {
         ESP_LOGW(TAG, "Pattern >%s<", pattern_args.control->sval[0]);
         return( 1 );

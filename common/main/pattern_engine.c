@@ -989,10 +989,12 @@ void updatePatternsTask(void *param) {
 
     allLedsOff();
 
-    gpio_pad_select_gpio(BUTTON1);
+//    gpio_pad_select_gpio(BUTTON1);
+    gpio_reset_pin(BUTTON1);
     gpio_set_direction(BUTTON1 , GPIO_MODE_INPUT);
 
-    gpio_pad_select_gpio(BUTTON2);
+//    gpio_pad_select_gpio(BUTTON2);
+    gpio_reset_pin(BUTTON2);
     gpio_set_direction(BUTTON2 , GPIO_MODE_INPUT);
 
     while (1) {
