@@ -838,9 +838,9 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base,
 	}
 
         ESP_LOGI(TAG, "Initializing SNTP");
-        esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
-        esp_sntp_setservername(0, "pool.ntp.org");
-        esp_sntp_init();
+        sntp_setoperatingmode(SNTP_OPMODE_POLL);
+        sntp_setservername(0, "pool.ntp.org");
+        sntp_init();
         break;
     }
     default:
