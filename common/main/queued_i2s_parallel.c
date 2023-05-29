@@ -25,14 +25,18 @@
 #include "freertos/queue.h"
 #include "soc/i2s_struct.h"
 #include "soc/i2s_reg.h"
-// #include "driver/periph_ctrl.h"
+#include "esp_private/periph_ctrl.h"
 #include "soc/gpio_sig_map.h"
 #include "soc/io_mux_reg.h"
 #include "rom/lldesc.h"
+#include "rom/gpio.h"
 #include "esp_heap_caps.h"
+#include "esp_log.h"
 #include "queued_i2s_parallel.h"
 #include "esp_attr.h"
 #include "driver/gpio.h"
+
+static const char *TAG = "i2S_paral";
 
 typedef struct {
 	volatile lldesc_t *dmadesc_a, *dmadesc_b, *dmadesc_c, *dmadesc_d;
@@ -84,7 +88,7 @@ static void gpio_setup_out(int gpio, int sig) {
 //	PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpio], PIN_FUNC_GPIO);
 	gpio_reset_pin(gpio);
 	gpio_set_direction(gpio, GPIO_MODE_DEF_OUTPUT);
-//	gpio_matrix_out(gpio, sig, false, false);
+	gpio_matrix_out(gpio, sig, false, false);
 }
 
 
@@ -103,14 +107,15 @@ static int i2snum(volatile i2s_dev_t *dev) {
 }
 
 void i2s_parallel_setup(volatile i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
-	printf("Setting up parallel I2S bus at I2S%d\n", i2snum(dev));
+
+        ESP_LOGW(TAG, "Setting up parallel I2S bus at I2S%d", i2snum(dev));
 	int sig_data_base;
 
 	//Power on peripheral
 	if (dev==&I2S0) {
-//DDF		periph_module_enable(PERIPH_I2S0_MODULE);
+		periph_module_enable(PERIPH_I2S0_MODULE);
 	} else {
-//DDF		periph_module_enable(PERIPH_I2S1_MODULE);
+		periph_module_enable(PERIPH_I2S1_MODULE);
 	}
 
 	//Route the signals from the selected I2S bus to the GPIOs
@@ -234,10 +239,10 @@ static void IRAM_ATTR i2s_int_hdl(void *arg) {
 	volatile i2s_dev_t* dev = arg;
 	int devno=i2snum(dev);
 	if (dev->int_st.out_eof) {
-	dev->int_clr.val = dev->int_st.val; //Clear the interrupt???
-		lldesc_t *finish_desc = (lldesc_t*)dev->out_eof_des_addr; //Get the address of the buffer that is ready to be filled
-		bufferToFill = (uint16_t*)finish_desc->buf;
-		i2s_state[devno]->refill_cb((void*)finish_desc->buf, i2s_state[devno]->bufsz, i2s_state[devno]->refill_cb_arg); //(void *buff, int len, void *arg)
+	    dev->int_clr.val = dev->int_st.val; //Clear the interrupt???
+	    lldesc_t *finish_desc = (lldesc_t*)dev->out_eof_des_addr; //Get the address of the buffer that is ready to be filled
+	    bufferToFill = (uint16_t*)finish_desc->buf;
+	    i2s_state[devno]->refill_cb((void*)finish_desc->buf, i2s_state[devno]->bufsz, i2s_state[devno]->refill_cb_arg); //(void *buff, int len, void *arg)
 	}
 }
 
