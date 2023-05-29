@@ -11,8 +11,8 @@
  * ----------------------------------------------------------------------------
  */
 
-// porting to v5.0 ?? https://github.com/TobleMiner/esp_i2s_parallel
-// orig code?? https://esp32.com/viewtopic.php?t=8919&start=10
+// based on https://github.com/Spritetm/printercart_simple/blob/master/components/printcart/printcart_i2s.c
+// porting to v5.1
 
 #include <stdio.h>
 #include <stdint.h>
