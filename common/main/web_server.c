@@ -52,7 +52,7 @@
 
 #include <esp_http_server.h>
 #include <esp_sntp.h>
-// #include "mdns.h"
+#include "mdns.h"
 
 #include "disk_system.h"
 #include "pattern_engine.h"
@@ -959,7 +959,7 @@ httpd_handle_t start_webserver(void) {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 //    config.uri_match_fn = httpd_uri_match_wildcard;
     config.stack_size = 7 *1024;
-//    config.max_uri_handlers = 15;
+    config.max_uri_handlers = 18;
 //    config.max_open_sockets = 13;
 
     // Start the httpd server
@@ -991,7 +991,6 @@ httpd_handle_t start_webserver(void) {
     return NULL;
 }
 
-#if (0)
 void start_mdns_service()
 {
     //initialize mDNS service
@@ -1006,7 +1005,6 @@ void start_mdns_service()
     //set default instance
     mdns_instance_name_set("2DKits Blinkie");
 }
-#endif
 
 static bool serverInit = false;
 
@@ -1026,7 +1024,7 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base,
         /* Start the web server */
         if (serverInit == false) {
             start_webserver();
-//            start_mdns_service();
+            start_mdns_service();
             serverInit = true;
         }
         /* Audit the disk for updates */
@@ -1037,9 +1035,9 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base,
         }
 
         ESP_LOGI(TAG, "Initializing SNTP");
-        sntp_setoperatingmode(SNTP_OPMODE_POLL);
-        sntp_setservername(0, "pool.ntp.org");
-        sntp_init();
+        esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
+        esp_sntp_setservername(0, "pool.ntp.org");
+        esp_sntp_init();
         break;
     }
     default:

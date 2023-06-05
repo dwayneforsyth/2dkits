@@ -27,11 +27,12 @@
 
 const uint8_t neededFileCount = 6;
 neededFiles_t  files[] = {
-    {.name = "about.html",       .sha="d7b31a7c51371f23e01a55e40bdf19057bab8019"},
+    {.name = "about.html",       .sha="05451590937a03e2cd07ddf0dd35fc0c9c272a2c"},
+    {.name = "build.html",       .sha="36e57a7c74e0dd7cf6dc4dbf47a1d90b17b48790"},
     {.name = "box-title-bg.jpg", .sha="423c796eb3986460384521d82d345b416fe47a67"},
     {.name = "content-bg.jpg",.   sha="8bb99c548e90ddefb21e1889fdbb5eac2376121b"},
     {.name = "footer.html",      .sha="0289f31c9e872fd865eafa54636483a19d1b5018"},
-    {.name = "header.html",      .sha="528319cfcc31c238fd927e99f72b025753e48e8c"},
+    {.name = "header.html",      .sha="0f18127a400c5039a32c151364a2ca8018274bce"},
     {.name = "header-bg.jpg",    .sha="7b4d322d9e6b84143ff974b9052bdcd9369f09a1"},
     {.name = "index.html",       .sha="67e10905b4aae5a03166045712ffab8bef37c8d5"},
     {.name = "patterns.html",    .sha="1c6413e42a4d20853cca0c71d92639019af149ab"},
