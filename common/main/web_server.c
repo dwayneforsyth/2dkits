@@ -113,12 +113,11 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
     } else if (strncmp("%wssid",token,6)==0) {
         i = token[6] - '0';
         if (i<10) {
-            if ((strncmp("[None]",getWifiPasswd(i),7) == 0) ||
-                 (strncmp("[Not Used]",getWifiPasswd(i),11) == 0)) {
-                 sprintf(tBuffer, "%s",getWifiPasswd(i));
+            if ((strncmp("[None]",getWifiSsid(i),7) == 0) ||
+                 (strncmp("[Not Used]",getWifiSsid(i),11) == 0)) {
+                 sprintf(tBuffer, "%s",getWifiSsid(i));
             } else {
-                 strcpy(tBuffer,"[Assigned]");
-                 printf("DDF P=%s\n",getWifiPasswd(i));
+                 sprintf(tBuffer, "%s",getWifiSsid(i));
             }
         } else {
             sprintf(tBuffer, "[software error]");
@@ -1035,9 +1034,9 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base,
         }
 
         ESP_LOGI(TAG, "Initializing SNTP");
-        esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
-        esp_sntp_setservername(0, "pool.ntp.org");
-        esp_sntp_init();
+        sntp_setoperatingmode(SNTP_OPMODE_POLL);
+        sntp_setservername(0, "pool.ntp.org");
+        sntp_init();
         break;
     }
     default:

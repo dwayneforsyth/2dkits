@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RELEASE="00.01.04"
+RELEASE="00.01.05"
 
 TXT_FILE="current_test_firmware.txt"
 BIN_FILE_PATH="build/tower.bin"
