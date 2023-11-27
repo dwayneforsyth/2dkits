@@ -1095,9 +1095,9 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
         break;
 
     case WIFI_EVENT_AP_STACONNECTED:
-
-//      wifi_event_ap_staconnected_t* event = (wifi_event_ap_staconnected_t*) event_data;
-//        ESP_LOGI(TAG,"station "MACSTR" join, AID=%d", MAC2STR(event->mac), event->aid);
+        wifi_event_ap_staconnected_t* event = (wifi_event_ap_staconnected_t*) event_data;
+        ESP_LOGI(TAG,"Station AID=%d MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", event->aid,
+                     event->mac[0], event->mac[1], event->mac[2], event->mac[3], event->mac[4], event->mac[5]);
 
         /* Start the web server */
         if (serverInit == false) {
@@ -1113,6 +1113,10 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
             ESP_LOGI(TAG,"Station %d MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", i,
                      sta->mac[0], sta->mac[1], sta->mac[2], sta->mac[3], sta->mac[4], sta->mac[5]);
         }
+        break;
+
+    case WIFI_EVENT_AP_STADISCONNECTED:
+        ESP_LOGI(TAG, "sta disconnect");
         break;
     default:
         ESP_LOGI(TAG, "Network event %ld",event_id);
@@ -1171,6 +1175,9 @@ void initialise_wifi_p2(void *arg) {
             .max_connection = 16,
         }
     };
+
+    // needed to get DHCPD running
+    esp_netif_t *esp_netif_ap = esp_netif_create_default_wifi_ap();
 
     strcpy((char *) wifi_config_ap.ap.ssid, xAppData.apSsid);
     strcpy((char *) wifi_config_ap.ap.password, xAppData.apPasswd);
