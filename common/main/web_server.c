@@ -1204,13 +1204,13 @@ void initialise_wifi_p2(void *arg) {
 
 
     esp_wifi_set_default_wifi_sta_handlers();
-    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
-    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &ip_event_handler, NULL));
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config_ap) );
-    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
-    ESP_ERROR_CHECK(esp_wifi_get_mac(WIFI_IF_AP, xAppData.apMac) );
-    ESP_ERROR_CHECK(esp_wifi_get_mac(ESP_IF_WIFI_STA, xAppData.staMac));
+    esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL);
+    esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &ip_event_handler, NULL);
+    esp_wifi_set_mode(WIFI_MODE_APSTA);
+    esp_wifi_set_config(WIFI_IF_AP, &wifi_config_ap);
+    esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta);
+    esp_wifi_get_mac(WIFI_IF_AP, xAppData.apMac);
+    esp_wifi_get_mac(ESP_IF_WIFI_STA, xAppData.staMac);
 
     ESP_ERROR_CHECK(esp_wifi_start());
 

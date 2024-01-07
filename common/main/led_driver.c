@@ -35,23 +35,7 @@
 #include "led_driver.h"
 #include "led_map.h"
 #include "version.h"
-
-#define BLINK_GPIO     2
-#define PIN_NUM_RED   25
-#define PIN_NUM_GREEN 26
-#define PIN_NUM_BLUE  14
-#define PIN_NUM_CLK   13
-#define PIN_ENABLE    18
-
-#define PIN_LATCH      4
-#define COMSIG0       15
-#define COMSIG1       23
-#define COMSIG2       22
-#define COMSIG3       19
-#define COMSIG4       10
-#define COMSIG5       21
-#define COMSIG6        5
-#define COMSIG7        9
+#include "board_pins.h"
 
 //Queue for dummy data used to block main loop when all buffers are full
 QueueHandle_t main_data_queue;

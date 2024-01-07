@@ -45,9 +45,7 @@
 #include "sha_file.h"
 #include "picoc.h"
 #include "version.h"
-
-#define BUTTON1 34
-#define BUTTON2 35
+#include "board_pins.h"
 
 #define MAX_PATTERN_ENTRY 50
 
