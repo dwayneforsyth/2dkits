@@ -29,14 +29,14 @@
 #define PIN_ENABLE    18
 
 #define PIN_LATCH      4
-#define COMSIG0       15
-#define COMSIG1       23
-#define COMSIG2       22
-#define COMSIG3       19
-#define COMSIG4       27
-#define COMSIG5       16
-#define COMSIG6        5
-#define COMSIG7       12
+#define COMSIG0       12 // 15
+#define COMSIG1        5 // 23
+#define COMSIG2       16 // 22
+#define COMSIG3       27 // 19
+#define COMSIG4       19 // 27
+#define COMSIG5       22 // 16
+#define COMSIG6       23 //  5
+#define COMSIG7       15 // 12
 
 #define BUTTON1 34
 #define BUTTON2 33

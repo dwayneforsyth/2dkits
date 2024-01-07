@@ -77,7 +77,7 @@ void addPattern_cb( char type, char * size, char * sha, char *name, void *data) 
 void app_main()
 {
     ESP_LOGW(TAG, "Hello from 8x16 RGB Matrixr");
-//    init_LED_driver();
+    init_LED_driver();
     allLedsColor(0,15,0);
 
     static httpd_handle_t server = NULL;

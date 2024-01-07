@@ -31,12 +31,12 @@ neededFiles_t  files[] = {
     {.name = "build.html",       .sha="0bdf064a2922e89c09cb844a4a12a2d38f572d41"},
     {.name = "box-title-bg.jpg", .sha="423c796eb3986460384521d82d345b416fe47a67"},
     {.name = "content-bg.jpg",.   sha="8bb99c548e90ddefb21e1889fdbb5eac2376121b"},
-    {.name = "footer.html",      .sha="8f7a9b6900f93795d9c7820f4acd76532df100f0"},
+    {.name = "footer.html",      .sha="18c381b0e68956f77ffd140d73d0ae781e5234d2"},
     {.name = "header.html",      .sha="df57998e6e14890567f5f559c5319dbfe8360e65"},
     {.name = "header-bg.jpg",    .sha="7b4d322d9e6b84143ff974b9052bdcd9369f09a1"},
     {.name = "index.html",       .sha="f305d8083663c7d9b92b5a3d0fb96caa11720bfb"},
-    {.name = "patterns.html",    .sha="1c6413e42a4d20853cca0c71d92639019af149ab"},
-    {.name = "settings.html",    .sha="9c1ce9f3d4cc12ff8e1e111e0553cad603429868"},
+    {.name = "patterns.html",    .sha="a8065433fe7372b14e4b2a55165421a48c10f0a5"},
+    {.name = "settings.html",    .sha="a2fffc8e51094e082b53ce59b357bb8718202e03"},
     {.name = "styles.css",       .sha="cfdbd4de3f1a040c8a383e4cf53976df8ca793b4"},
 };
 
