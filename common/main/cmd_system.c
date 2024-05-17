@@ -293,6 +293,7 @@ static void register_heap(void)
 *******************************************************************************/
 static int tasks_info(int argc, char **argv)
 {
+#if CONFIG_IDF_TARGET_ESP32
     const size_t bytes_per_task = 40; /* see vTaskList description */
     char *task_list_buffer = malloc(uxTaskGetNumberOfTasks() * bytes_per_task);
     if (task_list_buffer == NULL) {
@@ -304,6 +305,7 @@ static int tasks_info(int argc, char **argv)
     vTaskList(task_list_buffer);
     fputs(task_list_buffer, stdout);
     free(task_list_buffer);
+#endif
     return 0;
 }
 

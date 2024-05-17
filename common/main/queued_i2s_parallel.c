@@ -85,6 +85,7 @@ static int fill_dma_desc(volatile lldesc_t *dmadesc, void *memory, int size) {
 static void gpio_setup_out(int gpio, int sig) {
 	if (gpio==-1) return;
 
+	printf("ddf pin %d\n", gpio);
 //	PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpio], PIN_FUNC_GPIO);
 	gpio_reset_pin(gpio);
 	gpio_set_direction(gpio, GPIO_MODE_DEF_OUTPUT);
@@ -112,15 +113,20 @@ void i2s_parallel_setup(volatile i2s_dev_t *dev, const i2s_parallel_config_t *cf
 	int sig_data_base;
 
 	//Power on peripheral
+#if CONFIG_IDF_TARGET_ESP32S2
+	periph_module_enable(PERIPH_I2S0_MODULE);
+#else
 	if (dev==&I2S0) {
 		periph_module_enable(PERIPH_I2S0_MODULE);
 	} else {
 		periph_module_enable(PERIPH_I2S1_MODULE);
 	}
+#endif
 
 	//Route the signals from the selected I2S bus to the GPIOs
 	if (dev==&I2S0) {
 		sig_data_base=I2S0O_DATA_OUT0_IDX;
+#if CONFIG_IDF_TARGET_ESP32
 	} else {
 		if (cfg->bits==I2S_PARALLEL_BITS_32) {
 			sig_data_base=I2S1O_DATA_OUT0_IDX;
@@ -128,6 +134,7 @@ void i2s_parallel_setup(volatile i2s_dev_t *dev, const i2s_parallel_config_t *cf
 			//Because of... reasons... the 16-bit values for i2s1 appear on d8...d23
 			sig_data_base=I2S1O_DATA_OUT8_IDX;
 		}
+#endif
 	}
 	for (int x=0; x<cfg->bits; x++) {
 		gpio_setup_out(cfg->gpio_bus[x], sig_data_base+x);
@@ -150,7 +157,11 @@ void i2s_parallel_setup(volatile i2s_dev_t *dev, const i2s_parallel_config_t *cf
 	dev->sample_rate_conf.tx_bck_div_num=40000000/cfg->clkspeed_hz;
 	
 	dev->clkm_conf.val=0;
+#if CONFIG_IDF_TARGET_ESP32S2
+	dev->clkm_conf.clk_en=0;
+#else
 	dev->clkm_conf.clka_en=0;
+#endif
 	dev->clkm_conf.clkm_div_a=0;
 	dev->clkm_conf.clkm_div_b=0;
 	//We ignore the possibility for fractional division here.

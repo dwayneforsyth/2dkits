@@ -36,7 +36,7 @@
 #define COMSIG4       10
 #define COMSIG5       21
 #define COMSIG6        5
-#define COMSIG7       09
+#define COMSIG7        9
 
 #define BUTTON1 34
 #define BUTTON2 35

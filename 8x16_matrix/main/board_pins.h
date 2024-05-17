@@ -22,21 +22,21 @@
 //**********************************************************************
 
 #define BLINK_GPIO     2
-#define PIN_NUM_RED   25
-#define PIN_NUM_GREEN 26
+#define PIN_NUM_RED   33 //25
+#define PIN_NUM_GREEN 34 //26
 #define PIN_NUM_BLUE  14
 #define PIN_NUM_CLK   13
-#define PIN_ENABLE    18
+#define PIN_ENABLE    40 //18
 
 #define PIN_LATCH      4
-#define COMSIG0       12 // 15
-#define COMSIG1        5 // 23
-#define COMSIG2       16 // 22
-#define COMSIG3       27 // 19
-#define COMSIG4       19 // 27
-#define COMSIG5       22 // 16
-#define COMSIG6       23 //  5
-#define COMSIG7       15 // 12
+#define COMSIG0       12 
+#define COMSIG1        5
+#define COMSIG2       16
+#define COMSIG3       39 //27
+#define COMSIG4       38 //19
+#define COMSIG5       37 //22
+#define COMSIG6       36 //23
+#define COMSIG7       15
 
-#define BUTTON1 34
-#define BUTTON2 33
+#define BUTTON1 10
+#define BUTTON2 11

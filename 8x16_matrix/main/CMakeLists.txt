@@ -16,7 +16,7 @@ idf_component_register(SRCS
    "${COMMON}dfu.c"
    "${COMMON}download_file.c"
    "${COMMON}upgrade_disk.c"
-   "${COMMON}console.c"
+   "console_usb.c"
    "${COMMON}cmd_system.c"
    "${COMMON}cmd_dfu.c"
    "${COMMON}cmd_pattern.c"

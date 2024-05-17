@@ -96,6 +96,7 @@ void app_main()
     } else {
         printf("***\n* Production Image\n***\n");
     }
+    ESP_LOGW(TAG, "30 second delay waiting for wifi to go\n");
 
     diskDirCfg_t req = {
         .path = "/spiffs",

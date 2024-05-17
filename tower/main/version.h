@@ -25,7 +25,7 @@
 
 #define MAJOR 0
 #define MINOR 1
-#define BUILD 5
+#define BUILD 6
 
 #define NUM_LAYER 8
 
