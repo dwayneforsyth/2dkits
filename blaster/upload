@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RELEASE="00.00.01"
+RELEASE="00.00.02"
 
 TXT_FILE="current_firmware.txt"
 BIN_FILE_PATH="build/blaster.bin"

@@ -47,12 +47,12 @@
 #include "pattern_engine.h"
 
 #include "esp_log.h"
-static const char *TAG = "MAIN";
+// static const char *TAG = "MAIN";
 
 void init_gpio( void ) {
 
     // push button
-    gpio_pad_select_gpio(0);
+    esp_rom_gpio_pad_select_gpio(0);
     gpio_set_direction(0, GPIO_MODE_INPUT);
 
 }

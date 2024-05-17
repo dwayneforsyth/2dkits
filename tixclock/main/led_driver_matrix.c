@@ -43,6 +43,7 @@
 //#include "disk_system.h"
 #include "global.h"
 #include "driver/uart.h"
+#include "esp32/rom/gpio.h"
 
 #define COLSIG0      17
 #define COLSIG1      16
@@ -84,7 +85,7 @@ bool LEDs[3][9];
 
 *******************************************************************************/
 
-void IRAM_ATTR strobe_display(void) {
+void strobe_display(void * arg) {
     static RTC_DATA_ATTR uint8_t strobeLine = 0;
     uint32_t set = 0;
     uint32_t clear = 0;

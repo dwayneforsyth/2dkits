@@ -127,6 +127,7 @@ void disk_dir(diskDirCfg_t req) {
     if (req.header_cb !=NULL) req.header_cb(req.path, req.data);
 
     while ((ent = readdir(dir)) != NULL) {
+	vTaskDelay(100); // let other code run
         sprintf(tpath, req.path);
         if (req.path[strlen(req.path)-1] != '/') strcat(tpath,"/");
         strcat(tpath,ent->d_name);

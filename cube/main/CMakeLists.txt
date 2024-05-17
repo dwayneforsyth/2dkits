@@ -13,7 +13,7 @@ idf_component_register(SRCS
    "cube_main.c"
    "led_map.c"
    "${COMMON}web_server.c"
-   "${COMMON}captdns.c"
+#   "${COMMON}captdns.c"
    "${COMMON}dfu.c"
    "${COMMON}download_file.c"
    "${COMMON}upgrade_disk.c"

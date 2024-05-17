@@ -1,6 +1,8 @@
 */build/
 *.o
 *.pat
+*~
+*.swp
 boom
 diamon
 rain

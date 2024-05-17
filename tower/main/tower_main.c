@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "nvs_flash.h"
@@ -75,8 +76,7 @@ void addPattern_cb( char type, char * size, char * sha, char *name, void *data) 
 
 void app_main()
 {
- 
-    printf("Hello from Tower\n");
+    ESP_LOGW(TAG, "Hello from Tower");
     init_LED_driver();
     allLedsColor(0,15,0);
 

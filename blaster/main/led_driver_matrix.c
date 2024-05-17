@@ -43,12 +43,13 @@
 //#include "disk_system.h"
 #include "global.h"
 #include "driver/uart.h"
+#include "esp32/rom/gpio.h"
 
 #define COLSIG0      17
-#define COLSIG1      16
-#define COLSIG2      04
+#define COLSIG1      15 //16
+#define COLSIG2      12  //04
 #define COLSIG3      02
-#define COLSIG4      15
+#define COLSIG4      13 //15
 
 #define B_COLSIG0      (1<<COLSIG0)
 #define B_COLSIG1      (1<<COLSIG1)
@@ -58,10 +59,10 @@
 
 #define ROWSIG0      21
 #define ROWSIG1      22
-#define ROWSIG2      23
-#define ROWSIG3      05
-#define ROWSIG4      18
-#define ROWSIG5      19
+#define ROWSIG2      25 //23
+#define ROWSIG3      26 //05
+#define ROWSIG4      27 //18
+#define ROWSIG5      32 //19
 #define B_ROWSIG0      (1<<21)
 #define B_ROWSIG1      (1<<22)
 #define B_ROWSIG2      (1<<23)

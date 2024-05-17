@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RELEASE="00.00.01"
+RELEASE="00.00.02"
 
 TXT_FILE="current_test_firmware.txt"
 BIN_FILE_PATH="build/blaster.bin"
@@ -8,14 +8,15 @@ SERVER="forsyth@www.dforsyth.net"
 BASE_PATH="/home/httpd/html_2dkits/kits/kit99"
 
 
-echo "$RELEASE kits/kit55/blaster_test_$RELEASE.bin" > $TXT_FILE
+echo "$RELEASE kits/kit99/blaster_test_$RELEASE.bin" > $TXT_FILE
 echo "$RELEASE"
 
 scp $TXT_FILE      $SERVER:$BASE_PATH/$TXT_FILE
 scp $BIN_FILE_PATH $SERVER:$BASE_PATH/blaster_test_$RELEASE.bin
 
 ssh $SERVER "mkdir -p $BASE_PATH/${RELEASE}_test"
-for FILE_NAME in index.html header.html footer.html about.html settings.html patterns.html content-bg.jpg styles.css header-bg.jpg box-title-bg.jpg
+for FILE_NAME in about.html esp_logo.png ILGH24XB.FNT image.bmp settings.html box-title-bg.jpg  footer.html    ILGH32XB.FNT  index.html     styles.css build.html        header-bg.jpg  ILMH16XB.FNT  LATIN32B.FNT content-bg.jpg    header.html    ILMH24XB.FNT  patterns.html esp32.jpeg        ILGH16XB.FNT   ILMH32XB.FNT  qrcode.bmp
+
 do
     scp -pr disk_image/$FILE_NAME $SERVER:$BASE_PATH/${RELEASE}_test/$FILE_NAME
 done

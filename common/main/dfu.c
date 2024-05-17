@@ -167,17 +167,18 @@ void dfu_task(void *pvParameter)
     char firmware_file[MAX_DFU_CONTROL_LEN];
 
     // this call returns the file name.
-    bool needed = check_dfu( firmware_file, (flags==2)? CONFIG_TEST_FIRMWARE_STATUS_URL :  CONFIG_FIRMWARE_STATUS_URL);
+    bool needed = check_dfu( firmware_file, (flags&0x02)? CONFIG_TEST_FIRMWARE_STATUS_URL :  CONFIG_FIRMWARE_STATUS_URL);
 
     if ((strlen(firmware_file) != 0) && (needed || (flags != 0))) {
 
+    esp_http_client_config_t config = {
+        .url = firmware_file,
+	.cert_pem = (char *)server_cert_pem_start,
+    };
+    esp_https_ota_config_t ota_config = {
+        .http_config = &config,
+    };
         // do the dfu
-        esp_http_client_config_t configDFU = {
-            .url = firmware_file,
-	    .cert_pem = (char *)server_cert_pem_start,
-//            .auth_type = HTTP_AUTH_TYPE_NONE,
-//	    .skip_cert_common_name_check = true,
-        };
 
         while (tries != 0) {
 #ifndef TIXCLOCK
@@ -185,8 +186,8 @@ void dfu_task(void *pvParameter)
 	    setPatternNumber(0); // give visual feedback we are downloading
 #endif
 #endif
-            ESP_LOGW(TAG, "Downloading >%s<",firmware_file);
-            esp_err_t ret = esp_https_ota(&configDFU);
+            ESP_LOGW(TAG, "Downloading >%s< flags=%d",firmware_file, flags);
+            esp_err_t ret = esp_https_ota(&ota_config);
             if (ret == ESP_OK) {
 		setSystemType( (flags==2)? true : false);
                 ESP_LOGW(TAG, "Downloadable Firmware Upgrade Done");
@@ -226,6 +227,6 @@ void perform_dfu(uint8_t flags) {
         ESP_LOGW(TAG, "DFU aborted no internet");
         return;
     }
-    //ESP_LOGW(TAG, "Starting DFU flags=%d", flags);
+    ESP_LOGW(TAG, "Starting DFU flags=%d", flags);
     xTaskCreate(dfu_task, "dfu_task", DFU_TASK_STACK_SIZE, (void *) flags, DFU_TASK_PRIORITY, NULL);
 }
