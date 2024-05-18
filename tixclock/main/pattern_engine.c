@@ -166,7 +166,10 @@ void updatePatternsTask( void ) {
             clear_display();
             localtime_r(&now, &timeinfo);
             strftime(timeBuf, sizeof(timeBuf), "%c", &timeinfo);
-	    uint8_t hour = (xAppData.tformat)? timeinfo.tm_hour % 12 : timeinfo.tm_hour;
+	    uint8_t hour = timeinfo.tm_hour;
+	    if (hour > 13) { // we want 12:30 not 00:30
+                hour -= 12;
+	    }
 	    if (timeinfo.tm_year > 100) {
                 display_time(hour, timeinfo.tm_min);
                 if (debugLed) printf("%s\n",timeBuf);
