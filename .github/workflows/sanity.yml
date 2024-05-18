@@ -48,17 +48,17 @@ jobs:
           idf.py flash
 
       # test - connect console
-      #      - name: test connect consle, get version
-      #  run: |
-      #    . esp-idf/export.sh
-      #    cd OptimalTest/ddf_sandbox.proj
-      #    chmod a+x test_001.py
-      #    ./test_001.py
+      - name: test connect consle, get version
+        run: |
+          . esp-idf/export.sh
+          cd test/tower.proj
+          chmod a+x test_001.py
+          ./test_001.py
 
       # test - connect wifi
-      #- name: test wifi connect
-      #  run: |
-      #    . esp-idf/export.sh
-      #    cd OptimalTest/ddf_sandbox.proj
-      #    chmod a+x test_002.py
-      #    ./test_002.py
+      - name: test wifi connect
+        run: |
+          . esp-idf/export.sh
+          cd test/tower.proj
+          chmod a+x test_002.py
+          ./test_002.py
