@@ -26,7 +26,7 @@ import ddf_expect
 #
 class connect(serial.Serial):
     def __init__(self, port, prompt):
-        logger.debug('connecting to '+port)
+#        logger.debug('connecting to '+port)
         try:
             super().__init__(port, 115200, timeout=1, xonxoff=False, rtscts=False)
             self.reset_output_buffer()
@@ -42,7 +42,7 @@ class connect(serial.Serial):
 
         self.write(b'\r\n')
         x = ddf_expect.expect(self, [prompt], 30)
-        if x.match == 0:
-            logger.debug(": connection verified")
-        else:
+        if x.match != 0:
             logger.debug("command prompt not found")
+#        else:
+#            logger.debug(": connection verified")
