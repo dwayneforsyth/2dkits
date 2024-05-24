@@ -25,7 +25,7 @@ def getKitNumber( console ):
     if x.match == 0:
        infoRegex = re.compile(r'(\d+)')
        info = infoRegex.search(x.text)
-    return(info.match[1])
+    return(info.group(1))
 
 #
 # m a i n
