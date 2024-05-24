@@ -22,11 +22,10 @@ def getKitNumber( console ):
     console.write(b'version\r\n')
     x = ddf_expect.expect( console, ["kit number: ([0-9]+)"], 3)
 
-    if x.match == 1:
+    if x.match == 0:
        infoRegex = re.compile(r'(\d+)')
        info = infoRegex.search(x.text)
-       os.environ["PORT_K".info.group(1)] = p.device
-    return(x)
+    return(info.match[1])
 
 #
 # m a i n
@@ -36,14 +35,14 @@ prompt = "2DKITS>"
 
 ports = list(list_ports.comports())
 for p in ports:
-    logger.debug(p.device)
+#    logger.debug(p.device)
 
     console = ddf_uart.connect( p.device, prompt )
-    version = getKitNumber( console )
-    if version.match == -1:
-        logger.debug("kit number: na "+p.device)
-    else:
-        logger.debug(version.text+" "+p.device)
+    kitNo = getKitNumber( console )
+    if kitNo == sys.argv[1]:
+        print(p.device)
+        console.close()
+        exit(0)
     console.close()
 
 exit(1)
