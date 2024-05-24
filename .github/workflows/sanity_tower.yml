@@ -44,8 +44,9 @@ jobs:
       - name: flash via default tty
         run: |
           . esp-idf/export.sh
-          KIT_PORT=$(python3 test/tower.proj/test_000.py 25)
-          cd tower
+          cd test/tower.proj
+          KIT_PORT=$(python3 test_000.py 25)
+          cd ../../tower
           idf.py ${KIT_PORT} flash
 
       # test - connect console
