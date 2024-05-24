@@ -103,6 +103,8 @@ static int get_version(int argc, char **argv)
 //           spi_flash_get_chip_size() / (1024 * 1024), " MB");
 //    ESP_LOGW(TAG, "\trevision number:%d", info.revision);
     ESP_LOGW(TAG, "\tsoftware version: %d.%d.%d",MAJOR, MINOR, BUILD);
+    ESP_LOGW(TAG, "\tkit number: %d", KIT_NUMBER);
+    ESP_LOGW(TAG, "\tkit name: %s", KIT_NAME);
     return 0;
 }
 

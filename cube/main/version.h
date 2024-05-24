@@ -28,6 +28,9 @@
 #define MINOR 1
 #define BUILD 5
 
+#define KIT_NUMBER 13
+#define KIT_NAME "Cube 4x4x4"
+
 #define NUM_LAYER 4
 
 #define CONFIG_SERVER_URL                "http://www.2dkits.com/"

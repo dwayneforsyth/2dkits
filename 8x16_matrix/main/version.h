@@ -27,6 +27,9 @@
 #define MINOR 0
 #define BUILD 1
 
+#define KIT_NUMBER 22
+#define KIT_NAME "Matrix 8x16 RGB"
+
 #define NUM_LAYER 8
 
 #define CONFIG_SERVER_URL                "http://www.2dkits.com/"

@@ -27,6 +27,9 @@
 #define MINOR 0
 #define BUILD 2
 
+#define KIT_NUMBER 99
+#define KIT_NAME "Blaster"
+
 #define CONFIG_SERVER_URL                "http://www.2dkits.com/"
 #define CONFIG_BASE_CLOUD_URL            CONFIG_SERVER_URL "kits/kit99/"
 #define CONFIG_FIRMWARE_STATUS_URL       CONFIG_BASE_CLOUD_URL "current_firmware.txt"

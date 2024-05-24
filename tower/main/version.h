@@ -27,6 +27,9 @@
 #define MINOR 1
 #define BUILD 6
 
+#define KIT_NUMBER 25
+#define KIT_NAME "Tower 4x4x8"
+
 #define NUM_LAYER 8
 
 #define CONFIG_SERVER_URL                "http://www.2dkits.com/"
