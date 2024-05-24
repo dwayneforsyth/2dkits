@@ -45,7 +45,7 @@ jobs:
         run: |
           . esp-idf/export.sh
           cd tixclock
-          idf.py flash
+          idf.py -p /dev/ttyUSB0 flash
 
       # test - connect console
       - name: test connect consle, get version
