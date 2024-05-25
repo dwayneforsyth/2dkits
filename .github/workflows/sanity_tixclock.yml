@@ -44,7 +44,10 @@ jobs:
       - name: flash via default tty
         run: |
           . esp-idf/export.sh
-          cd tixclock
+          cd test/tower.proj
+          chmod a+x test_000.py
+          KIT_PORT=$(python3 test_000.py 25)
+          ch ../../tixclock
           idf.py -p /dev/ttyUSB0 flash
 
       # test - connect console

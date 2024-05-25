@@ -7,8 +7,11 @@ sys.path.append('..')
 import logging
 logger = logging.getLogger('console')
 
-import od_expect
-import od_uart
+import ddf_expect
+import ddf_uart
+
+import os
+import re
 
 from serial.tools import list_ports
 
@@ -17,8 +20,12 @@ from serial.tools import list_ports
 #
 def getKitNumber( console ):
     console.write(b'version\r\n')
-    x = od_expect.expect( console, ["kit number: [0-9]+"], 3)
-    return(x)
+    x = ddf_expect.expect( console, ["kit number: ([0-9]+)"], 3)
+
+    if x.match == 0:
+       infoRegex = re.compile(r'(\d+)')
+       info = infoRegex.search(x.text)
+    return(info.group(1))
 
 #
 # m a i n
@@ -28,14 +35,14 @@ prompt = "2DKITS>"
 
 ports = list(list_ports.comports())
 for p in ports:
-    logger.debug(p.device)
+#    logger.debug(p.device)
 
-    console = od_uart.connect( p.device, prompt )
-    version = getKitNumber( console )
-    if version.match == -1:
-        logger.debug("kit number: na "+p.device)
-    else:
-        logger.debug(version.text+" "+p.device)
+    console = ddf_uart.connect( p.device, prompt )
+    kitNo = getKitNumber( console )
+    if kitNo == sys.argv[1]:
+        print(p.device)
+        console.close()
+        exit(0)
     console.close()
 
 exit(1)

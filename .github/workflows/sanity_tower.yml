@@ -46,8 +46,8 @@ jobs:
           . esp-idf/export.sh
           cd test/tower.proj
           chmod a+x test_000.py
-          KIT_PORT=$(python3 test_000.py 25)
-          chd ../../tower
+          KIT_PORT=$(python3 test_000.py 55)
+          cd ../../tower
           idf.py -p ${KIT_PORT} flash
 
       # test - connect console
