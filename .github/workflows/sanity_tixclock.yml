@@ -46,7 +46,7 @@ jobs:
           . esp-idf/export.sh
           cd test/tower.proj
           chmod a+x test_000.py
-          KIT_PORT=$(python3 test_000.py 25)
+          KIT_PORT=$(python3 test_000.py 55)
           cd ../../tixclock
           idf.py -p /dev/ttyUSB0 flash
 
