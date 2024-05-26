@@ -28,6 +28,7 @@ logging.basicConfig(level=logging.DEBUG)
 prompt = "2DKITS>"
 
 port = os.getenv('KIT_PORT')
+logger.debug('open '+port)
 
 console = ddf_uart.connect( port, prompt )
 version = getVersion( console )
