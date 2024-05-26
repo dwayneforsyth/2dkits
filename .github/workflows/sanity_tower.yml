@@ -55,7 +55,7 @@ jobs:
         run: |
           cd test/tower.proj
           chmod a+x test_*
-          KIT_PORT=$(python3 test_000.py 25)
+          export KIT_PORT=$(python3 test_000.py 25)
           echo $KIT_PORT
           ./test_001.py
 
