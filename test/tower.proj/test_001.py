@@ -9,6 +9,7 @@ logger = logging.getLogger('console')
 
 import ddf_expect
 import ddf_uart
+import os
 
 #
 # get Version
