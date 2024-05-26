@@ -1118,6 +1118,13 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
     case WIFI_EVENT_AP_STADISCONNECTED:
         ESP_LOGI(TAG, "sta disconnect");
         break;
+    case WIFI_EVENT_AP_START:
+        ESP_LOGI(TAG, "wifi event ap start");
+        break;
+    case WIFI_EVENT_HOME_CHANNEL_CHANGE:
+        ESP_LOGI(TAG, "wifi event home channel change");
+	break;
+
     default:
         ESP_LOGI(TAG, "Network event %ld",event_id);
         break;

@@ -33,6 +33,7 @@ def checkWifi( console ):
     console.write(b'winfo\r\n')
     x = ddf_expect.expect( console, ["IP: [0-9.]+","Gateways 0 entries"], 3)
     logger.debug(str(x.match) + ": " + x.text)
+    logger.debug(x.all)
     return(x)
 
 #

@@ -53,15 +53,15 @@ jobs:
       # test - connect console
       - name: test connect consle, get version
         run: |
-          . esp-idf/export.sh
           cd test/tower.proj
-          chmod a+x test_001.py
+          chmod a+x test_*
+          KIT_PORT=$(python3 test_000.py 25)
           ./test_001.py
 
       # test - connect wifi
       - name: test wifi connect
         run: |
-          . esp-idf/export.sh
           cd test/tower.proj
-          chmod a+x test_002.py
+          chmod a+x test_*
+          KIT_PORT=$(python3 test_000.py 25)
           ./test_002.py
