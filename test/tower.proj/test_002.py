@@ -41,10 +41,7 @@ def checkWifi( console ):
 logging.basicConfig(level=logging.DEBUG)
 prompt = "2DKITS>"
 
-if (platform == "win32"):
-    port = 'COM44'
-else:
-    port = '/dev/ttyUSB0'
+port = os.environ['KIT_PORT']
 
 console = ddf_uart.connect( port, prompt )
 wifi = checkWifi( console )

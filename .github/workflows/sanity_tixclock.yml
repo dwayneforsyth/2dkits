@@ -47,7 +47,7 @@ jobs:
           cd test/tower.proj
           chmod a+x test_000.py
           KIT_PORT=$(python3 test_000.py 25)
-          ch ../../tixclock
+          cd ../../tixclock
           idf.py -p /dev/ttyUSB0 flash
 
       # test - connect console
