@@ -38,7 +38,7 @@ jobs:
         run: |
           . esp-idf/export.sh
           cd cube
-          idf.py -p build
+          idf.py build
 
       # Flash
       - name: flash via default tty
