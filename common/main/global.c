@@ -84,6 +84,19 @@ void loadSettings() {
 }
 
 void addWifiGateway( char * ssid, char * passwd) {
+
+   // check if ssid exist in table
+   uint8_t len = strnlen( ssid, MAX_SSID_LENGTH);
+   for (uint8_t i=0;i< WIFI_TABLE_SIZE; i++) {
+      if (strncmp(xAppData.wifi[i].ssid, ssid, len)==0) {
+         // found it, update password
+         strlcpy(xAppData.wifi[i].passwd, passwd, MAX_PASSWD_LENGTH);
+         storeSettings();
+         return;
+      }
+   }
+
+   // add new entry
    if ((xAppData.wifiCount+1) < WIFI_TABLE_SIZE) {
        strlcpy(xAppData.wifi[xAppData.wifiCount].ssid, ssid, MAX_SSID_LENGTH);
        strlcpy(xAppData.wifi[xAppData.wifiCount].passwd, passwd, MAX_PASSWD_LENGTH);
