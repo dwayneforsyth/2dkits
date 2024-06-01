@@ -31,15 +31,15 @@
 
 const uint8_t neededFileCount = 11;
 neededFiles_t  files[] = {
-    {.name = "about.html",       .sha="9b5119213a5340719ffd148ba7cc34990c43dfb0"},
-    {.name = "build.html",       .sha="20b5f0ab93193e2956a1897cc4926e7482c15f50"},
+    {.name = "about.html",       .sha="a9d468e568c8e2323b4985e27958452a088a2d6b"},
+    {.name = "build.html",       .sha="08bb9e5fde227e18ca72ffe4eca54eed8656cdc2"},
     {.name = "box-title-bg.jpg", .sha="423c796eb3986460384521d82d345b416fe47a67"},
     {.name = "content-bg.jpg",   .sha="8bb99c548e90ddefb21e1889fdbb5eac2376121b"},
-    {.name = "footer.html",      .sha="18c381b0e68956f77ffd140d73d0ae781e5234d2"},
-    {.name = "header.html",      .sha="ebdf5d71387700774f3ea86604e9714bc25a746d"},
+    {.name = "footer.html",      .sha="0289f31c9e872fd865eafa54636483a19d1b5018"},
+    {.name = "header.html",      .sha="89d58a04b347a92a3c8fe8ea1b07ffa87624be0d"},
     {.name = "header-bg.jpg",    .sha="7b4d322d9e6b84143ff974b9052bdcd9369f09a1"},
-    {.name = "index.html",       .sha="dfd868171c84186b74dce803c997331949f49d75"},
-    {.name = "patterns.html",    .sha="a8065433fe7372b14e4b2a55165421a48c10f0a5"},
-    {.name = "settings.html",    .sha="a2fffc8e51094e082b53ce59b357bb8718202e03"},
+    {.name = "index.html",       .sha="80cae09b90cbfc881687c71bb126803b0becb8d1"},
+    {.name = "patterns.html",    .sha="1c6413e42a4d20853cca0c71d92639019af149ab"},
+    {.name = "settings.html",    .sha="9c1ce9f3d4cc12ff8e1e111e0553cad603429868"},
     {.name = "styles.css",       .sha="cfdbd4de3f1a040c8a383e4cf53976df8ca793b4"},
 };
