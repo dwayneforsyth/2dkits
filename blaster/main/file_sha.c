@@ -1,4 +1,4 @@
-//   Copyright (C) 2020 Dwayne Forsyth
+//   Copyright (C) 2021 Dwayne Forsyth
 //                                 
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License
@@ -21,25 +21,27 @@
 //   This is the sha1 files to the html files tied to the sofaware.
 // sha1sum <file>
 //**********************************************************************
+//
+// This file is auto created via hash.py Your should not edit it
+//
+//**********************************************************************
 
 #include <stdint.h>
 #include "file_sha.h"
 
-
-const uint8_t neededFileCount = 11;
-
+const uint8_t neededFileCount = 22;
 neededFiles_t  files[] = {
-    {.name = "patterns.html",    .sha="3964c504825ac56c1a69c542cbd53fa8689feb85"},
-    {.name = "content-bg.jpg",   .sha="8bb99c548e90ddefb21e1889fdbb5eac2376121b"},
-    {.name = "footer.html",      .sha="0289f31c9e872fd865eafa54636483a19d1b5018"},
-    {.name = "styles.css",       .sha="cfdbd4de3f1a040c8a383e4cf53976df8ca793b4"},
-    {.name = "header-bg.jpg",    .sha="7b4d322d9e6b84143ff974b9052bdcd9369f09a1"},
+    {.name = "about.html",       .sha="a294d54e1be30608791a34ec5fa0731a178075d5"},
+    {.name = "build.html",       .sha="3adb98ac62a3a9be8cf33dc0a86f8bba0db1a009"},
     {.name = "box-title-bg.jpg", .sha="423c796eb3986460384521d82d345b416fe47a67"},
-    {.name = "header.html",      .sha="fd63482c606b3299741cc291b944ec0870385d09"},
-    {.name = "about.html",       .sha="7e58556910da40573f748b2be3723d1c7e314a24"},
-    {.name = "build.html",       .sha="594aaac299eba16854b34a18ce6d5cd261eadfb2"},
-    {.name = "index.html",       .sha="d6dce707bc931da848a01c2ff6f5a5d2d8a02114"},
-    {.name = "settings.html",    .sha="9c1ce9f3d4cc12ff8e1e111e0553cad603429868"},
+    {.name = "content-bg.jpg",   .sha="8bb99c548e90ddefb21e1889fdbb5eac2376121b"},
+    {.name = "footer.html",      .sha="18c381b0e68956f77ffd140d73d0ae781e5234d2"},
+    {.name = "header.html",      .sha="de0562edcb7326897636433d3136454079296c67"},
+    {.name = "header-bg.jpg",    .sha="7b4d322d9e6b84143ff974b9052bdcd9369f09a1"},
+    {.name = "index.html",       .sha="3abc7360f46fd7baed725dc2d20d342ce9f521e3"},
+    {.name = "patterns.html",    .sha="1e3bc72c45ceebc216b0fa839c58d12a17e93a4b"},
+    {.name = "settings.html",    .sha="a2fffc8e51094e082b53ce59b357bb8718202e03"},
+    {.name = "styles.css",       .sha="cfdbd4de3f1a040c8a383e4cf53976df8ca793b4"},
     {.name = "esp32.jpeg",       .sha="d60809425af6d72693d40c1b229e56e1a7bf9692"},
     {.name = "esp_logo.png",     .sha="c4598765a01502978569ceb8abf35c53b401e456"},
     {.name = "ILGH16XB.FNT",     .sha="96a0c7215fbd4e4ffd4ab4a7fad85cff1114c864"},

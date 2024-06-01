@@ -1,4 +1,8 @@
-//   Copyright (C) 2021 Dwayne Forsyth
+from simple_file_checksum import get_checksum
+
+files = [ "about.html", "build.html", "box-title-bg.jpg", "content-bg.jpg", "footer.html", "header.html", "header-bg.jpg", "index.html", "patterns.html", "settings.html", "styles.css"]
+
+print ( """//   Copyright (C) 2021 Dwayne Forsyth
 //                                 
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License
@@ -28,18 +32,14 @@
 
 #include <stdint.h>
 #include "file_sha.h"
+""")
 
-const uint8_t neededFileCount = 11;
-neededFiles_t  files[] = {
-    {.name = "about.html",       .sha="9b5119213a5340719ffd148ba7cc34990c43dfb0"},
-    {.name = "build.html",       .sha="20b5f0ab93193e2956a1897cc4926e7482c15f50"},
-    {.name = "box-title-bg.jpg", .sha="423c796eb3986460384521d82d345b416fe47a67"},
-    {.name = "content-bg.jpg",   .sha="8bb99c548e90ddefb21e1889fdbb5eac2376121b"},
-    {.name = "footer.html",      .sha="18c381b0e68956f77ffd140d73d0ae781e5234d2"},
-    {.name = "header.html",      .sha="ebdf5d71387700774f3ea86604e9714bc25a746d"},
-    {.name = "header-bg.jpg",    .sha="7b4d322d9e6b84143ff974b9052bdcd9369f09a1"},
-    {.name = "index.html",       .sha="dfd868171c84186b74dce803c997331949f49d75"},
-    {.name = "patterns.html",    .sha="a8065433fe7372b14e4b2a55165421a48c10f0a5"},
-    {.name = "settings.html",    .sha="a2fffc8e51094e082b53ce59b357bb8718202e03"},
-    {.name = "styles.css",       .sha="cfdbd4de3f1a040c8a383e4cf53976df8ca793b4"},
-};
+
+print("const uint8_t neededFileCount = {0};".format(len(files)))
+print("neededFiles_t  files[] = {")
+
+
+for file in files:
+    print( '    {{.name = {:19s} .sha="{:s}"}},'.format('"'+file+'",',get_checksum( '../disk_image/'+file,algorithm="SHA1")))
+print("};")
+

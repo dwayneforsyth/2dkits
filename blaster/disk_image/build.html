@@ -14,48 +14,35 @@
     <h1> build source code unix</h1><ul>
         <li>git clone https://github.com/dwayneforsyth/2dkits.git
         <li>cd 2dkits
-        <li>git clone https://github.com/espressif/esp-idf.git
+        <li>git submodule update --init --recursive
 	<li>cd esp-idf
-	<li>git checkout 57b6be22a7779bbfd194ba254f66bdbe95a18a7c
         <li>./install.sh
-	<li>cd ..
-        <li>source esp-idf/export.sh
-        <li>cd tower
+        <li>./export.sh
+        <li>cd blaster
         <li>idf.py build
         <li>idf.py -p [/dev/ttyUSBx] flash
     </ul>
     <h1> build source code win10</h1><ul>
         <li>git clone https://github.com/dwayneforsyth/2dkits.git
         <li>cd 2dkits
-        <li>git clone https://github.com/espressif/esp-idf.git
+        <li>git submodule update --init --recursive
 	<li>cd esp-idf
-	<li>git checkout 57b6be22a7779bbfd194ba254f66bdbe95a18a7c
-        <li>Set-ExecutionPolicy -ExecutionPolicy Bypass
-        <li>./install.ps1
-	<li>cd ..
-        <li>esp-idf/export.ps1
-        <li>cd tower
+        <li>install.bat
+        <li>export.bat
+        <li>cd blaster
         <li>idf.py build
         <li>idf.py -p [comxx] flash
     </ul>
     <h1> build source code Mac</h1><ul>
         <li>git clone https://github.com/dwayneforsyth/2dkits.git
         <li>cd 2dkits
-        <li>git clone https://github.com/espressif/esp-idf.git
+        <li>git submodule update --init --recursive
 	<li>cd esp-idf
-	<li>git checkout 57b6be22a7779bbfd194ba254f66bdbe95a18a7c
         <li>./install.sh
-	<li>cd ..
         <li>source esp-idf/export.sh
-        <li>cd tower
+        <li>cd blaster
         <li>idf.py build
         <li>idf.py -p /dev/tty.usbserial-xxxx] flash
     </ul>
-    <h1> picoc</h1><ul>
-        We have a "c" interpreter for blinkie patterns
-	https://gitlab.com/zsaleeba/picoc
-
-    </ul>
-
 </ul>
 
