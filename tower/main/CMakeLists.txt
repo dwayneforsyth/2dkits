@@ -54,5 +54,5 @@ idf_component_register(SRCS
 spiffs_create_partition_image(storage ../disk_image FLASH_IN_PROJECT)
 
 # root for ota http
-target_add_binary_data(${COMPONENT_TARGET} "trustid_x3_root.pem" TEXT)
+target_add_binary_data(${COMPONENT_TARGET} "${COMMON}trustid_x3_root.pem" TEXT)
 
