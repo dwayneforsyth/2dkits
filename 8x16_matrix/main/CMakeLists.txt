@@ -16,7 +16,7 @@ idf_component_register(SRCS
    "${COMMON}dfu.c"
    "${COMMON}download_file.c"
    "${COMMON}upgrade_disk.c"
-   "console_usb.c"
+   "${COMMON}console.c"
    "${COMMON}cmd_system.c"
    "${COMMON}cmd_dfu.c"
    "${COMMON}cmd_pattern.c"
@@ -54,5 +54,5 @@ idf_component_register(SRCS
 spiffs_create_partition_image(storage ../disk_image FLASH_IN_PROJECT)
 
 # root for ota http
-target_add_binary_data(${COMPONENT_TARGET} "trustid_x3_root.pem" TEXT)
+target_add_binary_data(${COMPONENT_TARGET} "${COMMON}trustid_x3_root.pem" TEXT)
 
