@@ -1,3 +1,4 @@
+#! /usr/bin/python3
 from simple_file_checksum import get_checksum
 
 files = [ "about.html", "build.html", "box-title-bg.jpg", "content-bg.jpg", "footer.html", "header.html", "header-bg.jpg", "index.html", "patterns.html", "settings.html", "styles.css"]
