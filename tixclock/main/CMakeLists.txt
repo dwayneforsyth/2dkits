@@ -6,8 +6,8 @@ idf_component_register(SRCS
    "${COMMON}global.c"
    "tixclock_main.c"
    "led_driver.c"
-   "web_server.c"
-   "${COMMON}captdns.c"
+   "${COMMON}web_server.c"
+#   "${COMMON}captdns.c"
    "pattern_engine.c"
    "${COMMON}dfu.c"
    "${COMMON}console.c"
@@ -26,5 +26,5 @@ idf_component_register(SRCS
 spiffs_create_partition_image(storage ../disk_image FLASH_IN_PROJECT)
 
 # root for dfu http
-target_add_binary_data(${COMPONENT_TARGET} "trustid_x3_root.pem" TEXT)
+target_add_binary_data(${COMPONENT_TARGET} "${COMMON}trustid_x3_root.pem" TEXT)
 

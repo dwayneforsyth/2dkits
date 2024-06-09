@@ -1,0 +1,20 @@
+#!/bin/bash
+
+RELEASE="00.00.01"
+
+TXT_FILE="current_firmware.txt"
+BIN_FILE_PATH="build/8x16_matrix.bin"
+SERVER="forsyth@www.dforsyth.net"
+BASE_PATH="/home/httpd/html_2dkits/kits/kit22"
+
+echo "$RELEASE kits/kit22/8x16_matrix_$RELEASE.bin" > $TXT_FILE
+echo "$RELEASE"
+
+scp $TXT_FILE      $SERVER:$BASE_PATH/$TXT_FILE
+scp $BIN_FILE_PATH $SERVER:$BASE_PATH/8x16_matrix_$RELEASE.bin
+
+ssh $SERVER "mkdir -p $BASE_PATH/${RELEASE}"
+for FILE_NAME in index.html header.html footer.html about.html settings.html patterns.html  content-bg.jpg styles.css header-bg.jpg box-title-bg.jpg
+do
+    scp -pr disk_image/$FILE_NAME $SERVER:$BASE_PATH/${RELEASE}/$FILE_NAME
+done

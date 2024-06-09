@@ -34,7 +34,7 @@
 #include "nvs.h"
 #include "nvs_flash.h"
 
-static const char* TAG = "console";
+// static const char* TAG = "console";
 
 #include "console.h"
 #include "cmd_system.h"
@@ -50,9 +50,9 @@ static void initialize_console(void)
     setvbuf(stdin, NULL, _IONBF, 0);
 
     /* Minicom, screen, idf_monitor send CR when ENTER key is pressed */
-    esp_vfs_dev_uart_set_rx_line_endings(ESP_LINE_ENDINGS_CR);
+    esp_vfs_dev_uart_port_set_rx_line_endings(CONFIG_ESP_CONSOLE_UART_NUM, ESP_LINE_ENDINGS_CR);
     /* Move the caret to the beginning of the next line on '\n' */
-    esp_vfs_dev_uart_set_tx_line_endings(ESP_LINE_ENDINGS_CRLF);
+    esp_vfs_dev_uart_port_set_tx_line_endings(CONFIG_ESP_CONSOLE_UART_NUM, ESP_LINE_ENDINGS_CRLF);
 
     /* Configure UART. Note that REF_TICK is used so that the baud rate remains
      * correct while APB frequency is changing in light sleep mode.
@@ -62,8 +62,13 @@ static void initialize_console(void)
             .data_bits = UART_DATA_8_BITS,
             .parity = UART_PARITY_DISABLE,
             .stop_bits = UART_STOP_BITS_1,
-	    .use_ref_tick = true
+#if SOC_UART_SUPPORT_REF_TICK
+        .source_clk = UART_SCLK_REF_TICK,
+#elif SOC_UART_SUPPORT_XTAL_CLK
+        .source_clk = UART_SCLK_XTAL,
+#endif
     };
+
     /* Install UART driver for interrupt-driven reads and writes */
     ESP_ERROR_CHECK( uart_driver_install(CONFIG_ESP_CONSOLE_UART_NUM,
             256, 0, 0, NULL, 0) );
@@ -74,7 +79,7 @@ static void initialize_console(void)
 
     /* Initialize the console */
     esp_console_config_t console_config = {
-            .max_cmdline_args = 16,
+            .max_cmdline_args = 8,
             .max_cmdline_length = 256,
 #if CONFIG_LOG_COLORS
             .hint_color = atoi(LOG_COLOR_CYAN)
@@ -95,12 +100,20 @@ static void initialize_console(void)
     /* Set command history size */
     linenoiseHistorySetMaxLen(100);
 
+    linenoiseSetDumbMode(true);
+
+    /* Set command maximum length */
+    linenoiseSetMaxLineLen(console_config.max_cmdline_length);
+
+    /* Don't return empty lines */
+    linenoiseAllowEmpty(false);
+
 #if CONFIG_STORE_HISTORY
     /* Load command history from filesystem */
     linenoiseHistoryLoad(HISTORY_PATH);
 #endif
 }
-
+    
 void consoleTask( void ) {
     const char* prompt = LOG_COLOR_I "2DKITS> " LOG_RESET_COLOR;
 
@@ -154,7 +167,7 @@ void consoleInit( void ) {
 #ifdef TIXCLOCK
     commands_tixclock();
 #elif defined(BLASTER)
-//    commands_tixclock();
+    //
 #else
     commands_pattern();
 #endif

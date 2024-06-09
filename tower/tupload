@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RELEASE="00.01.03"
+RELEASE="00.01.06"
 
 TXT_FILE="current_test_firmware.txt"
 BIN_FILE_PATH="build/tower.bin"
@@ -14,7 +14,7 @@ scp $TXT_FILE      $SERVER:$BASE_PATH/$TXT_FILE
 scp $BIN_FILE_PATH $SERVER:$BASE_PATH/tower_test_$RELEASE.bin
 
 ssh $SERVER "mkdir -p $BASE_PATH/${RELEASE}_test"
-for FILE_NAME in index.html header.html footer.html about.html settings.html patterns.html content-bg.jpg styles.css header-bg.jpg box-title-bg.jpg
+for FILE_NAME in index.html header.html footer.html about.html build.html settings.html patterns.html content-bg.jpg styles.css header-bg.jpg box-title-bg.jpg
 do
     scp -pr disk_image/$FILE_NAME $SERVER:$BASE_PATH/${RELEASE}_test/$FILE_NAME
 done

@@ -35,23 +35,7 @@
 #include "led_driver.h"
 #include "led_map.h"
 #include "version.h"
-
-#define BLINK_GPIO     2
-#define PIN_NUM_RED   25
-#define PIN_NUM_GREEN 26
-#define PIN_NUM_BLUE  14
-#define PIN_NUM_CLK   13
-#define PIN_ENABLE    18
-
-#define PIN_LATCH      4
-#define COMSIG0       15
-#define COMSIG1       23
-#define COMSIG2       22
-#define COMSIG3       19
-#define COMSIG4       10
-#define COMSIG5       21
-#define COMSIG6        5
-#define COMSIG7        9
+#include "board_pins.h"
 
 //Queue for dummy data used to block main loop when all buffers are full
 QueueHandle_t main_data_queue;
@@ -327,6 +311,10 @@ void mainLoop(void) {
     while(1) {
         uint8_t dummy[1];
 
+#if CONFIG_IDF_TARGET_ESP32S2
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+#endif
+
         //Send the data to the queue becuase we've filled the buffer
         if (i%bufferFrameSize == 0) {
             xQueueSend(main_data_queue, dummy, portMAX_DELAY); //Blocked when queue is full
@@ -380,7 +368,8 @@ void init_LED_driver(void) {
     allLedsColor( 0, 0, 0);
     allLedsColor2( 0, 0, 0);
     allLedsColor3( 0, 0, 0);
-    gpio_pad_select_gpio(PIN_ENABLE);
+//    gpio_pad_select_gpio(PIN_ENABLE);
+    gpio_reset_pin(PIN_ENABLE);
     gpio_set_direction(PIN_ENABLE, GPIO_MODE_OUTPUT);
     gpio_set_level(PIN_ENABLE, 0);
 
@@ -399,10 +388,16 @@ void init_LED_driver(void) {
         .refill_cb=buffer_filler_fn, //Function Called by I2S interrupt
         .refill_cb_arg=main_data_queue //Queue pointer
     };
+#if  CONFIG_IDF_TARGET_ESP32S2
+    i2s_parallel_setup(&I2S0, &i2scfg);
+    i2s_parallel_start(&I2S0);
+    xTaskCreate(mainLoop, "mainLoop", 1024*3, NULL, 23, NULL);
+#else
     i2s_parallel_setup(&I2S1, &i2scfg);
     i2s_parallel_start(&I2S1);
-
     xTaskCreatePinnedToCore(mainLoop, "mainLoop", 1024*3, NULL, 23, NULL, 1); //Use core 1 for main loop, I2S interrupt on core 0
+#endif
+
 
     return;
 }

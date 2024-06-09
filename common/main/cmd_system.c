@@ -30,7 +30,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_sleep.h"
-#include "esp_spi_flash.h"
+// #include "esp_spi_flash.h"
 #include "driver/rtc_io.h"
 #include "driver/uart.h"
 #include "argtable3/argtable3.h"
@@ -89,20 +89,22 @@ void register_system(void)
 *******************************************************************************/
 static int get_version(int argc, char **argv)
 {
-    esp_chip_info_t info;
-    esp_chip_info(&info);
+//    esp_chip_info_t info;
+//    esp_chip_info(&info);
     ESP_LOGW(TAG, "IDF Version:%s", esp_get_idf_version());
     ESP_LOGW(TAG, "Chip info:");
-    ESP_LOGW(TAG, "\tmodel:%s", info.model == CHIP_ESP32 ? "ESP32" : "Unknow");
-    ESP_LOGW(TAG, "\tcores:%d", info.cores);
-    ESP_LOGW(TAG, "\tfeature:%s%s%s%s%d%s",
-           info.features & CHIP_FEATURE_WIFI_BGN ? "/802.11bgn" : "",
-           info.features & CHIP_FEATURE_BLE ? "/BLE" : "",
-           info.features & CHIP_FEATURE_BT ? "/BT" : "",
-           info.features & CHIP_FEATURE_EMB_FLASH ? "/Embedded-Flash:" : "/External-Flash:",
-           spi_flash_get_chip_size() / (1024 * 1024), " MB");
-    ESP_LOGW(TAG, "\trevision number:%d", info.revision);
+//    ESP_LOGW(TAG, "\tmodel:%s", info.model == CHIP_ESP32 ? "ESP32" : "Unknow");
+//    ESP_LOGW(TAG, "\tcores:%d", info.cores);
+//    ESP_LOGW(TAG, "\tfeature:%s%s%s%s%d%s",
+//           info.features & CHIP_FEATURE_WIFI_BGN ? "/802.11bgn" : "",
+//           info.features & CHIP_FEATURE_BLE ? "/BLE" : "",
+//           info.features & CHIP_FEATURE_BT ? "/BT" : "",
+//           info.features & CHIP_FEATURE_EMB_FLASH ? "/Embedded-Flash:" : "/External-Flash:",
+//           spi_flash_get_chip_size() / (1024 * 1024), " MB");
+//    ESP_LOGW(TAG, "\trevision number:%d", info.revision);
     ESP_LOGW(TAG, "\tsoftware version: %d.%d.%d",MAJOR, MINOR, BUILD);
+    ESP_LOGW(TAG, "\tkit number: %d", KIT_NUMBER);
+    ESP_LOGW(TAG, "\tkit name: %s", KIT_NAME);
     return 0;
 }
 
@@ -141,7 +143,9 @@ static int get_time(int argc, char **argv)
     char        timeBuf[64];
     struct tm   timeinfo;
 
-    gmtime_r(&now, &timeinfo);
+    time(&now);
+
+    localtime_r(&now, &timeinfo);
     strftime(timeBuf, sizeof(timeBuf), "%c", &timeinfo);
     ESP_LOGW(TAG, "%s\n", timeBuf);
 
@@ -254,8 +258,8 @@ static void register_restart(void)
 static int heap_size(int argc, char **argv)
 {
     uint32_t heap_size = heap_caps_get_minimum_free_size(MALLOC_CAP_DEFAULT);
-    ESP_LOGW(TAG, "min heap size: %u\n", heap_size);
-    ESP_LOGW(TAG, "current size:  %u\n", esp_get_free_heap_size());
+    ESP_LOGW(TAG, "min heap size: %lu\n", heap_size);
+    ESP_LOGW(TAG, "current size:  %lu\n", esp_get_free_heap_size());
     return 0;
 }
 
@@ -291,6 +295,7 @@ static void register_heap(void)
 *******************************************************************************/
 static int tasks_info(int argc, char **argv)
 {
+#if CONFIG_IDF_TARGET_ESP32
     const size_t bytes_per_task = 40; /* see vTaskList description */
     char *task_list_buffer = malloc(uxTaskGetNumberOfTasks() * bytes_per_task);
     if (task_list_buffer == NULL) {
@@ -302,6 +307,7 @@ static int tasks_info(int argc, char **argv)
     vTaskList(task_list_buffer);
     fputs(task_list_buffer, stdout);
     free(task_list_buffer);
+#endif
     return 0;
 }
 
@@ -378,7 +384,7 @@ void asciiFooter_cb(uint64_t total, int nfiles, uint32_t tot, uint32_t used, voi
         printf(" in %d file(s)\n", nfiles);
     }
     printf("-----------------------------------\n");
-    printf("SPIFFS: free %d KB of %d KB\n", (tot-used) / 1024, tot / 1024);
+    printf("SPIFFS: free %ld KB of %ld KB\n", (tot-used) / 1024, tot / 1024);
     printf("-----------------------------------\n\n");
 }
 

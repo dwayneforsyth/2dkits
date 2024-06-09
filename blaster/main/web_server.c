@@ -39,7 +39,7 @@
 */
 
 #include <esp_wifi.h>
-#include <esp_event_loop.h>
+#include <esp_event.h>
 #include <esp_log.h>
 #include <esp_system.h>
 #include <nvs_flash.h>
@@ -87,14 +87,12 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
 
 
     if (strcmp("%patternNumber",token)==0) {
-#ifndef TIXCLOCK
 #ifndef BLASTER
         sprintf(tBuffer, "%d",getPatternNumber());
         httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
     } else if (strcmp("%patternName",token)==0) {
         sprintf(tBuffer, "%s",getPatternName());
         httpd_resp_send_chunk(req, tBuffer, strlen(tBuffer));
-#endif
 #endif
     } else if (strcmp("%timeDate",token)==0) {
         time(&now);
@@ -303,7 +301,6 @@ void parseUrl(httpd_req_t *req) {
             ESP_LOGI(TAG, "Found URL query => %s", buf);
             char param[80];
             /* Get value of expected key from query string */
-#ifndef TIXCLOCK
 #ifndef BLASTER
             if (httpd_query_key_value(buf, "pattern", param, sizeof(param)) == ESP_OK) {
                 ESP_LOGI(TAG, "Pattern = %d", atoi(param));
@@ -325,9 +322,8 @@ void parseUrl(httpd_req_t *req) {
 		deletePattern(&file[8]); // this is a hack to remove the "/spiffs/"
             }
 #endif
-#endif
             if (httpd_query_key_value(buf, "dfu", param, sizeof(param)) == ESP_OK) {
-		char file[40];
+//		char file[40];
                 ESP_LOGI(TAG, "dfu = %d", atoi(param));
 		perform_dfu(atoi(param));
             }
@@ -466,11 +462,9 @@ static void processVar( char * name, char * value) {
         setWifiPasswd(i,value);
     } else if (strcmp("tz", name)==0) {
         setTZ(value);
-#ifdef TIXCLOCK
-#ifndef BLASTER
+#ifdef BLASTER
     } else if (strcmp("tformat", name)==0) {
         setTFormat(value);
-#endif
 #endif
     } else {
         ESP_LOGI(TAG, "unknown >%s< = >%s<", name, value);
@@ -518,11 +512,11 @@ static esp_err_t save_settings_handler(httpd_req_t *req)
     uint16_t b = 0;
     while ( i < (req->content_len+1)) {
         if (buf[i] == '=') {
-            strlcpy(&dataName, &buf[b], i-b+1);
+            strlcpy(dataName, &buf[b], i-b+1);
 //           ESP_LOGI(TAG, ">%s< %d %d", dataName, b, i);
             b=i+1;
         } else if ((buf[i] == '&')||(buf[i] == 0)) {
-            strlcpy(&dataVar, &buf[b], i-b+1);
+            strlcpy(dataVar, &buf[b], i-b+1);
             ESP_LOGI(TAG, ">%s< = >%s<", dataName, dataVar);
             processVar( dataName, dataVar );
             b=i+1;
@@ -620,7 +614,7 @@ void htmlFooter_cb(uint64_t total, int nfiles, uint32_t tot, uint32_t used, void
         }
     }
 
-    sprintf(tbuffer, "<tr><td colspan=4>SPIFFS: free %d KB of %d KB\n", (tot-used) / 1024, tot / 1024);
+    sprintf(tbuffer, "<tr><td colspan=4>SPIFFS: free %ld KB of %ld KB\n", (tot-used) / 1024, tot / 1024);
     httpd_resp_send_chunk(req, tbuffer, strlen(tbuffer));
     httpd_resp_send_chunk(req, dir_footer, strlen(dir_footer));
     file_get_handler(req, "/spiffs/footer.html",false);
@@ -684,13 +678,20 @@ httpd_uri_t about = {
     .user_ctx  = "/spiffs/about.html"
 };
 
+httpd_uri_t build = {
+    .uri       = "/build.html",
+    .method    = HTTP_GET,
+    .handler   = get_file_handler,
+    .user_ctx  = "/spiffs/build.html"
+};
+
+>>>>>>> checkpoint_5.1
 httpd_uri_t settings = {
     .uri       = "/settings.html",
     .method    = HTTP_GET,
     .handler   = get_file_handler,
     .user_ctx  = "/spiffs/settings.html"
 };
-#ifndef TIXCLOCK
 #ifndef BLASTER
 httpd_uri_t patterns = {
     .uri       = "/patterns.html",
@@ -704,7 +705,6 @@ httpd_uri_t cloud = {
     .handler   = cloud_pattern_list,
     .user_ctx  = NULL
 };
-#endif
 #endif
 httpd_uri_t logo = {
     .uri       = "/header-bg.jpg",
@@ -765,7 +765,7 @@ httpd_handle_t start_webserver(void) {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.stack_size = 7 *1024;
 
-    config.max_uri_handlers = 13;
+    config.max_uri_handlers = 14;
 
     // Start the httpd server
     ESP_LOGI(TAG, "Starting server on port: %d", config.server_port);
@@ -781,11 +781,9 @@ httpd_handle_t start_webserver(void) {
         httpd_register_uri_handler(server, &title);
         httpd_register_uri_handler(server, &about);
         httpd_register_uri_handler(server, &settings);
-#ifndef TIXCLOCK
 #ifndef BLASTER
         httpd_register_uri_handler(server, &patterns);
         httpd_register_uri_handler(server, &cloud);
-#endif
 #endif
         httpd_register_uri_handler(server, &content);
         httpd_register_uri_handler(server, &save);
@@ -811,43 +809,20 @@ void start_mdns_service()
     mdns_instance_name_set("2DKits Blinkie");
 }
 
-/*******************************************************************************
-    PURPOSE: event handler for wifi
+static bool serverInit = false;
 
-    INPUTS:
-        handle
-	event
-
-    RETURN CODE:
-        error code
-
-    NOTES:
-
-*******************************************************************************/
-static esp_err_t event_handler(void *ctx, system_event_t *event)
+static void ip_event_handler(void* arg, esp_event_base_t event_base,
+                                int32_t event_id, void* event_data)
 {
-    wifi_sta_info_t *sta;
-    static bool serverInit = false;
+//    wifi_mode_t mode;
     static bool audit = false;
-    static uint8_t wifiIndex = 0;
 
-    wifi_config_t wifi_config_sta = {
-        .sta = {
-            .ssid = "",
-            .password = "",
-        },
-    };
-
-    switch(event->event_id) {
-    case SYSTEM_EVENT_STA_START:
-        ESP_LOGI(TAG, "SYSTEM_EVENT_STA_START");
-        if (xAppData.wifiCount != 0) ESP_ERROR_CHECK(esp_wifi_connect());
-        break;
-    case SYSTEM_EVENT_STA_GOT_IP:
-        xAppData.ipName = ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip);
+    switch (event_id) {
+    case IP_EVENT_STA_GOT_IP: {
+        ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
+        asprintf(&(xAppData.ipName), IPSTR, IP2STR(&event->ip_info.ip));
         ESP_LOGI(TAG, "SYSTEM_EVENT_STA_GOT_IP");
-        ESP_LOGI(TAG, "Got IP: %s",
-                 ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+        ESP_LOGI(TAG, "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
 
         /* Start the web server */
         if (serverInit == false) {
@@ -867,8 +842,48 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         sntp_setservername(0, "pool.ntp.org");
         sntp_init();
         break;
-    case SYSTEM_EVENT_STA_DISCONNECTED:
-        ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED");
+    }
+    default:
+        break;
+    }
+    return;
+}
+
+
+/*******************************************************************************
+    PURPOSE: event handler for wifi
+
+    INPUTS:
+        handle
+	event
+
+    RETURN CODE:
+        error code
+
+    NOTES:
+
+*******************************************************************************/
+static void wifi_event_handler(void* arg, esp_event_base_t event_base,
+                                int32_t event_id, void* event_data)
+	
+{
+    wifi_sta_info_t *sta;
+    static uint8_t wifiIndex = 0;
+
+    wifi_config_t wifi_config_sta = {
+        .sta = {
+            .ssid = "",
+            .password = "",
+        },
+    };
+
+    switch(event_id) {
+    case WIFI_EVENT_STA_START:
+        ESP_LOGI(TAG, "WIFI_EVENT_STA_START");
+        if (xAppData.wifiCount != 0) ESP_ERROR_CHECK(esp_wifi_connect());
+        break;
+    case WIFI_EVENT_STA_DISCONNECTED:
+        ESP_LOGI(TAG, "WIFI_EVENT_STA_DISCONNECTED");
         xAppData.ipName = NULL;
 
         wifiIndex = (wifiIndex + 1) % WIFI_TABLE_SIZE;
@@ -879,8 +894,14 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         ESP_LOGI(TAG, "Trying WiFi STA: SSID >%s< PASSWD >%s<", wifi_config_sta.sta.ssid, wifi_config_sta.sta.password);
         esp_wifi_connect();
         break;
-    case SYSTEM_EVENT_AP_STAIPASSIGNED:
-        ESP_LOGI(TAG,"station connected to access point.");
+    case WIFI_EVENT_STA_CONNECTED:
+        ESP_LOGI(TAG, "WIFI_EVENT_STA_CONNECTED");
+	break;
+    case WIFI_EVENT_AP_STACONNECTED:
+
+//	wifi_event_ap_staconnected_t* event = (wifi_event_ap_staconnected_t*) event_data;
+//        ESP_LOGI(TAG,"station "MACSTR" join, AID=%d", MAC2STR(event->mac), event->aid);
+
         /* Start the web server */
         if (serverInit == false) {
             start_webserver();
@@ -897,10 +918,10 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         }
         break;
     default:
-        ESP_LOGI(TAG, "Network event %d",event->event_id);
+        ESP_LOGI(TAG, "Network event %ld",event_id);
         break;
     }
-    return ESP_OK;
+    return;
 }
 
 /*******************************************************************************
@@ -917,12 +938,14 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
 *******************************************************************************/
 void initialise_wifi_p1(void *arg)
 {
-    tcpip_adapter_init();
-    ESP_ERROR_CHECK(esp_event_loop_init(event_handler, arg));
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
 }
+
+static esp_netif_t *s_example_sta_netif = NULL;
 
 /*******************************************************************************
     PURPOSE:  start the wifi interface part 2
@@ -968,15 +991,27 @@ void initialise_wifi_p2(void *arg) {
     ESP_LOGI(TAG, "Setting WiFi AP: SSID >%s< PASSWD >%s<", wifi_config_ap.ap.ssid, wifi_config_ap.ap.password);
     ESP_LOGI(TAG, "Trying WiFi STA: SSID >%s< PASSWD >%s<", wifi_config_sta.sta.ssid, wifi_config_sta.sta.password);
 
+    esp_netif_inherent_config_t esp_netif_config = ESP_NETIF_INHERENT_DEFAULT_WIFI_STA();
+    // Warning: the interface desc is used in tests to capture actual connection details (IP, gw, mask)
+//    esp_netif_config.if_desc = EXAMPLE_NETIF_DESC_STA;
+    esp_netif_config.route_prio = 128;
+    s_example_sta_netif = esp_netif_create_wifi(WIFI_IF_STA, &esp_netif_config);
+
+
+
+    esp_wifi_set_default_wifi_sta_handlers();
+    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
+    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &ip_event_handler, NULL));
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config_ap) );
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config_sta));
     ESP_ERROR_CHECK(esp_wifi_get_mac(WIFI_IF_AP, xAppData.apMac) );
     ESP_ERROR_CHECK(esp_wifi_get_mac(ESP_IF_WIFI_STA, xAppData.staMac));
+
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    captdnsInit();
+//    captdnsInit();
 
 //    start_webserver();
 }

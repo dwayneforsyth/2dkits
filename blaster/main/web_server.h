@@ -19,8 +19,7 @@
 //
 //**********************************************************************
 
-#ifndef WEB_SERVER_H
-#define WEB_SERVER_H
+#pragma once
 
 #include <esp_system.h>
 
@@ -28,6 +27,3 @@ void initialise_wifi_p1(void *arg);
 void initialise_wifi_p2(void *arg);
 void parseUrl(httpd_req_t *req);
 esp_err_t file_get_handler(httpd_req_t *req, char *filename, bool binary);
-
-#endif
-

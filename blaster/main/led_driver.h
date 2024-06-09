@@ -26,6 +26,8 @@
 #define LED_MINUS 17
 #define LED_NOOP 18
 
+#include "esp_timer.h"
+
 void init_LED_driver();
 // void changeBank( uint8_t select );
 // void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB);
@@ -37,7 +39,7 @@ void display_chase();
 
 void init_LEDs( void );
 void clear_display(void);
-void strobe_display( void );
+void strobe_display( void * arg );
 void display_time( uint8_t hour, uint8_t min);
 
 extern bool LEDs[3][9];

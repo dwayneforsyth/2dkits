@@ -21,21 +21,25 @@
 //   This is the sha1 files to the html files tied to the sofaware.
 // sha1sum <file>
 //**********************************************************************
+//
+// This file is auto created via hash.py Your should not edit it
+//
+//**********************************************************************
 
 #include <stdint.h>
 #include "file_sha.h"
 
-const uint8_t neededFileCount = 6;
+const uint8_t neededFileCount = 11;
 neededFiles_t  files[] = {
-    {.name = "about.html",       .sha="d7b31a7c51371f23e01a55e40bdf19057bab8019"},
+    {.name = "about.html",       .sha="3ed4bc08d16dae1adc78a4d4a27d612aa5f68224"},
+    {.name = "build.html",       .sha="2eec717ddb8a7a99bb0ac8375411bd883a2a0e39"},
     {.name = "box-title-bg.jpg", .sha="423c796eb3986460384521d82d345b416fe47a67"},
-    {.name = "content-bg.jpg",.   sha="8bb99c548e90ddefb21e1889fdbb5eac2376121b"},
-    {.name = "footer.html",      .sha="0289f31c9e872fd865eafa54636483a19d1b5018"},
-    {.name = "header.html",      .sha="528319cfcc31c238fd927e99f72b025753e48e8c"},
+    {.name = "content-bg.jpg",   .sha="8bb99c548e90ddefb21e1889fdbb5eac2376121b"},
+    {.name = "footer.html",      .sha="18c381b0e68956f77ffd140d73d0ae781e5234d2"},
+    {.name = "header.html",      .sha="9c819ced212fe5f46941ff85b832f1098f51d4e4"},
     {.name = "header-bg.jpg",    .sha="7b4d322d9e6b84143ff974b9052bdcd9369f09a1"},
-    {.name = "index.html",       .sha="67e10905b4aae5a03166045712ffab8bef37c8d5"},
-    {.name = "patterns.html",    .sha="1c6413e42a4d20853cca0c71d92639019af149ab"},
-    {.name = "settings.html",    .sha="9c1ce9f3d4cc12ff8e1e111e0553cad603429868"},
+    {.name = "index.html",       .sha="df6d309693d55e9d1795d8acd11927ab31467a0b"},
+    {.name = "patterns.html",    .sha="a8065433fe7372b14e4b2a55165421a48c10f0a5"},
+    {.name = "settings.html",    .sha="a2fffc8e51094e082b53ce59b357bb8718202e03"},
     {.name = "styles.css",       .sha="cfdbd4de3f1a040c8a383e4cf53976df8ca793b4"},
 };
-

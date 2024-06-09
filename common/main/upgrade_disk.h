@@ -21,5 +21,4 @@
 
 #pragma once
 
-void auditDiskFiles( void );
-
+void auditDiskFiles( void* pvParameters );
