@@ -26,17 +26,17 @@
 #define PIN_NUM_GREEN 26
 #define PIN_NUM_BLUE  14
 #define PIN_NUM_CLK   13
-#define PIN_ENABLE    27
+#define PIN_ENABLE    18
 
 #define PIN_LATCH      4
 #define COMSIG0       15
 #define COMSIG1       23
 #define COMSIG2       22
 #define COMSIG3       19
-#define COMSIG4       10
+#define COMSIG4       17 // 10
 #define COMSIG5       21
 #define COMSIG6        5
-#define COMSIG7       16
+#define COMSIG7       16 // 9
 
 #define BUTTON1 34
 #define BUTTON2 35

@@ -526,6 +526,8 @@ void setLed4RGBUpDown(uint8_t l, uint8_t x, uint16_t red, uint16_t green, uint16
     for (y=0;y<4;y++) {
        getLed(l,x,y,&cRed,&cGreen,&cBlue);
        setLed(l,x,y, upDown((red & mask)!=0,cRed), upDown((green & mask),cGreen), upDown((blue & mask),cBlue));
+       printf("l=%d x=%d y=%d, r=%d g=%d b=%d\n", 
+              l,x,y, upDown((red & mask)!=0,cRed), upDown((green & mask),cGreen), upDown((blue & mask),cBlue));
        mask = mask >>1;
     }
 }
@@ -579,27 +581,41 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
           case 2: // old tower
               fread(tBuffer,2,(8*3), fh);
               fread(&fad_cycle,1,1, fh);
-              fad_cycle *= 2;
-	      while (fad_cycle > 0) {
-		  fad_cycle--;
+              printf("read frame=%d cycles=%d fad=%d\n",frame,cycles, fad_cycle);
+	      if (fad_cycle == 0) {
 	          for (loop=0;loop<8;loop++) {
-                      setLed4RGBUpDown(7-(7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
-                      setLed4RGBUpDown(7-((7-loop)/4+2), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
-                      setLed4RGBUpDown(7-((7-loop)/4+4), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
-                      setLed4RGBUpDown(7-((7-loop)/4+6), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
+                      setLed4RGBOnOff(7- (7-loop)/4,    loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
+                      setLed4RGBOnOff(7-((7-loop)/4+2), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
+                      setLed4RGBOnOff(7-((7-loop)/4+4), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0800);
+                      setLed4RGBOnOff(7-((7-loop)/4+6), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
                   }
                   if (delay_and_buttons(delay*speed)) {
                       fclose(fh); 
 		      return;
+	          }
+	      } else {
+                  fad_cycle = fad_cycle * 2;
+	          while (fad_cycle > 0) {
+    		      fad_cycle--;
+    	              for (loop=0;loop<8;loop++) {
+                          setLed4RGBUpDown(7- (7-loop)/4,    loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
+                          setLed4RGBUpDown(7-((7-loop)/4+2), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
+                          setLed4RGBUpDown(7-((7-loop)/4+4), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0800);
+                          setLed4RGBUpDown(7-((7-loop)/4+6), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
+                      }
+                      if (delay_and_buttons(delay*speed)) {
+                          fclose(fh); 
+		          return;
+	              }
 	          }
 	      }
               break;
 	  case 16: // old tower
               ret = fread(tBuffer,2,(8*3), fh);
               if (ret == 0) { break;}
-              // printf("read frame=%d cycles=%d\n",frame,cycles);
+              printf("read frame=%d cycles=%d\n",frame,cycles);
 	      for (loop=0;loop<8;loop++) {
-                  setLed4RGBOnOff(7-(7-loop)/4,   loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
+                  setLed4RGBOnOff(7- (7-loop)/4,    loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
                   setLed4RGBOnOff(7-((7-loop)/4+2), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
                   setLed4RGBOnOff(7-((7-loop)/4+4), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0800);
                   setLed4RGBOnOff(7-((7-loop)/4+6), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0080);
