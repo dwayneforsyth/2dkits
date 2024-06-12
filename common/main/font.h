@@ -21,8 +21,13 @@
 // Char tables
 //**********************************************************************
 
-struct s {
+#pragma once
+
+typedef struct fontData_t {
     unsigned char sl;
     char ch[5];
-};
+} fontData_t;
+
+extern const fontData_t charData[];
+
 

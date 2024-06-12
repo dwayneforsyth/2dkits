@@ -23,6 +23,7 @@ idf_component_register(SRCS
    "${COMMON}cmd_wifi.c"
    "${COMMON}cmd_download.c"
    "${COMMON}queued_i2s_parallel.c"
+   "${COMMON}font.c"
    "${PICOC}/clibrary.c"
    "${PICOC}debug.c"
    "${PICOC}expression.c"

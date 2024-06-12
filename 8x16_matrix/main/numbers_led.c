@@ -18,7 +18,7 @@
 //      Boston, MA  02110-1301, USA.
 //
 //**********************************************************************
-//   This routine puts a 2 digit number of the tower
+//   This routine puts a 2 digit number of the 8x16 matrix
 //**********************************************************************
 
 
@@ -26,103 +26,76 @@
 #include <stdint.h>
 
 #include "led_driver.h"
+#include "font.h"
 
-const bool digitMap[10][7][4] = {
 
-   [0][6]={1,1,1,1},
-   [0][5]={1,0,0,1},
-   [0][4]={1,0,0,1},
-   [0][3]={1,0,0,1},
-   [0][2]={1,0,0,1},
-   [0][1]={1,0,0,1},
-   [0][0]={1,1,1,1},
+uint8_t display_char( uint8_t x, uint8_t charIn, uint8_t color ) { //DDF Debug me!
 
-   [1][6]={0,0,0,1},
-   [1][5]={0,0,0,1},
-   [1][4]={0,0,0,1},
-   [1][3]={0,0,0,1},
-   [1][2]={0,0,0,1},
-   [1][1]={0,0,0,1},
-   [1][0]={0,0,0,1},
+     uint8_t step;
+     uint8_t tL = 0;
+     uint8_t tX = 0;
+     uint8_t tY = 0;
 
-   [2][6]={1,1,1,1},
-   [2][5]={0,0,0,1},
-   [2][4]={0,0,0,1},
-   [2][3]={1,1,1,1},
-   [2][2]={1,0,0,0},
-   [2][1]={1,0,0,0},
-   [2][0]={1,1,1,1},
+     charIn -= 0x20;
+     step = 0;
 
-   [3][6]={1,1,1,1},
-   [3][5]={0,0,0,1},
-   [3][4]={0,0,0,1},
-   [3][3]={0,1,1,1},
-   [3][2]={0,0,0,1},
-   [3][1]={0,0,0,1},
-   [3][0]={1,1,1,1},
+     while (step < charData[charIn].sl) {
+        uint8_t bits = charData[charIn].ch[step];
+        for (uint8_t y=0;y<8;y++) {
+	   do2DTo3D( x, y, &tL, &tX, &tY);
+	   setLed(tL,tX,tY, 0, 0x0f, (bits & (1<<y))? 0x0f : 0x00);
+        }
+        step++;
+        x++;
+     }
+     return(x);
+}
+     /*
+     while (step < charData[char_in].sl) {
+           red_in = charData[char_in].ch[step];
 
-   [4][6]={1,0,0,1},
-   [4][5]={1,0,0,1},
-   [4][4]={1,0,0,1},
-   [4][3]={1,1,1,1},
-   [4][2]={0,0,0,1},
-   [4][1]={0,0,0,1},
-   [4][0]={0,0,0,1},
+           setLed(2,j,3, bit(red,7-j),bit(green,7-j),bit(blue,7-j));
+           setLed(2,j,3, bit(red,7-j),bit(green,7-j),bit(blue,7-j));
+           setLed(2,j,3, bit(red,7-j),bit(green,7-j),bit(blue,7-j));
+           setLed(2,j,3, bit(red,7-j),bit(green,7-j),bit(blue,7-j));
 
-   [5][6]={1,1,1,1},
-   [5][5]={1,0,0,0},
-   [5][4]={1,0,0,0},
-   [5][3]={1,1,1,1},
-   [5][2]={0,0,0,1},
-   [5][1]={0,0,0,1},
-   [5][0]={1,1,1,1},
+           setLed(2,j,3, bit(red,7-j),bit(green,7-j),bit(blue,7-j));
+           setLed(3,j,3, bit(red,3-j),bit(green,3-j),bit(blue,3-j));
+           setLed(3,j,3, bit(red,3-j),bit(green,3-j),bit(blue,3-j));
+           setLed(3,j,3, bit(red,3-j),bit(green,3-j),bit(blue,3-j));
 
-   [6][6]={1,1,1,1},
-   [6][5]={1,0,0,0},
-   [6][4]={1,0,0,0},
-   [6][3]={1,1,1,1},
-   [6][2]={1,0,0,1},
-   [6][1]={1,0,0,1},
-   [6][0]={1,1,1,1},
+        if (row < 8) {
+           for (i=0;i<8;i++) {
+              offset = i*8;
+              led_data[offset+row].red     = (red_in   & (1<<(7-i))) ? (0x07) : (0x00);
+              led_data[offset+row].green   = 0x00;
+              led_data[offset+row].blue    = 0x00;
+           }
+        } else {
+           for (i=0;i<8;i++) {
+              offset = i*8;
+              led_data2[offset+row-8].red     = (red_in   & (1<<(7-i))) ? (0x07) : (0x00);
+              led_data2[offset+row-8].green   = 0x00;
+              led_data2[offset+row-8].blue    = 0x00;
+           }
+        }
+        step++;
+        row++;
+     }
+}
+     */
 
-   [7][6]={1,1,1,1},
-   [7][5]={0,0,0,1},
-   [7][4]={0,0,0,1},
-   [7][3]={0,0,0,1},
-   [7][2]={0,0,0,1},
-   [7][1]={0,0,0,1},
-   [7][0]={0,0,0,1},
-
-   [8][6]={1,1,1,1},
-   [8][5]={1,0,0,1},
-   [8][4]={1,0,0,1},
-   [8][3]={1,1,1,1},
-   [8][2]={1,0,0,1},
-   [8][1]={1,0,0,1},
-   [8][0]={1,1,1,1},
-
-   [9][6]={1,1,1,1},
-   [9][5]={1,0,0,1},
-   [9][4]={1,0,0,1},
-   [9][3]={1,1,1,1},
-   [9][2]={0,0,0,1},
-   [9][1]={0,0,0,1},
-   [9][0]={0,0,0,1}};
 
 void displayNumber(uint8_t number) {
-   uint8_t temp;
-   uint8_t digit1, digit2;
-   uint8_t l,i;
 
-   number++;
 
-   digit2 = number / 10;
-   digit1 = number % 10;
-   for (l=0;l<7;l++) {
-       for(i=0;i<4;i++) {
-	   temp = (digitMap[digit1][l][i])? 15 : 0;
-	   setLed3(l+1,0,i, 0,temp,temp);
-	   temp = (digitMap[digit2][l][i])? 15 : 0;
-	   setLed3(l+1,2,i, temp,0,0);
-}  }   }
+//   if (demo_mode) {
+      display_char( 0, 0x44, 0x03 );
+//   }
+   uint8_t drow = 6;
+   if (number > 8) {
+      drow = display_char( drow, '0'+((number+1)/10), 0x07 );
+   }
+   display_char( drow, '0'+(number+1 % 10), 0x07 );
+} 
 

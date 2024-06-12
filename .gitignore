@@ -1,6 +1,5 @@
 */build/
 *.o
-*.pat
 *~
 *.swp
 *.swo
