@@ -32,7 +32,7 @@
 const uint8_t neededFileCount = 11;
 neededFiles_t  files[] = {
     {.name = "about.html",       .sha="783b16a68e2aa4dde112ecb6d7922ad4fa0e0136"},
-    {.name = "build.html",       .sha="c964bdb50065914d1c39b5e147990668b6bb2eac"},
+    {.name = "build.html",       .sha="eb5671c923da2f821a647b226bd97745281ce90f"},
     {.name = "box-title-bg.jpg", .sha="423c796eb3986460384521d82d345b416fe47a67"},
     {.name = "content-bg.jpg",   .sha="8bb99c548e90ddefb21e1889fdbb5eac2376121b"},
     {.name = "footer.html",      .sha="0289f31c9e872fd865eafa54636483a19d1b5018"},

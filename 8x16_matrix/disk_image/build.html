@@ -14,8 +14,7 @@
     <h1> build source code unix</h1><ul>
         <li>git clone https://github.com/dwayneforsyth/2dkits.git
         <li>cd 2dkits
-        <li>git clone https://github.com/espressif/esp-idf.git
-        <li>Set-ExecutionPolicy -ExecutionPolicy Bypass
+        <li>git submodule update --init --recursive
         <li>esp-idf/install.sh
         <li>source esp-idf/export.sh
         <li>cd 8x16_matrix
@@ -25,8 +24,6 @@
     <h1> build source code win10</h1><ul>
         <li>git clone https://github.com/dwayneforsyth/2dkits.git
         <li>cd 2dkits
-        <li>git clone https://github.com/espressif/esp-idf.git
-        <li>Set-ExecutionPolicy -ExecutionPolicy Bypass
         <li>esp-idf/install.ps1
         <li>esp-idf/export.ps1
         <li>cd 8x16_matrix
@@ -36,18 +33,12 @@
     <h1> build source code Mac</h1><ul>
         <li>git clone https://github.com/dwayneforsyth/2dkits.git
         <li>cd 2dkits
-        <li>git clone https://github.com/espressif/esp-idf.git
+        <li>git submodule update --init --recursive
         <li>esp-idf/install.sh
         <li>source esp-idf/export.sh
         <li>cd 8x16_matrix
         <li>idf.py build
         <li>idf.py -p /dev/tty.usbserial-xxxx] flash
     </ul>
-    <h1> picoc</h1><ul>
-        We have a "c" interpreter for blinkie patterns
-	https://gitlab.com/zsaleeba/picoc
-
-    </ul>
-
 </ul>
 
