@@ -36,6 +36,7 @@ void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *
 void transferBuffer();
 
 void allLedsOff();
+void allLedsOff3();
 void allLedsOn();
 void allLedsColor( uint8_t red, uint8_t green, uint8_t blue);
 void allLedsColor2( uint8_t red, uint8_t green, uint8_t blue);

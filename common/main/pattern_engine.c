@@ -264,7 +264,7 @@ void patternEngineOff(void) {
     RETURN CODE:
         NONE
 
-    NOTES:
+    NOTES: Need both button toggle demo mode logic
 
 *******************************************************************************/
 bool delay_and_buttons(uint16_t delay) {

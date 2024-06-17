@@ -75,7 +75,7 @@ void do2DTo3D( uint8_t x, uint8_t y, uint8_t *outL, uint8_t *outY, uint8_t *outX
        *outY = y-4;
        *outL +=1;
     }
-    printf("in [%d %d] -> [%d,%d,%d]\n", x,y, *outL, *outX, *outY);
+//    printf("in [%d %d] -> [%d,%d,%d]\n", x,y, *outL, *outX, *outY);
 }
 
 /*******************************************************************************
@@ -233,6 +233,14 @@ void allLedsOff() {
         LED[0][i].red = 0;
         LED[0][i].green = 0;
         LED[0][i].blue = 0;
+    }
+}
+
+void allLedsOff3() {
+    for (uint8_t i =0; i< 128; i++) {
+        LED[2][i].red = 0;
+        LED[2][i].green = 0;
+        LED[2][i].blue = 0;
     }
 }
 

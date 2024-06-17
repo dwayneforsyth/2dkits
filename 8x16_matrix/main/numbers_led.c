@@ -24,8 +24,10 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "led_driver.h"
+#include "pattern_engine.h"
 #include "font.h"
 
 
@@ -36,66 +38,34 @@ uint8_t display_char( uint8_t x, uint8_t charIn, uint8_t color ) { //DDF Debug m
      uint8_t tX = 0;
      uint8_t tY = 0;
 
+     printf("display %c\n",charIn);
      charIn -= 0x20;
      step = 0;
-
      while (step < charData[charIn].sl) {
         uint8_t bits = charData[charIn].ch[step];
         for (uint8_t y=0;y<8;y++) {
 	   do2DTo3D( x, y, &tL, &tX, &tY);
-	   setLed(tL,tX,tY, 0, 0x0f, (bits & (1<<y))? 0x0f : 0x00);
+	   setLed3(tL,tX,tY, 0x0, 0x0, (bits & (1<<(7-y)))? 0x0f : 0x00);
         }
         step++;
         x++;
      }
      return(x);
 }
-     /*
-     while (step < charData[char_in].sl) {
-           red_in = charData[char_in].ch[step];
-
-           setLed(2,j,3, bit(red,7-j),bit(green,7-j),bit(blue,7-j));
-           setLed(2,j,3, bit(red,7-j),bit(green,7-j),bit(blue,7-j));
-           setLed(2,j,3, bit(red,7-j),bit(green,7-j),bit(blue,7-j));
-           setLed(2,j,3, bit(red,7-j),bit(green,7-j),bit(blue,7-j));
-
-           setLed(2,j,3, bit(red,7-j),bit(green,7-j),bit(blue,7-j));
-           setLed(3,j,3, bit(red,3-j),bit(green,3-j),bit(blue,3-j));
-           setLed(3,j,3, bit(red,3-j),bit(green,3-j),bit(blue,3-j));
-           setLed(3,j,3, bit(red,3-j),bit(green,3-j),bit(blue,3-j));
-
-        if (row < 8) {
-           for (i=0;i<8;i++) {
-              offset = i*8;
-              led_data[offset+row].red     = (red_in   & (1<<(7-i))) ? (0x07) : (0x00);
-              led_data[offset+row].green   = 0x00;
-              led_data[offset+row].blue    = 0x00;
-           }
-        } else {
-           for (i=0;i<8;i++) {
-              offset = i*8;
-              led_data2[offset+row-8].red     = (red_in   & (1<<(7-i))) ? (0x07) : (0x00);
-              led_data2[offset+row-8].green   = 0x00;
-              led_data2[offset+row-8].blue    = 0x00;
-           }
-        }
-        step++;
-        row++;
-     }
-}
-     */
-
 
 void displayNumber(uint8_t number) {
 
+    allLedsOff3();
 
-//   if (demo_mode) {
+    if (getDemoMode()) {
       display_char( 0, 0x44, 0x03 );
-//   }
-   uint8_t drow = 6;
-   if (number > 8) {
-      drow = display_char( drow, '0'+((number+1)/10), 0x07 );
-   }
-   display_char( drow, '0'+(number+1 % 10), 0x07 );
+    }
+    uint8_t drow = 6;
+    if (number > 8) {
+        printf("l %d %c\n", number+1,  '0'+((number+1)/10));
+        drow = display_char( drow, '0'+((number+1)/10), 0x07 );
+    }
+    drow++;
+    drow = display_char( drow, '0'+((number+1) % 10), 0x07 );
 } 
 
