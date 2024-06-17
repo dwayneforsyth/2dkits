@@ -10,6 +10,7 @@ idf_component_register(SRCS
    "${COMMON}queued_i2s_parallel.c"
    "numbers_led.c"
    "${COMMON}pattern_engine.c"
+   "builtin_patterns.c"
    "cube_main.c"
    "led_map.c"
    "${COMMON}web_server.c"
