@@ -62,10 +62,10 @@ led_t LED[3][128] = { 0 };
 
     RETURN CODE:
 
-    NOTES:
+    NOTES: swap of X and Y on 3D space is needed (L, Y, X)
 
 *******************************************************************************/
-void do2DTo3D( uint8_t x, uint8_t y, uint8_t *outL, uint8_t *outX, uint8_t *outY) {
+void do2DTo3D( uint8_t x, uint8_t y, uint8_t *outL, uint8_t *outY, uint8_t *outX) {
     const uint8_t xTrans[4] = { 0, 4, 6, 2 };
     *outL = xTrans[ x / 4 ];
     *outX = x % 4;

@@ -485,7 +485,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
    uint16_t frame = 0;
    bool once = true;
    int ret;
-#if (KIT_NUMDER == 22)
+#if (KIT_NUMBER == 22)
    uint8_t charIn = 'A';
    uint8_t step = 0;
    uint8_t colorCode = 0x07;
@@ -567,7 +567,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
               setPatternPlus();
 	      return;
 	      break;
-#if (KIT_NUMDER == 22)
+#if (KIT_NUMBER == 22)
 	  case 18: // old pattern format?
 	      if (step == 0) {
 	         ret = fread(&charIn,1,1, fh);

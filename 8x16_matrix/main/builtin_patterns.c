@@ -48,8 +48,22 @@
 
 *******************************************************************************/
 void layer_test( uint16_t cycles, uint16_t delay) {
-   uint8_t l,x,y,c;
+   uint8_t c = 1;
 
+   while(cycles != 0) {
+      cycles--;
+      for (uint8_t y=0;y<8;y++) {
+          for(uint8_t x=0;x<16;x++) {
+              uint8_t tL, tX, tY;
+              do2DTo3D(x,y, &tL, &tX, &tY);
+              setLed(tL,tX,tY,((c&1)!=0)? 15:0,((c&2)!=0)? 15:0,((c&4)!=0)? 15:0);
+              if (delay_and_buttons(delay)) return;
+	  }
+      }
+      c++;
+   }
+
+#if (0)
    while(cycles != 0) {
       cycles--;
       for(c=0;c<3;c++) {
@@ -64,6 +78,7 @@ void layer_test( uint16_t cycles, uint16_t delay) {
          }
       }
    }
+#endif
 }
 
 /*******************************************************************************
