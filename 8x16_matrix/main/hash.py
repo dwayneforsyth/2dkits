@@ -1,4 +1,9 @@
-//   Copyright (C) 2019 Dwayne Forsyth
+#! /usr/bin/python3
+from simple_file_checksum import get_checksum
+
+files = [ "about.html", "build.html", "box-title-bg.jpg", "content-bg.jpg", "footer.html", "header.html", "header-bg.jpg", "index.html", "patterns.html", "settings.html", "styles.css"]
+
+print ( """//   Copyright (C) 2021 Dwayne Forsyth
 //                                 
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License
@@ -18,24 +23,24 @@
 //      Boston, MA  02110-1301, USA.
 //
 //**********************************************************************
-
-#pragma once
+//   This is the sha1 files to the html files tied to the sofaware.
+// sha1sum <file>
+//**********************************************************************
+//
+// This file is auto created via hash.py Your should not edit it
+//
+//**********************************************************************
 
 #include <stdint.h>
+#include "file_sha.h"
+""")
 
-#define LED_PLUS 16
-#define LED_MINUS 17
-#define LED_NOOP 18
 
-void init_LED_driver();
-void changeBank( uint8_t select );
-void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB);
-void setLed2(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB);
-void setLed3(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB);
-void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *iB);
-void transferBuffer();
+print("const uint8_t neededFileCount = {0};".format(len(files)))
+print("neededFiles_t  files[] = {")
 
-void allLedsOff();
-void allLedsOn();
-void allLedsColor( uint8_t red, uint8_t green, uint8_t blue);
-void allLedsColor2( uint8_t red, uint8_t green, uint8_t blue);
+
+for file in files:
+    print( '    {{.name = {:19s} .sha="{:s}"}},'.format('"'+file+'",',get_checksum( '../disk_image/'+file,algorithm="SHA1")))
+print("};")
+

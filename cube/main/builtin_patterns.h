@@ -1,4 +1,4 @@
-//   Copyright (C) 2019 Dwayne Forsyth
+//   Copyright (C) 2021 Dwayne Forsyth
 //                                 
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License
@@ -19,28 +19,12 @@
 //
 //**********************************************************************
 
-#ifndef LED_DRIVER_H
-#define LED_DRIVER_H
+#pragma once
 
-#define LED_PLUS 16
-#define LED_MINUS 17
-#define LED_NOOP 18
+#include <stdint.h>
 
-#include "esp_timer.h"
+void layer_test( uint16_t cycles, uint16_t delay);
+void rgb_test( uint16_t cycles, uint16_t delay);
+void walking_testing( uint16_t cycles, uint16_t delay);
+void rgb_fade( uint16_t cycles, uint16_t delay);
 
-void init_LED_driver();
-// void changeBank( uint8_t select );
-// void setLed(uint8_t z, uint8_t x, uint8_t y, uint8_t iR, uint8_t iG, uint8_t iB);
-// void getLed(uint8_t z, uint8_t x, uint8_t y, uint8_t *iR, uint8_t *iG, uint8_t *iB);
-
-void allLedsOff();
-void allLedsOn();
-void display_chase();
-
-void init_LEDs( void );
-void clear_display(void);
-void strobe_display( void * arg );
-void display_time( uint8_t hour, uint8_t min);
-
-extern bool LEDs[3][9];
-#endif
