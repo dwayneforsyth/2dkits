@@ -84,7 +84,6 @@ void loadSettings() {
 }
 
 void addWifiGateway( char * ssid, char * passwd) {
-
    // check if ssid exist in table
    uint8_t len = strnlen( ssid, MAX_SSID_LENGTH);
    for (uint8_t i=0;i< WIFI_TABLE_SIZE; i++) {
