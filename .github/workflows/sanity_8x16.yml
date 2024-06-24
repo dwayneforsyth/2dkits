@@ -1,0 +1,68 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Test on Hardware - 8x16 matrix
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: [ESP32]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Checkout code
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          ssh-key: ${{ secrets.KEY }}
+      # setup the needed toolchain
+      - name: setup tool chain
+        run:
+          esp-idf/install.sh
+
+      # build
+      - name: build
+        run: |
+          . esp-idf/export.sh
+          cd 8x16_matrix
+          idf.py build
+
+      # Flash
+      - name: flash via default tty
+        run: |
+          . esp-idf/export.sh
+          cd test/8x16_matrix.proj
+          chmod a+x test_000.py
+          KIT_PORT=$(python3 test_000.py 22)
+          cd ../../8x16_matrix
+          idf.py -p ${KIT_PORT} flash
+
+      # test - connect console
+      - name: test connect consle, get version
+        run: |
+          cd test/8x16_matrix.proj
+          chmod a+x test_*
+          export KIT_PORT=$(python3 test_000.py 22)
+          echo $KIT_PORT
+          ./test_001.py
+
+      # test - connect wifi
+      - name: test wifi connect
+        run: |
+          cd test/8x16_matrix.proj
+          chmod a+x test_*
+          export KIT_PORT=$(python3 test_000.py 22)
+          ./test_002.py
