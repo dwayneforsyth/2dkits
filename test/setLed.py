@@ -15,17 +15,17 @@ if len(sys.argv) != 4:
     print( 'setLed <red> <green> <blue>' )
     exit(1)
 
-if sys.argv[1] == '1':
+if sys.argv[1] == '0':
    ledR.on()
 else:
    ledR.off()
 
-if sys.argv[2] == '1':
+if sys.argv[2] == '0':
    ledG.on()
 else:
    ledG.off()
 
-if sys.argv[3] == '1':
+if sys.argv[3] == '0':
    ledB.on()
 else:
    ledB.off()
