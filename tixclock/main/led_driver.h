@@ -19,8 +19,7 @@
 //
 //**********************************************************************
 
-#ifndef LED_DRIVER_H
-#define LED_DRIVER_H
+#pragma once
 
 #define LED_PLUS 16
 #define LED_MINUS 17
@@ -43,4 +42,4 @@ void strobe_display( void * arg );
 void display_time( uint8_t hour, uint8_t min);
 
 extern bool LEDs[3][9];
-#endif
+

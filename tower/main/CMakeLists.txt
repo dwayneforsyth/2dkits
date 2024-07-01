@@ -10,6 +10,7 @@ idf_component_register(SRCS
    "led_map.c"
    "numbers_led.c"
    "${COMMON}pattern_engine.c"
+   "builtin_patterns.c"
    "tower_main.c"
    "${COMMON}web_server.c"
 #   "${COMMON}captdns.c"

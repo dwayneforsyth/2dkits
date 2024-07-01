@@ -28,6 +28,12 @@ jobs:
         with:
           submodules: recursive
           ssh-key: ${{ secrets.KEY }}
+
+      # turn on Red LED attached to pi
+      - name: Work LED Red
+        run:
+          test/setLed.py 1 0 0
+
       # setup the needed toolchain
       - name: setup tool chain
         run:
@@ -40,6 +46,11 @@ jobs:
           cd tixclock
           idf.py build
 
+      # turn on Blue LED attached to pi
+      - name: Work LED Blue
+        run:
+          test/setLed.py 0 0 1
+
       # Flash
       - name: flash via default tty
         run: |
@@ -48,7 +59,12 @@ jobs:
           chmod a+x test_000.py
           export KIT_PORT=$(python3 test_000.py 55)
           cd ../../tixclock
-          idf.py -p /dev/ttyUSB0 flash
+          idf.py -p ${KIT_PORT} flash
+
+      # turn on Green LED attached to pi
+      - name: Work LED Green
+        run:
+          test/setLed.py 0 1 0
 
       # test - connect console
       - name: test connect consle, get version
@@ -56,6 +72,7 @@ jobs:
           . esp-idf/export.sh
           cd test/tixclock.proj
           chmod a+x test_001.py
+          export KIT_PORT=$(python3 test_000.py 55)
           ./test_001.py
 
       # test - connect wifi
@@ -64,4 +81,11 @@ jobs:
           . esp-idf/export.sh
           cd test/tixclock.proj
           chmod a+x test_002.py
+          export KIT_PORT=$(python3 test_000.py 55)
           ./test_002.py
+
+      # turn Off LED attached to pi
+      - name: Work LED Off
+        if: always()
+        run:
+          test/setLed.py 0 0 0

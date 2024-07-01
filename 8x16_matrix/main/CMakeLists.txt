@@ -10,19 +10,21 @@ idf_component_register(SRCS
    "led_map.c"
    "numbers_led.c"
    "${COMMON}pattern_engine.c"
+   "builtin_patterns.c"
    "8x16_matrix_main.c"
    "${COMMON}web_server.c"
 #   "${COMMON}captdns.c"
    "${COMMON}dfu.c"
    "${COMMON}download_file.c"
    "${COMMON}upgrade_disk.c"
-   "console_usb.c"
+   "${COMMON}console.c"
    "${COMMON}cmd_system.c"
    "${COMMON}cmd_dfu.c"
    "${COMMON}cmd_pattern.c"
    "${COMMON}cmd_wifi.c"
    "${COMMON}cmd_download.c"
    "${COMMON}queued_i2s_parallel.c"
+   "${COMMON}font.c"
    "${PICOC}/clibrary.c"
    "${PICOC}debug.c"
    "${PICOC}expression.c"
@@ -54,5 +56,5 @@ idf_component_register(SRCS
 spiffs_create_partition_image(storage ../disk_image FLASH_IN_PROJECT)
 
 # root for ota http
-target_add_binary_data(${COMPONENT_TARGET} "trustid_x3_root.pem" TEXT)
+target_add_binary_data(${COMPONENT_TARGET} "${COMMON}trustid_x3_root.pem" TEXT)
 

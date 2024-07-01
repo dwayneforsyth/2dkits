@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Test on Hardware - Cube
+name: Test on Hardware - 8x16 matrix
 
 # Controls when the workflow will run
 on:
@@ -31,7 +31,7 @@ jobs:
 
       # turn on Red LED attached to pi
       - name: Work LED Red
-        run:
+        run: 
           test/setLed.py 1 0 0
 
       # setup the needed toolchain
@@ -43,7 +43,7 @@ jobs:
       - name: build
         run: |
           . esp-idf/export.sh
-          cd cube
+          cd 8x16_matrix
           idf.py build
 
       # turn on Blue LED attached to pi
@@ -55,10 +55,10 @@ jobs:
       - name: flash via default tty
         run: |
           . esp-idf/export.sh
-          cd test/cube.proj
+          cd test/8x16_matrix.proj
           chmod a+x test_000.py
-          KIT_PORT=$(python3 test_000.py 13)
-          cd ../../cube
+          KIT_PORT=$(python3 test_000.py 22)
+          cd ../../8x16_matrix
           idf.py -p ${KIT_PORT} flash
 
       # turn on Green LED attached to pi
@@ -69,23 +69,22 @@ jobs:
       # test - connect console
       - name: test connect consle, get version
         run: |
-          cd test/cube.proj
+          cd test/8x16_matrix.proj
           chmod a+x test_*
-          export KIT_PORT=$(python3 test_000.py 13)
+          export KIT_PORT=$(python3 test_000.py 22)
           echo $KIT_PORT
           ./test_001.py
 
       # test - connect wifi
       - name: test wifi connect
         run: |
-          cd test/cube.proj
+          cd test/8x16_matrix.proj
           chmod a+x test_*
-          export KIT_PORT=$(python3 test_000.py 13)
+          export KIT_PORT=$(python3 test_000.py 22)
           ./test_002.py
 
-      # turn Off LED attached to pi
-      - name: Work LED Off
+      # turn off LED attached to pi
+      - name: Work LED off
         if: always()
         run:
           test/setLed.py 0 0 0
-

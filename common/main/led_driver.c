@@ -55,6 +55,28 @@ typedef struct {
 
 led_t LED[3][128] = { 0 };
 
+/*******************************************************************************
+    PURPOSE: convert from 3D space LED to 2D space LED.
+
+    INPUTS:
+
+    RETURN CODE:
+
+    NOTES: swap of X and Y on 3D space is needed (L, Y, X)
+
+*******************************************************************************/
+void do2DTo3D( uint8_t x, uint8_t y, uint8_t *outL, uint8_t *outY, uint8_t *outX) {
+    const uint8_t xTrans[4] = { 0, 4, 6, 2 };
+    *outL = xTrans[ x / 4 ];
+    *outX = x % 4;
+    if (y < 4) {
+       *outY = y;
+    } else {
+       *outY = y-4;
+       *outL +=1;
+    }
+//    printf("in [%d %d] -> [%d,%d,%d]\n", x,y, *outL, *outX, *outY);
+}
 
 /*******************************************************************************
     PURPOSE:
@@ -211,6 +233,14 @@ void allLedsOff() {
         LED[0][i].red = 0;
         LED[0][i].green = 0;
         LED[0][i].blue = 0;
+    }
+}
+
+void allLedsOff3() {
+    for (uint8_t i =0; i< 128; i++) {
+        LED[2][i].red = 0;
+        LED[2][i].green = 0;
+        LED[2][i].blue = 0;
     }
 }
 
