@@ -28,6 +28,12 @@ jobs:
         with:
           submodules: recursive
           ssh-key: ${{ secrets.KEY }}
+
+      # turn on Red LED attached to pi
+      - name: Work LED Red
+        run:
+          test/setLed.py 1 0 0
+
       # setup the needed toolchain
       - name: setup tool chain
         run:
@@ -40,6 +46,11 @@ jobs:
           cd cube
           idf.py build
 
+      # turn on Blue LED attached to pi
+      - name: Work LED Blue
+        run:
+          test/setLed.py 0 0 1
+
       # Flash
       - name: flash via default tty
         run: |
@@ -49,6 +60,11 @@ jobs:
           KIT_PORT=$(python3 test_000.py 13)
           cd ../../cube
           idf.py -p ${KIT_PORT} flash
+
+      # turn on Green LED attached to pi
+      - name: Work LED Green
+        run:
+          test/setLed.py 0 1 0
 
       # test - connect console
       - name: test connect consle, get version
@@ -66,3 +82,10 @@ jobs:
           chmod a+x test_*
           export KIT_PORT=$(python3 test_000.py 13)
           ./test_002.py
+
+      # turn Off LED attached to pi
+      - name: Work LED Off
+        if: always()
+        run:
+          test/setLed.py 0 0 0
+
