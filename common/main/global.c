@@ -25,6 +25,8 @@
 #include <stdint.h>
 #include <string.h>
 #include "global.h"
+#include <time.h>
+
 
 #include <esp_wifi.h>
 #include <esp_log.h>
@@ -218,9 +220,12 @@ char * getTZascii( void ) {
 void setTZ( char * timezone) {
    printf("set TZ >%s<\n", timezone);
    xAppData.tzone = abs(atoi(timezone))-4;
-   ESP_LOGE(TAG, "TZ = %d", xAppData.tzone);
-//   ESP_LOGE(TAG, "TZ = %d %s", xAppData.tzone, getTZ());
+   ESP_LOGE(TAG, "TZ = %d %s", xAppData.tzone, getTZascii());
+
+   setenv("TZ", getTZascii(), 1);
+   tzset();
 }
+
 
 
 void setTFormat( char * tformat) {

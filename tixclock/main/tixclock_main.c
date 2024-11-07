@@ -75,9 +75,9 @@ void app_main()
     initialise_disk();
 
     loadSettings();
-//    setenv("TZ", getTZascii(), 1);
+    setenv("TZ", getTZascii(), 1);
     printf("TZ = %s\n", getTZascii());
-//    tzset();
+    tzset();
     
     initialise_wifi_p2(&server);
 
