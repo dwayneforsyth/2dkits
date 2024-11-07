@@ -80,12 +80,13 @@ uint8_t exitReason = false;
 bool patternRun = true;
 
 void setPatternRun( bool onOff ) {
-    printf("SetPatternRun %d -> %d\n", patternRun, onOff);
+    ESP_LOGI(TAG,"SetPatternRun %d -> %d", patternRun, onOff);
     patternRun = onOff;
 }
 
 uint8_t step = 0;
 
+time_t exitTime;
 
 bool printPattern = false;
 
@@ -169,7 +170,7 @@ uint8_t getLastPattern() {
     uint8_t index;
     for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
         if (patternTable[index].patternType == PATTERN_NONE) {
-            printf("last_pattern = %d\n", index);
+            ESP_LOGI(TAG,"last_pattern = %d", index);
             return( index-1);
         }
     }
@@ -188,6 +189,7 @@ uint8_t getLastPattern() {
 
 *******************************************************************************/
 void setPatternPlus() {
+    ESP_LOGI(TAG,"set pattern plus %d", step);
     step = (step+1) % (getLastPattern()+1);
     pendingExit = true;
 }
@@ -204,8 +206,10 @@ void setPatternPlus() {
 
 *******************************************************************************/
 void setPatternMinus() {
+    ESP_LOGI(TAG,"pattern top minus %d", step);
     step = (step == 0)? getLastPattern() : step -1;
     pendingExit = true;
+    ESP_LOGI(TAG,"pattern bottom minus = %d", step);
 }
 
 /*******************************************************************************
@@ -257,9 +261,10 @@ void patternEngineOff(void) {
 
 
 /*******************************************************************************
-    PURPOSE:
+    PURPOSE: handle a delay and check for button presses
 
     INPUTS:
+        delay - ms to delay
 
     RETURN CODE:
         NONE
@@ -278,7 +283,7 @@ bool delay_and_buttons(uint16_t delay) {
     }
 
     if (gpio_get_level(BUTTON1) == 0) {
-        printf("Button 1\n");
+        ESP_LOGI(TAG,"Button 1");
 	changeBank( 1 );
 	displayNumber(step);
 	while (gpio_get_level(BUTTON1) == 0) {
@@ -296,7 +301,7 @@ bool delay_and_buttons(uint16_t delay) {
     }
 
     if (gpio_get_level(BUTTON2) == 0) {
-        printf("Button 2\n");
+        ESP_LOGI(TAG,"Button 2");
 	changeBank( 1 );
 	displayNumber(step);
 	while (gpio_get_level(BUTTON2) == 0) {
@@ -490,16 +495,20 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
    uint8_t step = 0;
    uint8_t colorCode = 0x07;
 #endif
+   time_t now;
 
    allLedsColor( 0,0,0);
+   time(&exitTime);
+   exitTime+= 60; // 60 seconds
+   time(&now);
 
-   while(cycles != 0) {
+   while(exitTime > now) { // 60 seconds
       cycles--;
       sprintf(filename, "/spiffs/%s",name);
       if (once==true) ESP_LOGI(TAG,"file=%s", filename);
       fh = fopen(filename, "r");
       frame = 0;
-//      printf("================================================\n");
+//      ESP_LOGI(TAG,"================================================");
 
       // read header
       fread(tBuffer,1, 24, fh);
@@ -563,7 +572,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 	      }
 	      break;
 	  case 17: // old pattern format?
-              printf("old pattern format?\n");
+	      ESP_LOGI(TAG,"old pattern format?");
               setPatternPlus();
 	      return;
 	      break;
@@ -675,7 +684,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
           }
 #endif
           default:
-              printf("unknown pattern type=%d file=%s\n",type, filename);
+              ESP_LOGI(TAG,"unknown pattern type=%d file=%s",type, filename);
               setPatternPlus();
 	      return;
               break;
@@ -683,6 +692,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 	  frame++;
       }
       fclose(fh); 
+      time(&now);
    }
 }
 
@@ -984,6 +994,7 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
 void updatePatternsTask(void *param) {
 
     allLedsOff();
+    time(&exitTime);
 
 //    gpio_pad_select_gpio(BUTTON1);
     gpio_reset_pin(BUTTON1);
@@ -1012,8 +1023,8 @@ void updatePatternsTask(void *param) {
                     break;
             }
             if ((demoMode) && (exitReason == false)) {
-                printf("demo mode forward\n");
                 setPatternPlus();
+	        ESP_LOGI(TAG,"demo mode forward %d", getPatternNumber());
                 delay_and_buttons(1); // clean the pending stop
             }
         } else {

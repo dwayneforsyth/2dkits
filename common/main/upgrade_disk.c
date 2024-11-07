@@ -100,7 +100,7 @@ void auditDiskFiles( void* pvParameters ) {
         if (files[i].status != 1) {
             asprintf( &url, "%s%02d.%02d.%02d%s/%s",CONFIG_BASE_CLOUD_URL, MAJOR, MINOR, BUILD, (getSystemType())?"_test":"", files[i].name);
             asprintf( &file, "/spiffs/%s", files[i].name);
-            printf("Need to download %s %s\n", url, files[i].name);
+            ESP_LOGI(TAG,"Need to download %s %s", url, files[i].name);
             download_file( file, url);
 	    free(url);
 	    free(file);

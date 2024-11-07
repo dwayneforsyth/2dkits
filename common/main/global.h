@@ -45,6 +45,7 @@ typedef struct blinkieAppData_t {
    bool testRelease;
    uint8_t tzone;
    bool tformat;
+   uint8_t digiBrightness[4];
 } blinkieAppData_t;
 
 void loadSettings();
@@ -61,6 +62,9 @@ char * getHSSsid( void);
 char * getHSPasswd( void);
 uint8_t getHSChan( void);
 bool getSystemType( void);
+uint8_t getDigiBrightness( uint8_t index );
+uint8_t getTZ( void);
+char * getTZascii( void);
 
 void setHSSsid( char * hssid);
 void setHSPasswd( char * hpasswd);
@@ -68,6 +72,7 @@ void setHSChan( uint8_t hchan);
 void setTZ( char * wpasswd);
 void setTFormat( char * tformat);
 void setSystemType( bool);
+void setDigiBrightness( uint8_t index, uint8_t value );
 
 void setWifiSsid( uint8_t index, char * wssid);
 void setWifiPasswd( uint8_t index, char * wpasswd);

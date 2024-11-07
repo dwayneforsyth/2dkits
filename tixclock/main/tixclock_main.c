@@ -65,17 +65,19 @@ void app_main()
 
     init_gpio();
     init_LEDs();
-    setenv("TZ", "CST6CDT", 1);
-    tzset();
 
     static httpd_handle_t server = NULL;
     ESP_ERROR_CHECK(nvs_flash_init());
+
     time(&now);
 
     initialise_wifi_p1(&server);
     initialise_disk();
 
     loadSettings();
+//    setenv("TZ", getTZascii(), 1);
+    printf("TZ = %s\n", getTZascii());
+//    tzset();
     
     initialise_wifi_p2(&server);
 
