@@ -71,12 +71,14 @@ void commands_pattern(void)
 
 /*******************************************************************************
 
-    PURPOSE: next command
+    PURPOSE: display or change the pattern number
 
     INPUTS: None
 
     RETURN CODE: None
 
+    NOTE: arg_parse does not like "pattern -"
+          "pattern -- -" works.
 *******************************************************************************/
 static struct {
     struct arg_str *control;
@@ -96,30 +98,28 @@ static int pattern(int argc, char **argv)
         return( 0 );
     } else if (strcasecmp(pattern_args.control->sval[0], "+") == 0) {
 	setPatternPlus();
-        ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber()+1, getPatternName());
+        ESP_LOGW(TAG, "Pattern plus %d - %s", getPatternNumber()+1, getPatternName());
         return( 0 );
     } else if (strcasecmp(pattern_args.control->sval[0], "-") == 0) {
 	setPatternMinus();
-        ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber()+1, getPatternName());
+        ESP_LOGW(TAG, "Pattern minus %d - %s", getPatternNumber()+1, getPatternName());
         return( 0 );
-	/* DDF do not understand error
-    } else if (isdigit(pattern_args.control->sval[0][0])) {
-	uint8_t value = atoi(pattern_args.control->sval[0]);
-	if (value == 0) {
-            ESP_LOGW(TAG, "Pattern is 1 based (for user UI)");
-            return( 2 );
-        }
-	setPatternNumber( value-1 );
-	vTaskDelay(1000 / portTICK_PERIOD_MS);
-        ESP_LOGW(TAG, "Pattern %d - %s", getPatternNumber()+1, getPatternName());
-        return( 0 );
-	*/
     } else {
-        ESP_LOGW(TAG, "Pattern >%s<", pattern_args.control->sval[0]);
-        return( 1 );
+	char in = pattern_args.control->sval[0][0];
+        if (isdigit(in)) {
+            uint8_t value = atoi(pattern_args.control->sval[0]);
+	    if (value == 0) {
+                ESP_LOGW(TAG, "Pattern is 1 based (for user UI)");
+                return( 2 );
+            }
+	    setPatternNumber( value-1 );
+            ESP_LOGW(TAG, "Pattern set val %d - %s", getPatternNumber()+1, getPatternName());
+            return( 0 );
+	}
     }
-    
-    return 0;
+
+    ESP_LOGW(TAG, "Pattern error>%s<", pattern_args.control->sval[0]);
+    return( 1 );
 }
 
 /*******************************************************************************

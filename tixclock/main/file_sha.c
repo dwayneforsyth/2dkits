@@ -40,6 +40,6 @@ neededFiles_t  files[] = {
     {.name = "header-bg.jpg",    .sha="7b4d322d9e6b84143ff974b9052bdcd9369f09a1"},
     {.name = "index.html",       .sha="a9aad328a6bdb796e5976c14a5e01ab536125b4d"},
     {.name = "patterns.html",    .sha="3964c504825ac56c1a69c542cbd53fa8689feb85"},
-    {.name = "settings.html",    .sha="9c1ce9f3d4cc12ff8e1e111e0553cad603429868"},
+    {.name = "settings.html",    .sha="e891f88fb28677278316fd7c45742632da238540"},
     {.name = "styles.css",       .sha="cfdbd4de3f1a040c8a383e4cf53976df8ca793b4"},
 };

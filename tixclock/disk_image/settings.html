@@ -62,12 +62,13 @@
 		<li><label for="tz">Timezone</label>
 			<select id="tz" name="tz">
 				<optgroup label="tz">
-					<option %tz04% >-4 EDT</option>
-					<option %tz05% >-5 CDT</option>
+					<option %tz04% >-4 AST</option>
+					<option %tz05% >-5 EST</option>
 					<option %tz06% >-6 CST</option>
-					<option %tz07% >-7 PDT</option>
-					<option %tz08% >-8 AKDT</option>
-					<option %tz09% >-9 HDT</option>
+					<option %tz07% >-7 MST</option>
+					<option %tz08% >-8 PST</option>
+					<option %tz09% >-9 AKST</option>
+					<option %tz09% >-10 HST</option>
 					</optgroup>
 			</select>
 		<li><label for="tformat">Time Format</label>
@@ -77,6 +78,18 @@
 					<option %tf24% >24 hour</option>
 					</optgroup>
 			</select>
+	</ul>
+        <h3> Digit Brightness Calibration</h3><ul>
+		<table><tr><th>Digit<th>Adjustment
+		       <tr><td> 1st Digit Hour
+		           <td> <input type="number" id="digadj" name="digadj0" min="0" max="100" value="%digadj0%">
+		       <tr><td> 2nd Digit Hour
+		           <td> <input type="number" id="digadj" name="digadj1" min="0" max="100" value="%digadj1%">
+		       <tr><td> 1st Digit Minute
+		           <td> <input type="number" id="digadj" name="digadj2" min="0" max="100" value="%digadj2%">
+		       <tr><td> 2nd Digit Minute
+		           <td> <input type="number" id="digadj" name="digadj3" min="0" max="100" value="%digadj3%">
+	        </table>
 	</ul>
 </ul>
 <button type="submit">Save Settings</button>

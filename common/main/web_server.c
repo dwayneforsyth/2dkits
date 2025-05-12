@@ -142,7 +142,7 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
     } else if (strncmp("%rgb",token,4)==0) {
         //DDF send nothing - hard codded
     } else if (strncmp("%tz",token,3)==0) {
-	sprintf(tBuffer,"%%tz%02d", xAppData.tzone);
+	sprintf(tBuffer,"%%tz%02d", xAppData.tzone+4);
         if (strcmp(tBuffer, token)==0) {
             sprintf(tBuffer, " selected ");
             httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
@@ -158,6 +158,10 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
         } else {
             ESP_LOGI(TAG, "DDF time format error >%s<",token);
 	}
+    } else if (strncmp("%digadj",token,7)==0) {
+        i = token[7] - '0';
+        sprintf(tBuffer, "%d", getDigiBrightness(i));
+        httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
 #endif
     } else if (strcmp("%sasip",token)==0) {
         if (xAppData.ipName != NULL) {
@@ -491,6 +495,10 @@ static void processVar( char * name, char * value) {
 #ifdef TIXCLOCK
     } else if (strcmp("tformat", name)==0) {
         setTFormat(value);
+    } else if (strncmp("digadj", name, 6)==0) {
+        i = name[6] - '0';
+        ESP_LOGI(TAG, "set Digi Bright %d %d", i, atoi(value));
+	setDigiBrightness( i, atoi(value));
 #endif
     } else {
         ESP_LOGI(TAG, "unknown >%s< = >%s<", name, value);
@@ -1034,9 +1042,9 @@ static void ip_event_handler(void* arg, esp_event_base_t event_base,
         }
 
         ESP_LOGI(TAG, "Initializing SNTP");
-        sntp_setoperatingmode(SNTP_OPMODE_POLL);
-        sntp_setservername(0, "pool.ntp.org");
-        sntp_init();
+        esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
+        esp_sntp_setservername(0, "pool.ntp.org");
+        esp_sntp_init();
         break;
     }
     default:

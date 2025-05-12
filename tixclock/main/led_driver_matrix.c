@@ -85,8 +85,7 @@ bool LEDs[3][9];
 
 *******************************************************************************/
 
-void strobe_display(void * arg) {
-    static RTC_DATA_ATTR uint8_t strobeLine = 0;
+void strobe_display( uint8_t strobeLine ) {
     uint32_t set = 0;
     uint32_t clear = 0;
 
@@ -161,7 +160,6 @@ void strobe_display(void * arg) {
         gpio_output_set(0, B_COLSIG4, B_COLSIG4, 0);
         break;
     }
-    strobeLine = (strobeLine > 5)? 0 : strobeLine+1;
 }
 
 void init_LEDs( void ) {

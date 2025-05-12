@@ -258,8 +258,8 @@ static void register_restart(void)
 static int heap_size(int argc, char **argv)
 {
     uint32_t heap_size = heap_caps_get_minimum_free_size(MALLOC_CAP_DEFAULT);
-    ESP_LOGW(TAG, "min heap size: %lu\n", heap_size);
-    ESP_LOGW(TAG, "current size:  %lu\n", esp_get_free_heap_size());
+    ESP_LOGW(TAG, "min heap size: %lu", heap_size);
+    ESP_LOGW(TAG, "current size:  %lu", esp_get_free_heap_size());
     return 0;
 }
 

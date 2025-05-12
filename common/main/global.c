@@ -25,6 +25,8 @@
 #include <stdint.h>
 #include <string.h>
 #include "global.h"
+#include <time.h>
+
 
 #include <esp_wifi.h>
 #include <esp_log.h>
@@ -142,6 +144,11 @@ char * getWifiPasswd( uint8_t index) {
    }
 }
 
+uint8_t getDigiBrightness( uint8_t index ) {
+    return( xAppData.digiBrightness[index] );
+}
+
+
 void setHSSsid( char * hssid) {
    strlcpy(xAppData.apSsid, hssid, MAX_SSID_LENGTH); 
    storeSettings();
@@ -205,10 +212,21 @@ void WifiCleanup( void ) {
    storeSettings();
 }
 
-void setTZ( char * timezone) {
-   printf("set TZ >%s|%c<\n", timezone, timezone[1]);
-   xAppData.tzone = timezone[1] - '0';
+char * getTZascii( void ) {
+   const char *TZ[7] = { "AST4ADT", "EST5EDT", "CST6CDT", "MST7MDT", "PST8PDT", "AKST9AKDT", "HST10HDT" };
+   return(TZ[xAppData.tzone]);
 }
+
+void setTZ( char * timezone) {
+   printf("set TZ >%s<\n", timezone);
+   xAppData.tzone = abs(atoi(timezone))-4;
+   ESP_LOGE(TAG, "TZ = %d %s", xAppData.tzone, getTZascii());
+
+   setenv("TZ", getTZascii(), 1);
+   tzset();
+}
+
+
 
 void setTFormat( char * tformat) {
    printf("set TFormat >%s|%c<\n", tformat, tformat[1]);
@@ -218,3 +236,8 @@ void setTFormat( char * tformat) {
        xAppData.tformat = false;
    }
 }
+
+void setDigiBrightness( uint8_t index, uint8_t value ) {
+    xAppData.digiBrightness[index] = value;
+}
+

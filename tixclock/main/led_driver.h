@@ -38,7 +38,7 @@ void display_chase();
 
 void init_LEDs( void );
 void clear_display(void);
-void strobe_display( void * arg );
+void strobe_display( uint8_t strobeLine );
 void display_time( uint8_t hour, uint8_t min);
 
 extern bool LEDs[3][9];
