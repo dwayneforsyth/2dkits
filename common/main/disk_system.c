@@ -160,7 +160,7 @@ void disk_dir(diskDirCfg_t req) {
 
     }
 
-    uint32_t tot=0, used=0;
+    size_t tot=0, used=0;
     esp_spiffs_info(NULL, &tot, &used);
 
     if (req.footer_cb != NULL) req.footer_cb(total, nfiles, tot, used, req.data);

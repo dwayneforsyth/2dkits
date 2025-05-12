@@ -327,7 +327,7 @@ uint8_t ledOnOff( uint8_t color, uint8_t led, uint8_t bright) {
     NOTES:
 
 *******************************************************************************/
-void mainLoop(void) {
+void mainLoop(void *args) {
     uint16_t i = 0;
     uint16_t strobe = 0;
     uint16_t strobeOut = 0;

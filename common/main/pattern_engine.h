@@ -24,7 +24,7 @@
 #include <esp_http_server.h>
 
 
-void updatePatternsTask( void );
+void updatePatternsTask( void *args );
 void addPattern( char * );
 void deletePattern( char * );
 
