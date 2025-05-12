@@ -942,8 +942,8 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
     const char *pattern_footer = "</table><br>\n";
     const char *pattern_heading = "</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Pattern List</div><div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n";
 
-    char tbuffer2[450];
-    char deleteButton[124];
+    char *tbuffer2;
+    char *deleteButton = NULL;
     uint8_t index;
 
     parseUrl(req);
@@ -955,28 +955,30 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
 
     httpd_resp_send_chunk(req, pattern_header, strlen(pattern_header));
     for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
-	if (patternTable[index].patternType != PATTERN_NONE) {
-	    if (patternTable[index].patternType != PATTERN_BUILT_IN) {
-	            sprintf(deleteButton," <button onclick=\"window.location.href = '/patterns.html?delete=/%s';\">Delete</button>",patternTable[index].patternName);
-	    } else {
-		    deleteButton[0] = 0;
-	    }
-            snprintf(tbuffer2, sizeof(tbuffer2),
+	    if (patternTable[index].patternType != PATTERN_NONE) {
+	        if (patternTable[index].patternType != PATTERN_BUILT_IN) {
+	            asprintf(&deleteButton," <button onclick=\"window.location.href = '/patterns.html?delete=/%s';\">Delete</button>",patternTable[index].patternName);
+	        } else {
+	            asprintf(&deleteButton," ");
+            }
+            asprintf( &tbuffer2, 
                 "<tr><td>%s<td>%d<td align=\"left\">%s<td>%s<td>%d<td>"
-                "<input type=\"number\" id=\"second\" name=\"second%d\" value=\"%d\">"
+                "<input type=\"text\" id=\"second\" name=\"second%d\" value=\"%d\" size=\"4\">"
                 "<td><button onclick=\"window.location.href = '/patterns.html?pattern=%d';\">Select</button>%s\n",
-	       (step == index)? "==>" : "",
+	           (step == index)? "==>" : "",
                index+1,
                patternTable[index].patternName,
                (patternTable[index].patternType == PATTERN_BUILT_IN)? "Built-in":"File System",
-	       patternTable[index].delay,
-           index+1,
-	       patternTable[index].cycles,
-	       index,
-	       deleteButton
+	           patternTable[index].delay,
+               index+1,
+	           patternTable[index].cycles,
+	           index,
+	           deleteButton
             );
             httpd_resp_send_chunk(req, tbuffer2, strlen(tbuffer2));
-	}
+            free(tbuffer2);
+            free(deleteButton);
+    	}
     }
     httpd_resp_send_chunk(req, pattern_footer, strlen(pattern_footer));
     file_get_handler(req, "/spiffs/patterns.html",true);
