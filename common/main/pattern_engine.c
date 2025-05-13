@@ -104,28 +104,45 @@ pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
     .runMe = layer_test,
     .patternName = "Layer test",
     .delay = 500,
-    .cycles = 10,
+    .cycles = 60,
     .enabled = true},
    {.patternType = PATTERN_BUILT_IN,
     .runMe = rgb_test,
     .patternName = "Just a RGB test",
     .delay = 1000 * 3,
-    .cycles = 10,
+    .cycles = 60,
     .enabled = true},
    {.patternType = PATTERN_BUILT_IN,
     .runMe = walking_testing,
     .patternName = "Walking LED test",
     .delay = 200,
-    .cycles = 1000,
+    .cycles = 60,
     .enabled = true},
    {.patternType = PATTERN_BUILT_IN,
     .runMe = rgb_fade,
     .patternName = "RGB all Fade test",
     .delay = 100,
-    .cycles = 10,
+    .cycles = 60,
     .enabled = true},
   };
 
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
+bool checkTimeDelta(time_t exitTime ) {
+    time_t now;
+
+    time(&now);
+    return( exitTime > now);
+}
 /*******************************************************************************
     PURPOSE:
 
@@ -170,7 +187,7 @@ uint8_t getLastPattern() {
     uint8_t index;
     for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
         if (patternTable[index].patternType == PATTERN_NONE) {
-            ESP_LOGI(TAG,"last_pattern = %d", index);
+//            ESP_LOGI(TAG,"last_pattern = %d", index);
             return( index-1);
         }
     }
@@ -499,10 +516,9 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 
    allLedsColor( 0,0,0);
    time(&exitTime);
-   exitTime+= 60; // 60 seconds
-   time(&now);
+   exitTime+= 120; // 60 seconds
 
-   while(exitTime > now) { // 60 seconds
+   while(checkTimeDelta(exitTime)) {
       cycles--;
       sprintf(filename, "/spiffs/%s",name);
       if (once==true) ESP_LOGI(TAG,"file=%s", filename);
@@ -738,7 +754,7 @@ void addPattern( char * filename) {
 
     strcpy(patternTable[index].fileName, filename);
     patternTable[index].delay = 63;
-    patternTable[index].cycles = 10;
+    patternTable[index].cycles = 120;
     patternTable[index].enabled = true;
     strcpy(patternTable[index].patternName, filename);
     patternTable[index].patternType = (filename[strlen(filename)-1] == 'c')? PATTERN_SCRIPT_FILE : PATTERN_FILE;
@@ -1023,7 +1039,7 @@ void updatePatternsTask(void *param) {
                     break;
                 case PATTERN_SCRIPT_FILE:
                     ESP_LOGI(TAG,"running %s script", patternTable[step].patternName);
-		    runDiskScriptPattern(patternTable[step].patternName);
+         		    runDiskScriptPattern(patternTable[step].patternName);
                     break;
                 case PATTERN_NONE:
                 default:
@@ -1031,7 +1047,7 @@ void updatePatternsTask(void *param) {
             }
             if ((demoMode) && (exitReason == false)) {
                 setPatternPlus();
-	        ESP_LOGI(TAG,"demo mode forward %d", getPatternNumber());
+                ESP_LOGI(TAG,"demo mode forward pattern=%d", getPatternNumber());
                 delay_and_buttons(1); // clean the pending stop
             }
         } else {

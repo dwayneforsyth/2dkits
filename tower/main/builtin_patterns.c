@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "freertos/FreeRTOS.h"
 
 #include "esp_system.h"
@@ -47,19 +48,21 @@
     NOTES:
 
 *******************************************************************************/
-void layer_test( uint16_t cycles, uint16_t delay) {
+void layer_test( uint16_t seconds, uint16_t delay) {
    uint8_t l,x,y,c;
+   time_t exitTime;
+   time(&exitTime);
+   exitTime+= seconds;
 
-   while(cycles != 0) {
-      cycles--;
+   while(checkTimeDelta(exitTime)) {
       for(c=0;c<3;c++) {
          for(l=0;l<NUM_LAYER;l++) {
             allLedsColor( 0,0,0);
             for(x=0;x<4;x++) {
-	       for (y=0;y<4;y++) {
+               for (y=0;y<4;y++) {
                   setLed(l,x,y,(c==0)? 15:0,(c==1)? 15:0,(c==2)? 15:0);
-	       }
-	    }
+               }
+            }
             if (delay_and_buttons(delay)) return;
          }
       }
@@ -77,10 +80,13 @@ void layer_test( uint16_t cycles, uint16_t delay) {
     NOTES:
 
 *******************************************************************************/
-void rgb_test( uint16_t cycles, uint16_t delay) {
+void rgb_test( uint16_t seconds, uint16_t delay) {
 
-   while(cycles != 0) {
-      cycles--;
+   time_t exitTime;
+   time(&exitTime);
+   exitTime+= seconds;
+
+   while(checkTimeDelta(exitTime)) {
       allLedsColor( 15,15,15);
       if (delay_and_buttons(delay)) return;
       allLedsColor( 0,0,0);
@@ -105,13 +111,16 @@ void rgb_test( uint16_t cycles, uint16_t delay) {
     NOTES:
 
 *******************************************************************************/
-void walking_testing( uint16_t cycles, uint16_t delay) {
-    uint8_t l,x,y,r,g,b;
+void walking_testing( uint16_t seconds, uint16_t delay) {
+   uint8_t l,x,y,r,g,b;
 
-    uint16_t step = (NUM_LAYER==8)? 0x007f : 0x003f;
+   uint16_t step = (NUM_LAYER==8)? 0x007f : 0x003f;
 
-    while(cycles != 0) {
-	cycles--;
+   time_t exitTime;
+   time(&exitTime);
+   exitTime+= seconds;
+
+   while(checkTimeDelta(exitTime)) {
 	step++;
 
 #if (NUM_LAYER == 8)
@@ -159,11 +168,13 @@ void walking_testing( uint16_t cycles, uint16_t delay) {
     NOTES:
 
 *******************************************************************************/
-void rgb_fade( uint16_t cycles, uint16_t delay) {
+void rgb_fade( uint16_t seconds, uint16_t delay) {
    uint8_t r,g,b,fad,color;
+   time_t exitTime;
+   time(&exitTime);
+   exitTime+= seconds;
 
-   while(cycles != 0) {
-      cycles--;
+   while(checkTimeDelta(exitTime)) {
       for (color=0;color < 7; color++) {
 	  for (fad=1; fad < 16; fad++) {
              r = (color & 0x01)? 0 : fad;

@@ -47,3 +47,4 @@ void patternEngineOff( void );
 void setPatternRun( bool onOff );
 
 bool delay_and_buttons(uint16_t delay);
+bool checkTimeDelta(time_t exitTime );
