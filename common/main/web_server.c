@@ -104,7 +104,7 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
         strftime(tBuffer, 80, "%c", &timeinfo);
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strcmp("%hssid",token)==0) {
-        printf(">%s<", getHSSsid());
+        ESP_LOGI(TAG,">%s<", getHSSsid());
         sprintf(tBuffer, "%s", getHSSsid());
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strcmp("%hpasswd",token)==0) {
@@ -131,7 +131,7 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
                 sprintf(tBuffer, "%s",getWifiPasswd(i));
 	    } else {
                 strcpy(tBuffer,"[Assigned]");
-		printf("DDF P=%s\n",getWifiPasswd(i));
+		ESP_LOGI(TAG,"DDF P=%s\n",getWifiPasswd(i));
 	    }
         } else {
             sprintf(tBuffer, "[software error]");
@@ -338,7 +338,7 @@ void parseUrl(httpd_req_t *req) {
 		char file[40];
                 ESP_LOGI(TAG, "Delete = %s", param);
 		getFileName(file, param);
-                printf("file = >%s<\n",file);
+                ESP_LOGI(TAG,"file = >%s<\n",file);
   		remove(file);
 		deletePattern(&file[8]); // this is a hack to remove the "/spiffs/"
             }
@@ -410,8 +410,6 @@ void processString( char * value ) {
 
     if (strLength < 3) return;
 
-    printf("in >%s<\n",value);
-
     for( uint8_t i=0; i< strLength-2; i++) {
         if (value[i] == '+') {
             value[i] = ' ';
@@ -426,7 +424,6 @@ void processString( char * value ) {
             strcpy( &value[i+1], &value[i+3]);
         }
     }
-    printf("out >%s<\n",value);
 }
 
 /*******************************************************************************
@@ -450,38 +447,38 @@ static void processVar( char * name, char * value) {
     } else if (strcmp("hpasswd", name)==0) {
         if (strcmp(value, "[None]")==0) {
             value[0] = 0;
-            printf("erase\n");
+            ESP_LOGI(TAG,"erase\n");
         }
         setHSPasswd(value);
     } else if (strcmp("hchan", name)==0) {
         setHSChan( atoi(value));
     } else if (strncmp("wssid", name, 5)==0) {
-        printf("processVr1 %s\n", value);
+        ESP_LOGI(TAG,"processVr1 %s\n", value);
         ESP_LOGI(TAG, "DDF1 >%s< = >%s<", name, value);
         if (strcmp(value, "[Not+Used]")==0) {
             value[0] = 0;
-            printf("erase\n");
+            ESP_LOGI(TAG,"erase\n");
         }
         if (strcmp(value, "[Not Used]")==0) {
             value[0] = 0;
-            printf("erase\n");
+            ESP_LOGI(TAG,"erase\n");
         }
         ESP_LOGI(TAG, "DDF2 >%s< = >%s<", name, value);
         i = name[5] - '0';
-        printf("processVr2 %d %s\n", i, value);
+        ESP_LOGI(TAG,"processVr2 %d %s\n", i, value);
         setWifiSsid(i,value);
     } else if (strncmp("wpasswd", name, 7)==0) {
         i = name[7] - '0';
         ESP_LOGI(TAG, "DDF3 >%s< = >%s< len=%d", name, value,strlen(value));
         if (strlen(value) == 0) {
-            printf("erase password len=0 %d\n",i);
+            ESP_LOGI(TAG,"erase password len=0 %d\n",i);
             setWifiPasswd(i,value);
         } else if (strcmp(value, "[None]")==0) {
-            printf("erase password None %d\n",i);
+            ESP_LOGI(TAG,"erase password None %d\n",i);
             value[0] = 0;
             setWifiPasswd(i,value);
         } else if (strcmp(value, "[Not Used]")==0) {
-            printf("erase password Not Used %d\n",i);
+            ESP_LOGI(TAG,"erase password Not Used %d\n",i);
             value[0] = 0;
             setWifiPasswd(i,value);
         } else if ((strcmp(value, "[Assigned]")!=0)&&(strlen(value)>=8)) {
@@ -500,9 +497,82 @@ static void processVar( char * name, char * value) {
         ESP_LOGI(TAG, "set Digi Bright %d %d", i, atoi(value));
 	setDigiBrightness( i, atoi(value));
 #endif
+    } else if (strncmp("pattern", name, 7)==0) {
+        i = atoi(&name[7]);
+//        ESP_LOGI(TAG, "set pattern name %d %s", i, value);
+	    setPatternName( i, value);
+    } else if (strncmp("second", name, 6)==0) {
+        i = atoi(&name[6]);
+//        ESP_LOGI(TAG, "set pattern seconds %s %d %d", name, i, atoi(value));
+	    setPatternSeconds( i, atoi(value));
     } else {
         ESP_LOGI(TAG, "unknown >%s< = >%s<", name, value);
     }
+}
+
+/*******************************************************************************
+    PURPOSE:  An HTTP POST handler
+
+    INPUTS: http request
+
+    RETURN CODE:
+        error code
+
+    NOTES:
+
+*******************************************************************************/
+static esp_err_t save_patterns_handler(httpd_req_t *req)
+{
+    char dataName[100];
+    char dataVar[100];
+    size_t off=0;
+    int ret = 0;
+
+    char*  buf = malloc(req->content_len + 1);
+
+    while (off < req->content_len) {
+        /* Read data received in the request */
+        ret = httpd_req_recv(req, buf + off, req->content_len - off);
+        if (ret <= 0) {
+            if (ret == HTTPD_SOCK_ERR_TIMEOUT) {
+                httpd_resp_send_408(req);
+            }
+            free (buf);
+            return ESP_FAIL;
+        }
+        off += ret;
+//      ESP_LOGI(TAG, "/echo handler recv length %d", ret);
+    }
+    buf[off] = '\0';
+
+    /* Log data received */
+    ESP_LOGI(TAG, "=========== RECEIVED DATA ==========");
+    uint16_t i = 0;
+    uint16_t b = 0;
+    while ( i < (req->content_len+1)) {
+        if (buf[i] == '=') {
+            strlcpy(dataName, &buf[b], i-b+1);
+//           ESP_LOGI(TAG, ">%s< %d %d", dataName, b, i);
+            b=i+1;
+        } else if ((buf[i] == '&')||(buf[i] == 0)) {
+            strlcpy(dataVar, &buf[b], i-b+1);
+            processVar( dataName, dataVar );
+            b=i+1;
+        }
+        i++;
+    }
+    ESP_LOGI(TAG, "====================================");
+    WifiCleanup();
+
+    // End response
+    /* Send a simple response */
+//    file_get_handler(req, "/spiffs/header.html", true);
+//    httpd_resp_send_chunk(req, buf, ret);
+    free(buf);
+    web_pattern_list(req);
+//    file_get_handler(req, "/spiffs/footer.html", false);
+//    httpd_resp_send_chunk(req, NULL, 0);
+    return ESP_OK;
 }
 
 /*******************************************************************************
@@ -949,6 +1019,13 @@ httpd_uri_t save = {
     .user_ctx  = NULL,
 };
 
+httpd_uri_t savep = {
+    .uri       = "/form-patterns",
+    .method    = HTTP_POST,
+    .handler   = save_patterns_handler,
+    .user_ctx  = NULL,
+};
+
 /*******************************************************************************
     PURPOSE: start the web server
 
@@ -991,6 +1068,7 @@ httpd_handle_t start_webserver(void) {
 #endif
         httpd_register_uri_handler(server, &content);
         httpd_register_uri_handler(server, &save);
+        httpd_register_uri_handler(server, &savep);
         return server;
     }
 
@@ -1003,7 +1081,7 @@ void start_mdns_service()
     //initialize mDNS service
     esp_err_t err = mdns_init();
     if (err) {
-        printf("MDNS Init failed: %d\n", err);
+        ESP_LOGI(TAG,"MDNS Init failed: %d\n", err);
         return;
     }
 

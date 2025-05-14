@@ -23,6 +23,9 @@
 
 #include <esp_http_server.h>
 
+#define PATTERN_NAME_SIZE 40
+#define PATTERN_FILE_NAME_SIZE 20
+#define MAX_PATTERN_ENTRY 50
 
 void updatePatternsTask( void *args );
 void addPattern( char * );

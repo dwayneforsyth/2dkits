@@ -24,6 +24,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "pattern_engine.h"
+
 typedef struct wifiData_t {
    char ssid[64];
    char passwd[128];
@@ -47,6 +49,12 @@ typedef struct blinkieAppData_t {
    bool tformat;
    uint8_t digiBrightness[4];
 } blinkieAppData_t;
+
+typedef struct blinkiePatternData_t {
+   char name[PATTERN_FILE_NAME_SIZE+1];
+   char seconds;
+   bool enabled;
+} blinkiePatternData_t;
 
 void loadSettings();
 void initSettings();
@@ -77,3 +85,6 @@ void setDigiBrightness( uint8_t index, uint8_t value );
 void setWifiSsid( uint8_t index, char * wssid);
 void setWifiPasswd( uint8_t index, char * wpasswd);
 void WifiCleanup( void );
+
+void setPatternName( uint8_t index, char * name );
+void setPatternSeconds( uint8_t index, uint16_t seconds);

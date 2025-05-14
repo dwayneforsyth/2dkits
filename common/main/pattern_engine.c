@@ -48,8 +48,7 @@
 #include "board_pins.h"
 #include "font.h"
 #include "builtin_patterns.h"
-
-#define MAX_PATTERN_ENTRY 50
+#include "pattern_engine.h"
 
 typedef enum patternType_t {
     PATTERN_NONE,
@@ -63,8 +62,8 @@ typedef struct pattern_entry_t {
     void (*runMe)(uint16_t cycles, uint16_t delay);
     uint16_t delay;
     uint16_t cycles;
-    char fileName[20];
-    char patternName[40];
+    char fileName[PATTERN_FILE_NAME_SIZE];
+    char patternName[PATTERN_NAME_SIZE];
     bool enabled;
 } pattern_entry_t;
 
@@ -954,9 +953,12 @@ esp_err_t cloud_pattern_list(httpd_req_t *req)  {
 
 *******************************************************************************/
 esp_err_t web_pattern_list(httpd_req_t *req)  {
-    const char *pattern_header = "<table><tr><th>Status<th>Id<th>Name<th>Type<th>Speed<th>Seconds<th>&nbsp\n";
-    const char *pattern_footer = "</table><br>\n";
-    const char *pattern_heading = "</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Pattern List</div><div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n";
+    const char *pattern_header = " <form action=\"/form-patterns\" method=\"post\">"
+                                 " <table><tr><th>Status<th>Id<th>Name<th>Type<th>Speed<th>Seconds<th>&nbsp\n";
+    const char *pattern_footer = "</table>\n<button style= \"background-color: green; color: white\" "
+                                 " type=\"submit\">Save Pattern Settings</button><br> </form>";
+    const char *pattern_heading = "</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Pattern List</div>"
+                                  "<div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n";
 
     char *tbuffer2;
     char *deleteButton = NULL;
@@ -979,6 +981,7 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
             }
             asprintf( &tbuffer2, 
                 "<tr><td>%s<td>%d<td align=\"left\">%s<td>%s<td>%d<td>"
+                "<input type=\"hidden\" id=\"pattern\" name=\"pattern%d\" value=\"%s\" size=\"4\">"
                 "<input type=\"text\" id=\"second\" name=\"second%d\" value=\"%d\" size=\"4\">"
                 "<td><button onclick=\"window.location.href = '/patterns.html?pattern=%d';\">Select</button>%s\n",
 	           (step == index)? "==>" : "",
@@ -986,6 +989,8 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
                patternTable[index].patternName,
                (patternTable[index].patternType == PATTERN_BUILT_IN)? "Built-in":"File System",
 	           patternTable[index].delay,
+               index+1,
+               patternTable[index].patternName,
                index+1,
 	           patternTable[index].cycles,
 	           index,
