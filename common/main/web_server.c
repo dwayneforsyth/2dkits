@@ -500,11 +500,11 @@ static void processVar( char * name, char * value) {
     } else if (strncmp("pattern", name, 7)==0) {
         i = atoi(&name[7]);
 //        ESP_LOGI(TAG, "set pattern name %d %s", i, value);
-	    setPatternName( i, value);
+	    setDBPatternName( i, value);
     } else if (strncmp("second", name, 6)==0) {
         i = atoi(&name[6]);
-//        ESP_LOGI(TAG, "set pattern seconds %s %d %d", name, i, atoi(value));
-	    setPatternSeconds( i, atoi(value));
+        ESP_LOGI(TAG, "set pattern seconds name=%s i=%d atoi()=%d value=%s", name, i, atoi(value), value);
+	    setDBPatternSeconds( i, atoi(value));
     } else {
         ESP_LOGI(TAG, "unknown >%s< = >%s<", name, value);
     }
@@ -563,6 +563,7 @@ static esp_err_t save_patterns_handler(httpd_req_t *req)
     }
     ESP_LOGI(TAG, "====================================");
     WifiCleanup();
+    updatePatternData();
 
     // End response
     /* Send a simple response */

@@ -245,15 +245,23 @@ void setDigiBrightness( uint8_t index, uint8_t value ) {
     xAppData.digiBrightness[index] = value;
 }
 
-void setPatternName( uint8_t index, char * name ) {
+void setDBPatternName( uint8_t index, char * name ) {
      strncpy( patternData[index].name, name, PATTERN_FILE_NAME_SIZE );
      patternData[index].name[PATTERN_FILE_NAME_SIZE] = 0; //safety
      ESP_LOGI(TAG, "set pattern name %d %s", index, patternData[index].name);
 
 }
 
-void setPatternSeconds( uint8_t index, uint16_t seconds) {
+char * getDBPatternName( uint8_t index) {
+     return(patternData[index].name);
+}
+
+void setDBPatternSeconds( uint8_t index, uint16_t seconds) {
      patternData[index].seconds = seconds;
      ESP_LOGI(TAG, "set pattern seconds %d %d", index, patternData[index].seconds);
+}
+
+uint16_t getDBPatternSeconds( uint8_t index) {
+     return(patternData[index].seconds);
 }
 

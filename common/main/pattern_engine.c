@@ -59,7 +59,7 @@ typedef enum patternType_t {
 
 typedef struct pattern_entry_t {
     patternType_t patternType;
-    void (*runMe)(uint16_t cycles, uint16_t delay);
+    void (*runMe)(uint16_t delay);
     uint16_t delay;
     uint16_t cycles;
     char fileName[PATTERN_FILE_NAME_SIZE];
@@ -89,10 +89,6 @@ time_t exitTime;
 
 bool printPattern = false;
 
-void layer_test( uint16_t cycles, uint16_t delay);
-void rgb_test( uint16_t cycles, uint16_t delay);
-void walking_testing( uint16_t cycles, uint16_t delay);
-void rgb_fade( uint16_t cycles, uint16_t delay);
 /*******************************************************************************
 
     Pattern table
@@ -340,6 +336,12 @@ bool delay_and_buttons(uint16_t delay) {
     }
 
     exitReason = exit;
+
+    if (!checkTimeDelta(exitTime)) {
+        ESP_LOGI(TAG,"second timeout in delay_and_buttons()");
+        return( true);
+    }
+
     return(exit);
 }
 
@@ -495,7 +497,7 @@ void addAndShift( uint8_t red, uint8_t green, uint8_t blue) {
     NOTES:
 
 *******************************************************************************/
-void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
+void runDiskPattern(char *name, uint16_t delay) {
    uint16_t tBuffer[256];
    char filename[40];
    FILE *fh;
@@ -514,11 +516,8 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
    time_t now;
 
    allLedsColor( 0,0,0);
-   time(&exitTime);
-   exitTime+= 120; // 60 seconds
 
-   while(checkTimeDelta(exitTime)) {
-      cycles--;
+   while(true) {
       sprintf(filename, "/spiffs/%s",name);
       if (once==true) ESP_LOGI(TAG,"file=%s", filename);
       fh = fopen(filename, "r");
@@ -541,7 +540,6 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
           case 2: // old tower
               fread(tBuffer,2,(8*3), fh);
               fread(&fad_cycle,1,1, fh);
-//              printf("read frame=%d cycles=%d fad=%d\n",frame,cycles, fad_cycle);
 	      if (fad_cycle == 0) {
 	          for (loop=0;loop<8;loop++) {
                       setLed4RGBOnOff(7- (7-loop)/4,    loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
@@ -573,7 +571,6 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 	  case 16: // old tower
               ret = fread(tBuffer,2,(8*3), fh);
               if (ret == 0) { break;}
-//              printf("read frame=%d cycles=%d\n",frame,cycles);
 	      for (loop=0;loop<8;loop++) {
                   setLed4RGBOnOff(7- (7-loop)/4,    loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x8000);
                   setLed4RGBOnOff(7-((7-loop)/4+2), loop%4, tBuffer[loop*3], tBuffer[loop*3+1], tBuffer[loop*3+2], 0x0008);
@@ -656,7 +653,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 //		          printf("\n");
                       }
 	       	  }
-//		  printf("cycles=%d delay=%d\n",loops,delay*speed);
+//		  printf("loops=%d delay=%d\n",loops,delay*speed);
                   if (delay_and_buttons(delay*speed)) {
                       fclose(fh); 
 		      return;
@@ -689,7 +686,7 @@ void runDiskPattern(char *name, uint16_t cycles, uint16_t delay) {
 //		          printf("\n");
                       }
                   }
- 		  //printf("cycles=%d delay=%d\n",loops,delay*speed);
+ 		  //printf("loops=%d delay=%d\n",loops,delay*speed);
                   if (delay_and_buttons(delay*speed)) {
                       fclose(fh);
 		      return;
@@ -952,6 +949,34 @@ esp_err_t cloud_pattern_list(httpd_req_t *req)  {
     NOTES:
 
 *******************************************************************************/
+void updatePatternData( void ) {
+
+    for (uint8_t index1 = 0; index1 < MAX_PATTERN_ENTRY; index1++) {
+        for (uint8_t index2 = 0; index2 < MAX_PATTERN_ENTRY; index2++) {
+	        if ((patternTable[index1].patternType != PATTERN_NONE)
+                && (strcmp( patternTable[index1].fileName, getDBPatternName( index2))==0)) {
+                uint16_t cycles = getDBPatternSeconds( index2);
+                if (cycles != 0) {
+                    patternTable[index1].cycles = cycles;
+                }
+                break;
+            }
+        }
+    }
+
+}
+
+/*******************************************************************************
+    PURPOSE:
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
 esp_err_t web_pattern_list(httpd_req_t *req)  {
     const char *pattern_header = " <form action=\"/form-patterns\" method=\"post\">"
                                  " <table><tr><th>Status<th>Id<th>Name<th>Type<th>Speed<th>Seconds<th>&nbsp\n";
@@ -1022,7 +1047,6 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
 void updatePatternsTask(void *param) {
 
     allLedsOff();
-    time(&exitTime);
 
 //    gpio_pad_select_gpio(BUTTON1);
     gpio_reset_pin(BUTTON1);
@@ -1035,12 +1059,15 @@ void updatePatternsTask(void *param) {
     while (1) {
 	if (patternRun == true) {
 	    if (printPattern) {ESP_LOGI(TAG,"running pattern %d %s\n", step, patternTable[step].patternName);}
+        time(&exitTime);
+        exitTime+= patternTable[step].cycles;
+
             switch (patternTable[step].patternType) {
                 case PATTERN_BUILT_IN:
-                    (patternTable[step].runMe)(patternTable[step].cycles, patternTable[step].delay);
+                    (patternTable[step].runMe)(patternTable[step].delay);
                     break;
                 case PATTERN_FILE:
-                    runDiskPattern(patternTable[step].fileName, patternTable[step].cycles, patternTable[step].delay);
+                    runDiskPattern(patternTable[step].fileName, patternTable[step].delay);
                     break;
                 case PATTERN_SCRIPT_FILE:
                     ESP_LOGI(TAG,"running %s script", patternTable[step].patternName);

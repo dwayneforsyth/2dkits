@@ -52,7 +52,7 @@ typedef struct blinkieAppData_t {
 
 typedef struct blinkiePatternData_t {
    char name[PATTERN_FILE_NAME_SIZE+1];
-   char seconds;
+   uint16_t seconds;
    bool enabled;
 } blinkiePatternData_t;
 
@@ -86,5 +86,7 @@ void setWifiSsid( uint8_t index, char * wssid);
 void setWifiPasswd( uint8_t index, char * wpasswd);
 void WifiCleanup( void );
 
-void setPatternName( uint8_t index, char * name );
-void setPatternSeconds( uint8_t index, uint16_t seconds);
+void setDBPatternName( uint8_t index, char * name);
+char * getDBPatternName( uint8_t index);
+void setDBPatternSeconds( uint8_t index, uint16_t seconds);
+uint16_t getDBPatternSeconds( uint8_t index);
