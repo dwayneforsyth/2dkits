@@ -103,6 +103,7 @@ void app_main()
     };
 
     disk_dir(req);
+    updatePatternData();
 
     initialise_wifi_p2(&server);
     vTaskDelay(1000 / portTICK_PERIOD_MS);

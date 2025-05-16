@@ -72,6 +72,14 @@ void storeSettings() {
    fwrite( &xAppData, sizeof(xAppData), 1, ptr);
 
    fclose( ptr);
+
+   ptr = fopen("/spiffs/patterns.bin","wb");
+
+   ESP_LOGW(TAG,"store pattern Settings");
+
+   fwrite( &patternData, sizeof(patternData), 1, ptr);
+
+   fclose( ptr);
 }
 
 void loadSettings() {
@@ -85,6 +93,18 @@ void loadSettings() {
        storeSettings();
    } else {
        fread( &xAppData, sizeof(xAppData), 1, ptr);
+       fclose( ptr);
+   }
+
+   ptr = fopen("/spiffs/patterns.bin","rb");
+
+   ESP_LOGW(TAG, "Load pattern Settings\n");
+
+   if (!ptr) {
+       memset(&patternData, 0x00, sizeof(patternData));
+       storeSettings();
+   } else {
+       fread( &patternData, sizeof(patternData), 1, ptr);
        fclose( ptr);
    }
 }

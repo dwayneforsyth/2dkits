@@ -564,6 +564,7 @@ static esp_err_t save_patterns_handler(httpd_req_t *req)
     ESP_LOGI(TAG, "====================================");
     WifiCleanup();
     updatePatternData();
+    storeSettings();
 
     // End response
     /* Send a simple response */

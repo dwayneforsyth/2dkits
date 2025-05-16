@@ -338,7 +338,6 @@ bool delay_and_buttons(uint16_t delay) {
     exitReason = exit;
 
     if (!checkTimeDelta(exitTime)) {
-        ESP_LOGI(TAG,"second timeout in delay_and_buttons()");
         return( true);
     }
 
