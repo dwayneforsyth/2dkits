@@ -85,8 +85,6 @@ static int fill_dma_desc(volatile lldesc_t *dmadesc, void *memory, int size) {
 static void gpio_setup_out(int gpio, int sig) {
 	if (gpio==-1) return;
 
-	printf("ddf pin %d\n", gpio);
-//	PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpio], PIN_FUNC_GPIO);
 	gpio_reset_pin(gpio);
 	gpio_set_direction(gpio, GPIO_MODE_DEF_OUTPUT);
 	gpio_matrix_out(gpio, sig, false, false);

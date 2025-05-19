@@ -86,7 +86,7 @@ void loadSettings() {
 
    FILE *ptr = fopen("/spiffs/setting.bin","rb");
 
-   ESP_LOGW(TAG, "Load Settings\n");
+   ESP_LOGW(TAG, "Load Settings");
 
    if (!ptr) {
        initSettings();
@@ -98,7 +98,7 @@ void loadSettings() {
 
    ptr = fopen("/spiffs/patterns.bin","rb");
 
-   ESP_LOGW(TAG, "Load pattern Settings\n");
+   ESP_LOGW(TAG, "Load pattern Settings");
 
    if (!ptr) {
        memset(&patternData, 0x00, sizeof(patternData));

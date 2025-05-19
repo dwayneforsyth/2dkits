@@ -23,8 +23,8 @@
 
 #include <stdint.h>
 
-void layer_test( uint16_t cycles, uint16_t delay);
-void rgb_test( uint16_t cycles, uint16_t delay);
-void walking_testing( uint16_t cycles, uint16_t delay);
-void rgb_fade( uint16_t cycles, uint16_t delay);
+void layer_test( uint16_t delay);
+void rgb_test( uint16_t delay);
+void walking_testing( uint16_t delay);
+void rgb_fade( uint16_t delay);
 

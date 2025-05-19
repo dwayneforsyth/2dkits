@@ -25,7 +25,7 @@
 
 #define MAJOR 0
 #define MINOR 1
-#define BUILD 6
+#define BUILD 7
 
 #define KIT_NUMBER 25
 #define KIT_NAME "Tower 4x4x8"

@@ -47,11 +47,10 @@
     NOTES:
 
 *******************************************************************************/
-void layer_test( uint16_t cycles, uint16_t delay) {
+void layer_test( uint16_t delay) {
    uint8_t l,x,y,c;
 
-   while(cycles != 0) {
-      cycles--;
+   while(true) {
       for(c=0;c<3;c++) {
          for(l=0;l<NUM_LAYER;l++) {
             allLedsColor( 0,0,0);
@@ -77,10 +76,9 @@ void layer_test( uint16_t cycles, uint16_t delay) {
     NOTES:
 
 *******************************************************************************/
-void rgb_test( uint16_t cycles, uint16_t delay) {
+void rgb_test( uint16_t delay) {
 
-   while(cycles != 0) {
-      cycles--;
+   while(true) {
       allLedsColor( 15,15,15);
       if (delay_and_buttons(delay)) return;
       allLedsColor( 0,0,0);
@@ -105,13 +103,12 @@ void rgb_test( uint16_t cycles, uint16_t delay) {
     NOTES:
 
 *******************************************************************************/
-void walking_testing( uint16_t cycles, uint16_t delay) {
+void walking_testing( uint16_t delay) {
     uint8_t l,x,y,r,g,b;
 
     uint16_t step = (NUM_LAYER==8)? 0x007f : 0x003f;
 
-    while(cycles != 0) {
-	cycles--;
+    while(true) {
 	step++;
 
 #if (NUM_LAYER == 8)
@@ -159,11 +156,10 @@ void walking_testing( uint16_t cycles, uint16_t delay) {
     NOTES:
 
 *******************************************************************************/
-void rgb_fade( uint16_t cycles, uint16_t delay) {
+void rgb_fade( uint16_t delay) {
    uint8_t r,g,b,fad,color;
 
-   while(cycles != 0) {
-      cycles--;
+   while(true) {
       for (color=0;color < 7; color++) {
 	  for (fad=1; fad < 16; fad++) {
              r = (color & 0x01)? 0 : fad;
