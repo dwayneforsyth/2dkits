@@ -98,24 +98,28 @@ pattern_entry_t patternTable[MAX_PATTERN_ENTRY] = {
    {.patternType = PATTERN_BUILT_IN,
     .runMe = layer_test,
     .patternName = "Layer test",
+    .fileName = "Layer test",
     .delay = 500,
     .cycles = 60,
     .enabled = true},
    {.patternType = PATTERN_BUILT_IN,
     .runMe = rgb_test,
     .patternName = "Just a RGB test",
+    .fileName = "Just a RGB test",
     .delay = 1000 * 3,
     .cycles = 60,
     .enabled = true},
    {.patternType = PATTERN_BUILT_IN,
     .runMe = walking_testing,
     .patternName = "Walking LED test",
+    .fileName = "Walking LED test",
     .delay = 200,
     .cycles = 60,
     .enabled = true},
    {.patternType = PATTERN_BUILT_IN,
     .runMe = rgb_fade,
     .patternName = "RGB all Fade test",
+    .fileName = "RGB all Fade test",
     .delay = 100,
     .cycles = 60,
     .enabled = true},
@@ -202,7 +206,9 @@ uint8_t getLastPattern() {
 *******************************************************************************/
 void setPatternPlus() {
     ESP_LOGI(TAG,"set pattern plus %d", step);
-    step = (step+1) % (getLastPattern()+1);
+    do {
+        step = (step+1) % (getLastPattern()+1);
+    } while (patternTable[step].cycles == 0);
     pendingExit = true;
 }
 
@@ -218,10 +224,11 @@ void setPatternPlus() {
 
 *******************************************************************************/
 void setPatternMinus() {
-    ESP_LOGI(TAG,"pattern top minus %d", step);
-    step = (step == 0)? getLastPattern() : step -1;
+    ESP_LOGI(TAG,"pattern minus %d", step);
+    do {
+        step = (step == 0)? getLastPattern() : step -1;
+    } while (patternTable[step].cycles == 0);
     pendingExit = true;
-    ESP_LOGI(TAG,"pattern bottom minus = %d", step);
 }
 
 /*******************************************************************************
@@ -954,10 +961,7 @@ void updatePatternData( void ) {
         for (uint8_t index2 = 0; index2 < MAX_PATTERN_ENTRY; index2++) {
 	        if ((patternTable[index1].patternType != PATTERN_NONE)
                 && (strcmp( patternTable[index1].fileName, getDBPatternName( index2))==0)) {
-                uint16_t cycles = getDBPatternSeconds( index2);
-                if (cycles != 0) {
-                    patternTable[index1].cycles = cycles;
-                }
+                patternTable[index1].cycles = getDBPatternSeconds( index2);
                 break;
             }
         }
