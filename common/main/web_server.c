@@ -563,7 +563,9 @@ static esp_err_t save_patterns_handler(httpd_req_t *req)
     }
     ESP_LOGI(TAG, "====================================");
     WifiCleanup();
+#ifndef TIXCLOCK
     updatePatternData();
+#endif
     storeSettings();
 
     // End response
@@ -571,7 +573,9 @@ static esp_err_t save_patterns_handler(httpd_req_t *req)
 //    file_get_handler(req, "/spiffs/header.html", true);
 //    httpd_resp_send_chunk(req, buf, ret);
     free(buf);
+#ifndef TIXCLOCK
     web_pattern_list(req);
+#endif
 //    file_get_handler(req, "/spiffs/footer.html", false);
 //    httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;

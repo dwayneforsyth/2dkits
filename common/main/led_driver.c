@@ -24,6 +24,9 @@
 //   I used https://github.com/willz1200/i2s_parallel_queued for the
 //   starting point of this driver.
 
+#include "esp_log.h"
+static const char *TAG="I2SP";
+
 #include <stdio.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
@@ -36,6 +39,8 @@
 #include "led_map.h"
 #include "version.h"
 #include "board_pins.h"
+#include "hal/gpio_types.h"
+#include "esp_private/esp_gpio_reserve.h"
 
 //Queue for dummy data used to block main loop when all buffers are full
 QueueHandle_t main_data_queue;
@@ -399,9 +404,15 @@ void init_LED_driver(void) {
     allLedsColor2( 0, 0, 0);
     allLedsColor3( 0, 0, 0);
 //    gpio_pad_select_gpio(PIN_ENABLE);
-    gpio_reset_pin(PIN_ENABLE);
-    gpio_set_direction(PIN_ENABLE, GPIO_MODE_OUTPUT);
-    gpio_set_level(PIN_ENABLE, 0);
+    uint32_t pin_enable = (esp_gpio_is_reserved(1ULL << PIN_ENABLE))?  18 : PIN_ENABLE;
+    gpio_reset_pin(pin_enable);
+    gpio_set_direction(pin_enable, GPIO_MODE_OUTPUT);
+    gpio_set_level(pin_enable, 0);
+
+//  gpio_dump_io_configuration(stdout, 1ULL << GPIO_NUM_7 | 1ULL << GPIO_NUM_18 );
+
+    // kludge for old cube and matrix module...
+    uint32_t comsig1 = (esp_gpio_is_reserved(1ULL << COMSIG1))?  23 : COMSIG1;
 
     //Create data queue
     main_data_queue=xQueueCreate(1, 1);//bufferFrameSize*2
@@ -409,7 +420,7 @@ void init_LED_driver(void) {
     i2s_parallel_config_t i2scfg= {
         .gpio_bus={
             PIN_NUM_CLK, PIN_NUM_RED, PIN_NUM_GREEN, PIN_NUM_BLUE, PIN_LATCH,
-            COMSIG0, COMSIG1, COMSIG2, COMSIG3, COMSIG4, COMSIG5, COMSIG6, COMSIG7,
+            COMSIG0, comsig1, COMSIG2, COMSIG3, COMSIG4, COMSIG5, COMSIG6, COMSIG7,
             -1, -1, -1
         },
         .bits=I2S_PARALLEL_BITS_16,
@@ -419,10 +430,12 @@ void init_LED_driver(void) {
         .refill_cb_arg=main_data_queue //Queue pointer
     };
 #if  CONFIG_IDF_TARGET_ESP32S2
+    ESP_LOGI(TAG, "I2S2");
     i2s_parallel_setup(&I2S0, &i2scfg);
     i2s_parallel_start(&I2S0);
     xTaskCreate(mainLoop, "mainLoop", 1024*3, NULL, 23, NULL);
 #else
+    ESP_LOGI(TAG, "I2S1");
     i2s_parallel_setup(&I2S1, &i2scfg);
     i2s_parallel_start(&I2S1);
     xTaskCreatePinnedToCore(mainLoop, "mainLoop", 1024*3, NULL, 23, NULL, 1); //Use core 1 for main loop, I2S interrupt on core 0

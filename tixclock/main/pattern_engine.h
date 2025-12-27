@@ -25,7 +25,7 @@
 bool getDebugLed( void );
 void setDebugLed( bool onOff );
 void display_LED_uart( void);
-void updatePatternsTask( void );
+void updatePatternsTask( void * args );
 
 #endif
 

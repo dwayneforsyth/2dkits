@@ -98,7 +98,7 @@ void setupTimer( void ) {
 }
 
 
-void updatePatternsTask( void ) {
+void updatePatternsTask( void * args ) {
     struct tm timeinfo;
     char timeBuf[64];
     time_t now, old_now;

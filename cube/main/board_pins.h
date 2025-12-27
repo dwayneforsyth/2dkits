@@ -26,11 +26,13 @@
 #define PIN_NUM_GREEN 26
 #define PIN_NUM_BLUE  14
 #define PIN_NUM_CLK   13
-#define PIN_ENABLE    18
+#define PIN_ENABLE    7    // newer ESP32-PICO-V3
+#define PIN_ENABLE_OLD    18 //org board ESP32-PICO-D4
 
 #define PIN_LATCH      4
 #define COMSIG0       15
-#define COMSIG1       23
+#define COMSIG1       8    // newer ESP32-PICO-V3
+#define COMSIG1_OLD       23 //org board ESP32-PICO-D4
 #define COMSIG2       22
 #define COMSIG3       19
 #define COMSIG4       10
@@ -40,3 +42,7 @@
 
 #define BUTTON1 34
 #define BUTTON2 35
+
+
+ #define PIN_LATCH      4
+ #define COMSIG0       15
