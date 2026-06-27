@@ -981,12 +981,29 @@ void updatePatternData( void ) {
 
 *******************************************************************************/
 esp_err_t web_pattern_list(httpd_req_t *req)  {
-    const char *pattern_header = " <form action=\"/form-patterns\" method=\"post\">"
+    const char *pattern_header = " <form ida=\"myForm\" action=\"/form-patterns\" method=\"post\">"
                                  " <table><tr><th>Status<th>Id<th>Name<th>Type<th>Speed<th>Seconds<th>&nbsp\n";
     const char *pattern_footer = "</table>\n<button style= \"background-color: green; color: white\" "
-                                 " type=\"submit\">Save Pattern Settings</button><br> </form>";
+                                 " type=\"submit\" name=\"status\" value=\"settings\">Save Pattern Settings</button><p> </form>";
     const char *pattern_heading = "</div></td> <td valign=\"top\"><div id=\"navBreadCrumb\">Pattern List</div>"
                                   "<div class=\"centerColumn\" id=\"indexDefault\"><h1 id=\"indexDefaultHeading\"></h1>\n";
+    const char *pattern_script = 
+    "<script>" 
+    "async function update(){"
+    "  const elements = document.querySelectorAll('[id^=\"pat\"]'); "
+    "  elements.forEach((element) => { "
+    "     element.textContent = \" \"; "
+    "  });"
+
+    "  try{"
+    "    const t = await (await fetch('/pattern_no')).text();"
+    "    const id = \"pat\" + t; "
+    "    document.getElementById(id).textContent = \"===>\"; "
+    "  }catch(e){}"
+    "}"
+    "update();"
+    "setInterval(update,1000);"
+    "</script>";
 
     char *tbuffer2;
     char *deleteButton = NULL;
@@ -1003,16 +1020,16 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
     for (index = 0; index < MAX_PATTERN_ENTRY; index++) {
 	    if (patternTable[index].patternType != PATTERN_NONE) {
 	        if (patternTable[index].patternType != PATTERN_BUILT_IN) {
-	            asprintf(&deleteButton," <button onclick=\"window.location.href = '/patterns.html?delete=/%s';\">Delete</button>",patternTable[index].patternName);
+	            asprintf(&deleteButton," <button type=\"submit\" name=\"status\" value=\"delete-%s\">Delete</button>",patternTable[index].patternName);
 	        } else {
 	            asprintf(&deleteButton," ");
             }
             asprintf( &tbuffer2, 
-                "<tr><td>%s<td>%d<td align=\"left\">%s<td>%s<td>%d<td>"
+                "<tr><td><dev class=\"p\" id=\"pat%d\">%s</div><td>%d<td align=\"left\">%s<td>%s<td>%d<td>"
                 "<input type=\"hidden\" id=\"pattern\" name=\"pattern%d\" value=\"%s\" size=\"4\">"
                 "<input type=\"text\" id=\"second\" name=\"second%d\" value=\"%d\" size=\"4\">"
-                "<td><button onclick=\"window.location.href = '/patterns.html?pattern=%d';\">Select</button>%s\n",
-	           (step == index)? "==>" : "",
+                "<td><button type=\"submit\" name=\"status\" value=\"select-%d\">Select</button>%s\n",
+	           index+1, (step == index)? "==>" : "",
                index+1,
                patternTable[index].patternName,
                (patternTable[index].patternType == PATTERN_BUILT_IN)? "Built-in":"File System",
@@ -1030,6 +1047,7 @@ esp_err_t web_pattern_list(httpd_req_t *req)  {
     	}
     }
     httpd_resp_send_chunk(req, pattern_footer, strlen(pattern_footer));
+    httpd_resp_send_chunk(req, pattern_script, strlen(pattern_script));
     file_get_handler(req, "/spiffs/patterns.html",true);
     file_get_handler(req, "/spiffs/footer.html",false);
     httpd_resp_send_chunk(req, NULL, 0);

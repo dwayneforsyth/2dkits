@@ -26,14 +26,14 @@
 
 #define MAJOR 0
 #define MINOR 1
-#define BUILD 5
+#define BUILD 6
 
 #define KIT_NUMBER 13
 #define KIT_NAME "Cube 4x4x4"
 
 #define NUM_LAYER 4
 
-#define CONFIG_SERVER_URL                "http://www.2dkits.com/"
+#define CONFIG_SERVER_URL                "https://www.2dkits.com/"
 #define CONFIG_BASE_CLOUD_URL            CONFIG_SERVER_URL "kits/kit13/"
 #define CONFIG_FIRMWARE_STATUS_URL       CONFIG_BASE_CLOUD_URL "current_firmware.txt"
 #define CONFIG_TEST_FIRMWARE_STATUS_URL  CONFIG_BASE_CLOUD_URL "current_test_firmware.txt"

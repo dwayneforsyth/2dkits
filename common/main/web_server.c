@@ -108,7 +108,7 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
         sprintf(tBuffer, "%s", getHSSsid());
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strcmp("%hpasswd",token)==0) {
-        sprintf(tBuffer,"[None]"); //DDF hard codded
+        sprintf(tBuffer,"[None]");
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strncmp("%wssid",token,6)==0) {
         i = token[6] - '0';
@@ -138,9 +138,9 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
         }
         httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
     } else if (strncmp("%hchsel",token,7)==0) {
-        //DDF send nothing - hard codded
+        // send nothing - hard codded
     } else if (strncmp("%rgb",token,4)==0) {
-        //DDF send nothing - hard codded
+        // send nothing - hard codded
     } else if (strncmp("%tz",token,3)==0) {
 	sprintf(tBuffer,"%%tz%02d", xAppData.tzone+4);
         if (strcmp(tBuffer, token)==0) {
@@ -156,7 +156,7 @@ esp_err_t lookupToken(httpd_req_t *req, char *token) {
             sprintf(tBuffer, " selected ");
             httpd_resp_send_chunk(req, tBuffer,strlen(tBuffer));
         } else {
-            ESP_LOGI(TAG, "DDF time format error >%s<",token);
+            ESP_LOGI(TAG, "time format error >%s<",token);
 	}
     } else if (strncmp("%digadj",token,7)==0) {
         i = token[7] - '0';
@@ -442,7 +442,20 @@ static void processVar( char * name, char * value) {
 
     processString( value );
 
-    if (strcmp("hssid",name)==0) {
+    if (strcmp("status",name)==0) {
+        if (strncmp("select-", value, 7)==0) {
+            ESP_LOGI(TAG, "select button = %d ", atoi(&value[7])); //DDF
+            setPatternNumber(atoi(&value[7]));
+        } else if (strncmp("delete-", value, 7)==0) {
+            ESP_LOGI(TAG, "delete button = %s ", &value[7]); //DDF
+		    char file[40];
+		    getFileName(file, &value[6]);
+            ESP_LOGI(TAG,"file = >%s<\n",file);
+  		    remove(file);
+		    deletePattern(&file[8]); // this is a hack to remove the "/spiffs/"
+        }
+        ESP_LOGI(TAG, "button = %s ", value); //DDF
+    } else if (strcmp("hssid",name)==0) {
         setHSSsid(value);
     } else if (strcmp("hpasswd", name)==0) {
         if (strcmp(value, "[None]")==0) {
@@ -503,7 +516,7 @@ static void processVar( char * name, char * value) {
 	    setDBPatternName( i, value);
     } else if (strncmp("second", name, 6)==0) {
         i = atoi(&name[6]);
-        ESP_LOGI(TAG, "set pattern seconds name=%s i=%d atoi()=%d value=%s", name, i, atoi(value), value);
+        //ESP_LOGI(TAG, "set pattern seconds name=%s i=%d atoi()=%d value=%s", name, i, atoi(value), value);
 	    setDBPatternSeconds( i, atoi(value));
     } else {
         ESP_LOGI(TAG, "unknown >%s< = >%s<", name, value);
@@ -541,9 +554,10 @@ static esp_err_t save_patterns_handler(httpd_req_t *req)
             return ESP_FAIL;
         }
         off += ret;
-//      ESP_LOGI(TAG, "/echo handler recv length %d", ret);
+        //ESP_LOGI(TAG, "recv length %d", ret);
     }
     buf[off] = '\0';
+    //ESP_LOGI(TAG, "%s", buf);
 
     /* Log data received */
     ESP_LOGI(TAG, "=========== RECEIVED DATA ==========");
@@ -552,7 +566,7 @@ static esp_err_t save_patterns_handler(httpd_req_t *req)
     while ( i < (req->content_len+1)) {
         if (buf[i] == '=') {
             strlcpy(dataName, &buf[b], i-b+1);
-//           ESP_LOGI(TAG, ">%s< %d %d", dataName, b, i);
+            //ESP_LOGI(TAG, ">%s< %d %d", dataName, b, i);
             b=i+1;
         } else if ((buf[i] == '&')||(buf[i] == 0)) {
             strlcpy(dataVar, &buf[b], i-b+1);
@@ -851,7 +865,7 @@ static esp_err_t upload_post_handler(httpd_req_t *req)
     ESP_LOGI(TAG, "Receiving file : %s", filename);
 
     /* Retrieve the pointer to scratch buffer for temporary storage */
-    static char buf[1024]; //DDF
+    static char buf[1024];
     int received;
 
     /* Content length of the request gives
@@ -914,6 +928,44 @@ static esp_err_t upload_post_handler(httpd_req_t *req)
         addPattern(&filepath[8]); // this is a hack to remove the "/spiffs/"
     }
 
+    return ESP_OK;
+}
+
+/*******************************************************************************
+    PURPOSE: get disk drive output in html format
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
+static esp_err_t get_pattern_number(httpd_req_t *req) {
+    char tBuffer[10] = "na";
+    httpd_resp_set_hdr(req, "Content-type", "text/plain");
+    sprintf(tBuffer, "%d",getPatternNumber()+1);
+    httpd_resp_send(req, tBuffer, strlen(tBuffer));
+    return ESP_OK;
+}
+
+/*******************************************************************************
+    PURPOSE: get disk drive output in html format
+
+    INPUTS:
+
+    RETURN CODE:
+        NONE
+
+    NOTES:
+
+*******************************************************************************/
+static esp_err_t get_pattern_name(httpd_req_t *req) {
+    char tBuffer[20] = "tbd";
+    httpd_resp_set_hdr(req, "Content-type", "text/plain");
+    sprintf(tBuffer, "%s",getPatternName());
+    httpd_resp_send(req, tBuffer, strlen(tBuffer));
     return ESP_OK;
 }
 
@@ -1031,6 +1083,19 @@ httpd_uri_t savep = {
     .handler   = save_patterns_handler,
     .user_ctx  = NULL,
 };
+httpd_uri_t patt_no = {
+    .uri       = "/pattern_no",
+    .method    = HTTP_GET,
+    .handler   = get_pattern_number,
+    .user_ctx  = NULL,
+};
+httpd_uri_t patt_na = {
+    .uri       = "/pattern_name",
+    .method    = HTTP_GET,
+    .handler   = get_pattern_name,
+    .user_ctx  = NULL,
+};
+
 
 /*******************************************************************************
     PURPOSE: start the web server
@@ -1049,7 +1114,7 @@ httpd_handle_t start_webserver(void) {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 //    config.uri_match_fn = httpd_uri_match_wildcard;
     config.stack_size = 7 *1024;
-    config.max_uri_handlers = 18;
+    config.max_uri_handlers = 20;
 //    config.max_open_sockets = 13;
 
     // Start the httpd server
@@ -1071,6 +1136,8 @@ httpd_handle_t start_webserver(void) {
         httpd_register_uri_handler(server, &patterns);
         httpd_register_uri_handler(server, &cloud);
         httpd_register_uri_handler(server, &upload);
+        httpd_register_uri_handler(server, &patt_no);
+        httpd_register_uri_handler(server, &patt_na);
 #endif
         httpd_register_uri_handler(server, &content);
         httpd_register_uri_handler(server, &save);

@@ -38,7 +38,7 @@ neededFiles_t  files[] = {
     {.name = "footer.html",      .sha="0289f31c9e872fd865eafa54636483a19d1b5018"},
     {.name = "header.html",      .sha="89d58a04b347a92a3c8fe8ea1b07ffa87624be0d"},
     {.name = "header-bg.jpg",    .sha="7b4d322d9e6b84143ff974b9052bdcd9369f09a1"},
-    {.name = "index.html",       .sha="80cae09b90cbfc881687c71bb126803b0becb8d1"},
+    {.name = "index.html",       .sha="b8402492a170d65165e23d59d8b1db1ae85afae4"},
     {.name = "patterns.html",    .sha="1c6413e42a4d20853cca0c71d92639019af149ab"},
     {.name = "settings.html",    .sha="9c1ce9f3d4cc12ff8e1e111e0553cad603429868"},
     {.name = "styles.css",       .sha="cfdbd4de3f1a040c8a383e4cf53976df8ca793b4"},

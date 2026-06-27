@@ -77,7 +77,7 @@ void addPattern_cb( char type, char * size, char * sha, char *name, void *data) 
 void app_main()
 {
  
-    printf("Hello from Tower\n");
+    printf("Hello from Cube\n");
     init_LED_driver();
     allLedsColor(0,15,0);
 
